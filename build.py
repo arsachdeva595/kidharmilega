@@ -28,7 +28,7 @@ CSV_URL_VENDORS   = "YOUR_VENDORS_SHEET_CSV_URL_HERE"
 
 BASE_DIR  = Path(__file__).parent
 DATA_DIR  = BASE_DIR / "data"
-DIST_DIR  = BASE_DIR / "dist"
+DIST_DIR  = BASE_DIR / "docs"
 SRC_DIR   = BASE_DIR / "src"
 
 # ── FETCH OR READ DATA ───────────────────────────────────────────────────────

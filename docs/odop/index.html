@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ODOP Product Directory | KidharMilega</title>
+<meta name="description" content="Browse all One District One Product listings across India. Find GI-tagged products, understand market opportunities and discover how to start.">
+<link rel="canonical" href="https://kidharmilega.in/odop/">
+<meta property="og:title" content="ODOP Product Directory | KidharMilega">
+<meta property="og:description" content="Browse all One District One Product listings across India. Find GI-tagged products, understand market opportunities and discover how to start.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-logo">
+      <span class="logo-mark">KMG</span>
+      <span class="logo-text">kidhar<strong>milega</strong></span>
+    </a>
+    <div class="nav-links"><a href="/index.html">Home</a><a href="/odop/index.html" class="active">ODOP Directory</a><a href="/events/index.html">Events</a><a href="/vendors/index.html">Vendors</a></div>
+    <a href="https://instagram.com/startupwalebhaiya" class="nav-ig" target="_blank">@startupwalebhaiya</a>
+  </div>
+</nav>
+<main>
+  <div class="container">
+    <div class="page-header">
+      <div class="section-label">ODOP Directory</div>
+      <h1 class="page-header-title">One District,<br><em>One Product</em></h1>
+      <p class="page-header-sub">Every government-recognised ODOP product mapped to its district — with market size, export potential and a step-by-step business guide.</p>
+    </div>
+    <div class="filter-tabs"><button class="filter-tab active" onclick="filterODOP('all', this)">All Categories</button><button class="filter-tab" onclick="filterODOP('art--painting', this)">Art &amp; Painting</button><button class="filter-tab" onclick="filterODOP('food--agriculture', this)">Food &amp; Agriculture</button><button class="filter-tab" onclick="filterODOP('handicrafts--pottery', this)">Handicrafts &amp; Pottery</button><button class="filter-tab" onclick="filterODOP('textiles--handloom', this)">Textiles &amp; Handloom</button></div>
+    <div class="grid-3" id="odopGrid">
+<a href="/districts/varanasi/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Banarasi Silk</div>
+      <div class="district-name-hin">Varanasi · Uttar Pradesh</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹2000 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Varanasi has been the centre of silk weaving for over 600 years. The city's weaver clusters in Madanpura and P...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/lucknow/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Chikankari Embroidery</div>
+      <div class="district-name-hin">Lucknow · Uttar Pradesh</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹1500 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Lucknow has been the home of chikankari for over 400 years. The city's Muslim artisan clusters in Chowk and Am...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/jaipur/index.html" class="district-card" data-cat="handicrafts--pottery">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Blue Pottery</div>
+      <div class="district-name-hin">Jaipur · Rajasthan</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹300 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Jaipur's Persian-influenced blue pottery tradition dates back to the Mughal era. The city's artisan clusters i...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Handicrafts &amp; Pottery</span>
+    
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/madhubani/index.html" class="district-card" data-cat="art--painting">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Madhubani Painting</div>
+      <div class="district-name-hin">Madhubani · Bihar</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹150 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Madhubani district is the birthplace of Mithila painting. The art has been practiced by women in this region f...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Art &amp; Painting</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Medium export</span>
+  </div>
+</a>
+<a href="/districts/kutch/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kutch Embroidery</div>
+      <div class="district-name-hin">Kutch · Gujarat</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹500 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Kutch has over 16 distinct craft traditions practiced by different communities. The embroidery work of the Ahi...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/mysuru/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Mysore Silk</div>
+      <div class="district-name-hin">Mysuru · Karnataka</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹400 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Mysore silk weaving has been a royal tradition since the Wadiyar dynasty. The state-run Karnataka Silk Industr...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/kanchipuram/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kanjivaram Silk</div>
+      <div class="district-name-hin">Kanchipuram · Tamil Nadu</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹1200 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Kanchipuram has been weaving silk for over 400 years. The city's weavers are known for their distinctive inter...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a>
+<a href="/districts/kullu/index.html" class="district-card" data-cat="textiles--handloom">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kullu Shawl</div>
+      <div class="district-name-hin">Kullu · Himachal Pradesh</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹150 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Kullu shawls have been woven in the Kullu valley for centuries using wool from local sheep. The distinctive ge...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Medium export</span>
+  </div>
+</a>
+<a href="/districts/darjeeling/index.html" class="district-card" data-cat="food--agriculture">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Darjeeling Tea</div>
+      <div class="district-name-hin">Darjeeling · West Bengal</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-product">₹600 Cr annual market</div>
+  <div class="district-desc" style="margin-top:8px">Darjeeling's unique terroir — the altitude (600-2000m) the mist the soil and the climate — creates a tea flavo...</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Food &amp; Agriculture</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">High export</span>
+  </div>
+</a></div>
+  </div>
+</main>
+<script>
+function filterODOP(cat, btn) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#odopGrid .district-card').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.cat === cat) ? '' : 'none';
+  });
+}
+</script>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-mark small">KMG</span>
+      <span>kidharMilega.in</span>
+    </div>
+    <div class="footer-links">
+      <a href="/index.html">Home</a>
+      <a href="/odop/index.html">ODOP Directory</a>
+      <a href="/events/index.html">Events</a>
+      <a href="/vendors/index.html">Vendors</a>
+    </div>
+    <div class="footer-meta">
+      Built by <a href="https://instagram.com/startupwalebhaiya" target="_blank">@startupwalebhaiya</a> · April 2026
+    </div>
+  </div>
+</footer></body></html>
