@@ -116,11 +116,11 @@ def head(title, desc, canonical="", image=None):
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:image" content="{og_image}">
 <meta property="og:type" content="website">
-<link rel="icon" type="image/png" href="{p('docs/assets/logo.png')}">
+<link rel="icon" type="image/png" href="{p('/assets/logo.png')}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{p('docs/assets/style.css')}">
+<link rel="stylesheet" href="{p('/assets/style.css')}">
 </head><body>'''
 
 def build_homepage(districts):
