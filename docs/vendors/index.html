@@ -1,176 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor &amp; Supplier Directory | KidharMilega</title>
-<meta name="description" content="Find verified raw material suppliers and manufacturers for every ODOP product — mapped by district and product category.">
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Directory | KidharMilega</title>
+<meta name="description" content="Find verified suppliers for every ODOP product.">
 <link rel="canonical" href="https://kidharmilega.in/vendors/">
-<meta property="og:title" content="Vendor &amp; Supplier Directory | KidharMilega">
-<meta property="og:description" content="Find verified raw material suppliers and manufacturers for every ODOP product — mapped by district and product category.">
-<meta property="og:type" content="website">
+<meta property="og:title" content="Vendor Directory | KidharMilega">
+<meta property="og:description" content="Find verified suppliers for every ODOP product.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/kidharmilega/assets/style.css">
-</head>
-<body>
-<nav class="site-nav">
-  <div class="nav-inner">
-    <a href="/index.html" class="nav-logo">
-      <span class="logo-mark">KMG</span>
-      <span class="logo-text">kidhar<strong>milega</strong></span>
-    </a>
-    <div class="nav-links"><a href="/index.html">Home</a><a href="/odop/index.html">ODOP Directory</a><a href="/events/index.html">Events</a><a href="/vendors/index.html" class="active">Vendors</a></div>
-    <a href="https://instagram.com/startupwalebhaiya" class="nav-ig" target="_blank">@startupwalebhaiya</a>
+</head><body><nav class="site-nav"><div class="nav-inner">
+  <a href="/kidharmilega/index.html" class="nav-logo"><img src="/kidharmilega/assets/logo.png" alt="KidharMilega" class="nav-logo-img"></a>
+  <div class="nav-links"><a href="/kidharmilega/index.html">Home</a><a href="/kidharmilega/odop/index.html">ODOP Directory</a><a href="/kidharmilega/events/index.html">Events</a><a href="/kidharmilega/vendors/index.html" class="active">Vendors</a></div>
+  <a href="https://instagram.com/startupwalebhaiya" class="nav-ig" target="_blank">@startupwalebhaiya</a>
+</div></nav>
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">Vendor Directory</div>
+    <h1 class="page-header-title">Find your<br><em>supplier</em></h1>
+    <p class="page-header-sub">Verified raw material suppliers and manufacturers &#8212; mapped to each ODOP product and district.</p>
   </div>
-</nav>
-<main>
-  <div class="container">
-    <div class="page-header">
-      <div class="section-label">Vendor Directory</div>
-      <h1 class="page-header-title">Find your<br><em>supplier</em></h1>
-      <p class="page-header-sub">Verified raw material suppliers, manufacturers and distributors — mapped to each ODOP product and district. No cold calls into the void.</p>
-    </div>
-
-    <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:var(--radius);padding:16px 20px;margin-bottom:32px;font-size:14px;color:var(--dark);">
-      <strong>Are you a vendor or supplier?</strong> Get a premium listing with full contact details, WhatsApp link and product photos.
-      <a href="https://instagram.com/startupwalebhaiya" target="_blank" style="color:var(--orange);font-weight:600;margin-left:8px;">Contact us on Instagram →</a>
-    </div>
-
-    <div class="filter-tabs"><button class="filter-tab active" onclick="filterVendors('all', this)">All</button><button class="filter-tab" onclick="filterVendors('art-materials-supplier', this)">Art Materials Supplier</button><button class="filter-tab" onclick="filterVendors('brass-sheet-supplier', this)">Brass Sheet Supplier</button><button class="filter-tab" onclick="filterVendors('cotton-fabric-supplier', this)">Cotton Fabric Supplier</button><button class="filter-tab" onclick="filterVendors('fabric--thread-supplier', this)">Fabric &amp; Thread Supplier</button><button class="filter-tab" onclick="filterVendors('finishing--polish-supplier', this)">Finishing &amp; Polish Supplier</button><button class="filter-tab" onclick="filterVendors('glazing--colour-supplier', this)">Glazing &amp; Colour Supplier</button><button class="filter-tab" onclick="filterVendors('mulberry-silk-supplier', this)">Mulberry Silk Supplier</button><button class="filter-tab" onclick="filterVendors('natural-dye-supplier', this)">Natural Dye Supplier</button><button class="filter-tab" onclick="filterVendors('raw-material-supplier', this)">Raw Material Supplier</button><button class="filter-tab" onclick="filterVendors('silk-yarn-supplier', this)">Silk Yarn Supplier</button><button class="filter-tab" onclick="filterVendors('tea-leaf-supplier', this)">Tea Leaf Supplier</button><button class="filter-tab" onclick="filterVendors('thread--embroidery-supplier', this)">Thread &amp; Embroidery Supplier</button><button class="filter-tab" onclick="filterVendors('wool-supplier', this)">Wool Supplier</button><button class="filter-tab" onclick="filterVendors('zari-thread-supplier', this)">Zari Thread Supplier</button></div>
-    <div class="grid-3" id="vendorGrid">
-<div class="vendor-card" data-cat="silk-yarn-supplier">
-  
+  <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:var(--radius);padding:16px 20px;margin-bottom:32px;font-size:14px">
+    <strong>Are you a vendor?</strong> Get a premium listing with full contact details.
+    <a href="https://instagram.com/startupwalebhaiya" target="_blank" style="color:var(--orange);font-weight:600;margin-left:8px">Contact us &#8594;</a>
+  </div>
+  <div class="filter-tabs"><button class="filter-tab active" onclick="filterVendors('all',this)">All</button><button class="filter-tab" onclick="filterVendors('art-materials-supplier',this)">Art Materials Supplier</button><button class="filter-tab" onclick="filterVendors('brass-sheet-supplier',this)">Brass Sheet Supplier</button><button class="filter-tab" onclick="filterVendors('cotton-fabric-supplier',this)">Cotton Fabric Supplier</button><button class="filter-tab" onclick="filterVendors('fabric--thread-supplier',this)">Fabric &amp; Thread Supplier</button><button class="filter-tab" onclick="filterVendors('finishing--polish-supplier',this)">Finishing &amp; Polish Supplier</button><button class="filter-tab" onclick="filterVendors('glazing--colour-supplier',this)">Glazing &amp; Colour Supplier</button><button class="filter-tab" onclick="filterVendors('mulberry-silk-supplier',this)">Mulberry Silk Supplier</button><button class="filter-tab" onclick="filterVendors('natural-dye-supplier',this)">Natural Dye Supplier</button><button class="filter-tab" onclick="filterVendors('raw-material-supplier',this)">Raw Material Supplier</button><button class="filter-tab" onclick="filterVendors('silk-yarn-supplier',this)">Silk Yarn Supplier</button><button class="filter-tab" onclick="filterVendors('tea-leaf-supplier',this)">Tea Leaf Supplier</button><button class="filter-tab" onclick="filterVendors('thread--embroidery-supplier',this)">Thread &amp; Embroidery Supplier</button><button class="filter-tab" onclick="filterVendors('wool-supplier',this)">Wool Supplier</button><button class="filter-tab" onclick="filterVendors('zari-thread-supplier',this)">Zari Thread Supplier</button></div>
+  <div class="grid-3" id="vendorGrid"><div class="vendor-card" data-cat="silk-yarn-supplier">
   <div class="vendor-name">Ramji Silk House</div>
-  <div class="vendor-cat">Silk Yarn Supplier · Varanasi, Uttar Pradesh</div>
+  <div class="vendor-cat">Silk Yarn Supplier &middot; Varanasi, Uttar Pradesh</div>
   <div class="vendor-desc">Premium pure mulberry silk yarn supplier serving Varanasi weavers for 40+ years. MOQ 5kg.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543210" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:ramji@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card" data-cat="zari-thread-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543210" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="zari-thread-supplier">
   <div class="vendor-name">Zari Palace</div>
-  <div class="vendor-cat">Zari Thread Supplier · Varanasi, Uttar Pradesh</div>
+  <div class="vendor-cat">Zari Thread Supplier &middot; Varanasi, Uttar Pradesh</div>
   <div class="vendor-desc">Authentic gold and silver zari thread for Banarasi weaving. Wholesale and retail.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543211" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="natural-dye-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543211" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="natural-dye-supplier">
   <div class="vendor-name">Suresh Natural Dyes</div>
-  <div class="vendor-cat">Natural Dye Supplier · Varanasi, Uttar Pradesh</div>
+  <div class="vendor-cat">Natural Dye Supplier &middot; Varanasi, Uttar Pradesh</div>
   <div class="vendor-desc">Natural and organic dyes for silk weaving. Eco-certified. Bulk supply available.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543212" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:suresh@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card" data-cat="cotton-fabric-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543212" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="cotton-fabric-supplier">
   <div class="vendor-name">Chikankari Yarn Depot</div>
-  <div class="vendor-cat">Cotton Fabric Supplier · Lucknow, Uttar Pradesh</div>
+  <div class="vendor-cat">Cotton Fabric Supplier &middot; Lucknow, Uttar Pradesh</div>
   <div class="vendor-desc">Fine cotton and georgette fabric for chikankari embroidery. Surat imports available.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543213" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="thread--embroidery-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543213" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="thread--embroidery-supplier">
   <div class="vendor-name">Aminabad Thread Works</div>
-  <div class="vendor-cat">Thread &amp; Embroidery Supplier · Lucknow, Uttar Pradesh</div>
+  <div class="vendor-cat">Thread &amp; Embroidery Supplier &middot; Lucknow, Uttar Pradesh</div>
   <div class="vendor-desc">All types of white and coloured thread for chikankari. Wholesale prices.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543214" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card premium" data-cat="raw-material-supplier">
-  <span class="tag tag-orange" style="margin-bottom:8px">Premium Listing</span><br>
-  <div class="vendor-name">Sanganer Pottery Supplies</div>
-  <div class="vendor-cat">Raw Material Supplier · Jaipur, Rajasthan</div>
+  <div class="vendor-actions"><a href="https://wa.me/919876543214" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card premium" data-cat="raw-material-supplier">
+  <span class="tag tag-orange" style="display:inline-block;margin-bottom:8px">Premium</span><br><div class="vendor-name">Sanganer Pottery Supplies</div>
+  <div class="vendor-cat">Raw Material Supplier &middot; Jaipur, Rajasthan</div>
   <div class="vendor-desc">Quartz powder, multani mitti and raw materials for blue pottery. Only supplier in Jaipur.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543215" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:sanganer@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card" data-cat="glazing--colour-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543215" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="glazing--colour-supplier">
   <div class="vendor-name">Jaipur Glaze Works</div>
-  <div class="vendor-cat">Glazing &amp; Colour Supplier · Jaipur, Rajasthan</div>
+  <div class="vendor-cat">Glazing &amp; Colour Supplier &middot; Jaipur, Rajasthan</div>
   <div class="vendor-desc">Cobalt and oxide colours for blue pottery glazing. Professional grade.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543216" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="art-materials-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543216" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="art-materials-supplier">
   <div class="vendor-name">Mithila Art Supplies</div>
-  <div class="vendor-cat">Art Materials Supplier · Madhubani, Bihar</div>
+  <div class="vendor-cat">Art Materials Supplier &middot; Madhubani, Bihar</div>
   <div class="vendor-desc">Handmade paper and natural colour kits for Madhubani painting. Direct from artisan cooperatives.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543217" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:mithila@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card premium" data-cat="brass-sheet-supplier">
-  <span class="tag tag-orange" style="margin-bottom:8px">Premium Listing</span><br>
-  <div class="vendor-name">Moradabad Brass Wholesale</div>
-  <div class="vendor-cat">Brass Sheet Supplier · Moradabad, Uttar Pradesh</div>
+  <div class="vendor-actions"><a href="https://wa.me/919876543217" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card premium" data-cat="brass-sheet-supplier">
+  <span class="tag tag-orange" style="display:inline-block;margin-bottom:8px">Premium</span><br><div class="vendor-name">Moradabad Brass Wholesale</div>
+  <div class="vendor-cat">Brass Sheet Supplier &middot; Moradabad, Uttar Pradesh</div>
   <div class="vendor-desc">Raw brass sheets and metal alloys for handicraft manufacturing. Factory direct pricing.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543218" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="finishing--polish-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543218" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="finishing--polish-supplier">
   <div class="vendor-name">Metal Finish Moradabad</div>
-  <div class="vendor-cat">Finishing &amp; Polish Supplier · Moradabad, Uttar Pradesh</div>
+  <div class="vendor-cat">Finishing &amp; Polish Supplier &middot; Moradabad, Uttar Pradesh</div>
   <div class="vendor-desc">Chemical finishing and electroplating services for brass handicrafts. Industrial grade.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543219" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="fabric--thread-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543219" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="fabric--thread-supplier">
   <div class="vendor-name">Bhujodi Craft Cooperative</div>
-  <div class="vendor-cat">Fabric &amp; Thread Supplier · Bhujodi, Gujarat</div>
+  <div class="vendor-cat">Fabric &amp; Thread Supplier &middot; Bhujodi, Gujarat</div>
   <div class="vendor-desc">Raw materials for Kutch embroidery — fabric, mirrors and thread. Community cooperative.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543220" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:bhujodi@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card" data-cat="silk-yarn-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543220" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="silk-yarn-supplier">
   <div class="vendor-name">KSSIDC Yarn Centre</div>
-  <div class="vendor-cat">Silk Yarn Supplier · Mysuru, Karnataka</div>
+  <div class="vendor-cat">Silk Yarn Supplier &middot; Mysuru, Karnataka</div>
   <div class="vendor-desc">State-run mulberry silk yarn supply for licensed Mysore silk weavers. Quality certified.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543221" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card" data-cat="mulberry-silk-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543221" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="mulberry-silk-supplier">
   <div class="vendor-name">Kanchipuram Yarn Depot</div>
-  <div class="vendor-cat">Mulberry Silk Supplier · Kanchipuram, Tamil Nadu</div>
+  <div class="vendor-cat">Mulberry Silk Supplier &middot; Kanchipuram, Tamil Nadu</div>
   <div class="vendor-desc">Pure mulberry silk and gold zari for Kanjivaram weaving. Trusted by 500+ weavers.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543222" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:kcp@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div>
-<div class="vendor-card" data-cat="wool-supplier">
-  
+  <div class="vendor-actions"><a href="https://wa.me/919876543222" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card" data-cat="wool-supplier">
   <div class="vendor-name">Kullu Wool Collective</div>
-  <div class="vendor-cat">Wool Supplier · Kullu, Himachal Pradesh</div>
+  <div class="vendor-cat">Wool Supplier &middot; Kullu, Himachal Pradesh</div>
   <div class="vendor-desc">Local Himalayan sheep wool from Kullu valley shepherds. Natural and undyed varieties.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543223" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div>
-</div>
-<div class="vendor-card premium" data-cat="tea-leaf-supplier">
-  <span class="tag tag-orange" style="margin-bottom:8px">Premium Listing</span><br>
-  <div class="vendor-name">Darjeeling Estate Direct</div>
-  <div class="vendor-cat">Tea Leaf Supplier · Darjeeling, West Bengal</div>
+  <div class="vendor-actions"><a href="https://wa.me/919876543223" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div><div class="vendor-card premium" data-cat="tea-leaf-supplier">
+  <span class="tag tag-orange" style="display:inline-block;margin-bottom:8px">Premium</span><br><div class="vendor-name">Darjeeling Estate Direct</div>
+  <div class="vendor-cat">Tea Leaf Supplier &middot; Darjeeling, West Bengal</div>
   <div class="vendor-desc">Direct partnership with 3 small Darjeeling estates for fresh leaf sourcing. Season-based.</div>
-  <div class="vendor-actions"><a href="https://wa.me/919876543224" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a><a href="mailto:darjeeling@example.com" class="btn btn-sm btn-ghost">Email</a></div>
-</div></div>
+  <div class="vendor-actions"><a href="https://wa.me/919876543224" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a></div></div></div>
+</div></main>
+<script>function filterVendors(cat,btn){document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#vendorGrid .vendor-card').forEach(c=>{c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';});}</script><footer class="site-footer"><div class="footer-inner">
+  <div class="footer-brand"><img src="/kidharmilega/assets/logo.png" alt="KidharMilega" style="height:28px;width:auto"></div>
+  <div class="footer-links">
+    <a href="/kidharmilega/index.html">Home</a>
+    <a href="/kidharmilega/odop/index.html">ODOP Directory</a>
+    <a href="/kidharmilega/events/index.html">Events</a>
+    <a href="/kidharmilega/vendors/index.html">Vendors</a>
   </div>
-</main>
-<script>
-function filterVendors(cat, btn) {
-  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('#vendorGrid .vendor-card').forEach(c => {
-    c.style.display = (cat === 'all' || c.dataset.cat === cat) ? '' : 'none';
-  });
-}
-</script>
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <span class="logo-mark small">KMG</span>
-      <span>kidharMilega.in</span>
-    </div>
-    <div class="footer-links">
-      <a href="/index.html">Home</a>
-      <a href="/odop/index.html">ODOP Directory</a>
-      <a href="/events/index.html">Events</a>
-      <a href="/vendors/index.html">Vendors</a>
-    </div>
-    <div class="footer-meta">
-      Built by <a href="https://instagram.com/startupwalebhaiya" target="_blank">@startupwalebhaiya</a> · April 2026
-    </div>
-  </div>
-</footer></body></html>
+  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaiya" target="_blank">@startupwalebhaiya</a> · April 2026</div>
+</div></footer></body></html>
