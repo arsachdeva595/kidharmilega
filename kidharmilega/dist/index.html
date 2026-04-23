@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KidharMilega — Find your business opportunity across India</title>
+<meta name="description" content="India's small business discovery platform. Find ODOP products, trade events, vendors and business ideas for every district.">
+<link rel="canonical" href="https://kidharmilega.in/">
+<meta property="og:title" content="KidharMilega — Find your business opportunity across India">
+<meta property="og:description" content="India's small business discovery platform. Find ODOP products, trade events, vendors and business ideas for every district.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-logo">
+      <span class="logo-mark">KMG</span>
+      <span class="logo-text">kidhar<strong>milega</strong></span>
+    </a>
+    <div class="nav-links"><a href="/index.html" class="active">Home</a><a href="/odop/index.html">ODOP Directory</a><a href="/events/index.html">Events</a><a href="/vendors/index.html">Vendors</a></div>
+    <a href="https://instagram.com/startupwalebhaiya" class="nav-ig" target="_blank">@startupwalebhaiya</a>
+  </div>
+</nav>
+<main>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-eyebrow">India's Small Business Discovery Platform</div>
+      <h1 class="hero-title">Kidhar<br><em>Milega?</em></h1>
+      <p class="hero-sub">Every district in India has a product, a market, and an opportunity waiting. We found them all — vendors, events, schemes and step-by-step guides — in one place.</p>
+      <div class="hero-actions">
+        <a href="/odop/index.html" class="btn btn-primary">Browse ODOP Directory</a>
+        <a href="https://instagram.com/startupwalebhaiya" class="btn btn-ghost" target="_blank">Follow the Journey</a>
+      </div>
+      <div class="stat-strip">
+        <div class="stat-item"><div class="stat-val">9</div><div class="stat-label">Districts live</div></div>
+        <div class="stat-item"><div class="stat-val">550+</div><div class="stat-label">ODOP products mapped</div></div>
+        <div class="stat-item"><div class="stat-val">100%</div><div class="stat-label">Free to browse</div></div>
+        <div class="stat-item"><div class="stat-val">Live</div><div class="stat-label">Event API data</div></div>
+      </div>
+    </section>
+
+    <section class="section-sm">
+      <div class="section-label">Explore by District</div>
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:24px;">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" placeholder="Search district or product..." oninput="searchDistricts(this.value)" id="searchBox">
+        </div>
+      </div>
+      <div class="filter-tabs"><button class="filter-tab active" onclick="filterDistricts('all', this)">All</button><button class="filter-tab" onclick="filterDistricts('bihar', this)">Bihar</button><button class="filter-tab" onclick="filterDistricts('gujarat', this)">Gujarat</button><button class="filter-tab" onclick="filterDistricts('himachal-pradesh', this)">Himachal Pradesh</button><button class="filter-tab" onclick="filterDistricts('karnataka', this)">Karnataka</button><button class="filter-tab" onclick="filterDistricts('rajasthan', this)">Rajasthan</button><button class="filter-tab" onclick="filterDistricts('tamil-nadu', this)">Tamil Nadu</button><button class="filter-tab" onclick="filterDistricts('uttar-pradesh', this)">Uttar Pradesh</button><button class="filter-tab" onclick="filterDistricts('west-bengal', this)">West Bengal</button></div>
+      <div class="grid-3" id="districtGrid">
+<a href="/districts/varanasi/index.html" class="district-card" data-state="uttar-pradesh">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Varanasi</div>
+      <div class="district-name-hin">वाराणसी</div>
+      <div class="district-product">Banarasi Silk</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">Silk weaving capital — where 600 years of craft meets modern D2C</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/lucknow/index.html" class="district-card" data-state="uttar-pradesh">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Lucknow</div>
+      <div class="district-name-hin">लखनऊ</div>
+      <div class="district-product">Chikankari Embroidery</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">The city of nawabs — where chikankari embroidery is both heritage and booming D2C opportunity</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/jaipur/index.html" class="district-card" data-state="rajasthan">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Jaipur</div>
+      <div class="district-name-hin">जयपुर</div>
+      <div class="district-product">Blue Pottery</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">The Pink City — where blue pottery and block printing meet India's largest craft tourism economy</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Handicrafts &amp; Pottery</span>
+    
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/madhubani/index.html" class="district-card" data-state="bihar">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Madhubani</div>
+      <div class="district-name-hin">मधुबनी</div>
+      <div class="district-product">Madhubani Painting</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">Home of Madhubani painting — one of India's most internationally recognised folk art forms with a GI</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Art &amp; Painting</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/kutch/index.html" class="district-card" data-state="gujarat">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kutch</div>
+      <div class="district-name-hin">कच्छ</div>
+      <div class="district-product">Kutch Embroidery</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">The largest district in India — home to Rann of Kutch and India's richest living craft traditions</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/mysuru/index.html" class="district-card" data-state="karnataka">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Mysuru</div>
+      <div class="district-name-hin">ಮೈಸೂರು</div>
+      <div class="district-product">Mysore Silk</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">City of Palaces and silk — India's cleanest city and home to the legendary Mysore silk and sandalwoo</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/kanchipuram/index.html" class="district-card" data-state="tamil-nadu">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kanchipuram</div>
+      <div class="district-name-hin">காஞ்சிபுரம்</div>
+      <div class="district-product">Kanjivaram Silk</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">Temple city and silk capital of South India — Kanjivaram silk is the most prestigious silk in India'</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/kullu/index.html" class="district-card" data-state="himachal-pradesh">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Kullu</div>
+      <div class="district-name-hin">कुल्लू</div>
+      <div class="district-product">Kullu Shawl</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">Valley of Gods — home of the famous Kullu shawl and India's most scenic craft tradition</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Textiles &amp; Handloom</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a>
+<a href="/districts/darjeeling/index.html" class="district-card" data-state="west-bengal">
+  <div class="district-card-head">
+    <div>
+      <div class="district-name">Darjeeling</div>
+      <div class="district-name-hin">দার্জিলিং</div>
+      <div class="district-product">Darjeeling Tea</div>
+    </div>
+    <span class="district-arrow">→</span>
+  </div>
+  <div class="district-desc">Queen of Hills — home of the world's most famous tea with GI protection and a massive global premium</div>
+  <div class="district-meta">
+    <span class="tag tag-orange">Food &amp; Agriculture</span>
+    <span class="tag tag-green">GI Tag</span>
+    <span class="tag tag-gray">Tier 1</span>
+  </div>
+</a></div>
+    </section>
+
+    <div class="cta-block">
+      <div>
+        <div class="cta-title">Building this live on Instagram</div>
+        <div class="cta-sub">Follow @startupwalebhaiya — every district, every data point, documented in public.</div>
+      </div>
+      <div class="cta-actions">
+        <a href="https://instagram.com/startupwalebhaiya" class="btn btn-primary" target="_blank">Follow @startupwalebhaiya</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function filterDistricts(state, btn) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.district-card').forEach(c => {
+    c.style.display = (state === 'all' || c.dataset.state === state) ? '' : 'none';
+  });
+}
+function searchDistricts(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.district-card').forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-mark small">KMG</span>
+      <span>kidharMilega.in</span>
+    </div>
+    <div class="footer-links">
+      <a href="/index.html">Home</a>
+      <a href="/odop/index.html">ODOP Directory</a>
+      <a href="/events/index.html">Events</a>
+      <a href="/vendors/index.html">Vendors</a>
+    </div>
+    <div class="footer-meta">
+      Built by <a href="https://instagram.com/startupwalebhaiya" target="_blank">@startupwalebhaiya</a> · April 2026
+    </div>
+  </div>
+</footer></body></html>
