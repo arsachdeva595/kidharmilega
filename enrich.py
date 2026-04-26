@@ -8,12 +8,20 @@ Usage:
   python3 enrich.py --limit 20               # process at most 20 new rows this run
   python3 enrich.py --filter "Varanasi,Jaipur"  # enrich only these districts
   python3 enrich.py --limit 10 --filter "Lucknow"  # combine flags
+  python3 enrich.py --match-only                    # only MATCH-status districts (verified ODOP pages)
+  python3 enrich.py --match-only --force-scrape     # re-scrape + re-enrich all MATCH districts from scratch
 
 After running, rebuild the site with: python3 build.py
 """
 
-import anthropic, csv, json, os, re, subprocess, sys, time
+import anthropic, csv, io, json, os, re, subprocess, sys, time, urllib.request
 from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 SHEET_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbSFSj1EnJyzmw8aAYcib7a0bxU8AFmmSRHltCK5DF04fZI6IYxS7ZytZay2Kt48uULSIa6NWD5HZZ/pub?gid=1455566310&single=true&output=csv"
 BASE_DIR     = Path(__file__).parent
@@ -287,17 +295,19 @@ Return a JSON object with ALL of these string-valued fields:
 
 
 SCRAPE_PROMPT = """\
-You are extracting structured data from an official Indian government ODOP (One District One Product) webpage.
+You are extracting structured data about an Indian ODOP (One District One Product) district.
+The content below may come from multiple sources — official govt pages, IBEF/PIB reports, PDFs, and YouTube transcripts.
+Each source block is labelled. Extract the best available fact from any source.
 
 District: {district}
 Product: {product}
 State: {state}
 
-PAGE CONTENT:
+RESEARCH CONTENT:
 {page_content}
 
-Extract ONLY information that is explicitly stated on this page. Do NOT infer, estimate, or use outside knowledge.
-Use empty string "" for any field not mentioned on the page.
+Extract ONLY information that is explicitly stated in the content above. Do NOT infer, estimate, or use outside knowledge.
+Use empty string "" for any field not found in any source.
 
 Return JSON with exactly these fields:
 {{
@@ -335,8 +345,8 @@ def drive_url(raw):
 
 
 def load_odop_urls():
-    """Load data/odop_urls.csv → dict keyed by slug(state)_slug(district). CSV beats hardcoded dict."""
-    urls = dict(GOVT_ODOP_URLS)  # start with hardcoded fallbacks
+    """Load odop_urls.csv then overlay with hardcoded verified entries (hardcoded always wins)."""
+    urls = {}
     if ODOP_URL_CSV.exists():
         with open(ODOP_URL_CSV, encoding="utf-8") as f:
             for row in csv.DictReader(f):
@@ -345,10 +355,106 @@ def load_odop_urls():
                 ur = row.get("url", "").strip()
                 if st and di and ur:
                     urls[slug(st) + "_" + slug(di)] = ur
+    # Manually verified URLs always override auto-discovered ones
+    urls.update(GOVT_ODOP_URLS)
     return urls
 
 
-_ODOP_URLS = None  # lazy-loaded on first call
+_ODOP_URLS        = None  # lazy-loaded on first call
+_ODOP_STATUSES    = None  # lazy-loaded on first call
+_FALLBACK_SOURCES = None  # lazy-loaded on first call
+
+
+def load_odop_statuses():
+    """Load status from odop_urls.csv. Derives from URL if status column is missing."""
+    statuses = {}
+    if ODOP_URL_CSV.exists():
+        with open(ODOP_URL_CSV, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                st = row.get("state", "").strip()
+                di = row.get("district", "").strip()
+                if not st or not di:
+                    continue
+                key = slug(st) + "_" + slug(di)
+                status = row.get("status", "").strip()
+                if not status:
+                    ur = row.get("url", "").strip()
+                    if not ur:
+                        status = "FAILED"
+                    elif "/one-district-one-product" in ur.rstrip("/"):
+                        status = "MATCH"
+                    else:
+                        status = "BASE"
+                statuses[key] = status
+    return statuses
+
+
+def get_odop_status(state, district):
+    """Return MATCH / BASE / FAILED / UNKNOWN based on the resolved URL for this district."""
+    key = slug(state) + "_" + slug(district)
+    # Hardcoded verified entries → derive status from their URL directly
+    if key in GOVT_ODOP_URLS:
+        url = GOVT_ODOP_URLS[key]
+        return "MATCH" if "/one-district-one-product" in url.rstrip("/") else "BASE"
+    # Fall back to CSV-derived status
+    global _ODOP_STATUSES
+    if _ODOP_STATUSES is None:
+        _ODOP_STATUSES = load_odop_statuses()
+    return _ODOP_STATUSES.get(key, "UNKNOWN")
+
+
+def load_match_keys():
+    """Return set of slug keys whose ODOP URL has /one-district-one-product/ (verified pages)."""
+    keys = set()
+    # Hardcoded verified entries are all MATCH
+    for k, url in GOVT_ODOP_URLS.items():
+        if "/one-district-one-product" in url:
+            keys.add(k)
+    # CSV entries — derive status from URL if status column is blank
+    if ODOP_URL_CSV.exists():
+        with open(ODOP_URL_CSV, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                st = row.get("state", "").strip()
+                di = row.get("district", "").strip()
+                if not st or not di:
+                    continue
+                status = row.get("status", "").strip()
+                if not status:
+                    ur = row.get("url", "").strip()
+                    status = "MATCH" if "/one-district-one-product" in ur.rstrip("/") else ""
+                if status == "MATCH":
+                    keys.add(slug(st) + "_" + slug(di))
+    return keys
+
+
+def load_fallback_sources_all():
+    """Load youtube_ids, pdf_urls, and google_urls columns from odop_urls.csv."""
+    sources = {}
+    if ODOP_URL_CSV.exists():
+        with open(ODOP_URL_CSV, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                st = row.get("state", "").strip()
+                di = row.get("district", "").strip()
+                if not st or not di:
+                    continue
+                key = slug(st) + "_" + slug(di)
+                yt_raw      = row.get("youtube_ids", "")
+                pdf_raw     = row.get("pdf_urls", "")
+                google_raw  = row.get("google_urls", "")
+                sources[key] = {
+                    "youtube_ids": [v.strip() for v in yt_raw.split(",")  if v.strip()],
+                    "pdf_urls":    [u.strip() for u in pdf_raw.split("|") if u.strip()],
+                    "google_urls": [u.strip() for u in google_raw.split("|") if u.strip()],
+                }
+    return sources
+
+
+def get_fallback_sources(state, district):
+    """Return pre-discovered {youtube_ids: [...], pdf_urls: [...]} for a district."""
+    global _FALLBACK_SOURCES
+    if _FALLBACK_SOURCES is None:
+        _FALLBACK_SOURCES = load_fallback_sources_all()
+    return _FALLBACK_SOURCES.get(slug(state) + "_" + slug(district), {})
 
 
 def govt_url_for(state, district):
@@ -389,6 +495,130 @@ def fetch_govt_page(url, timeout=15):
         return ""
 
 
+def search_mofpi_pdfs(district, product, state, max_results=3):
+    """Search for MoFPI / PMFME handbooks via ddgs. Returns list of URLs."""
+    queries = [
+        f"mofpi.gov.in {product} {district} PDF",
+        f"PMFME handbook {product} {district} {state} pdf",
+        f"One District One Product {product} {district} report",
+    ]
+    found = []
+    try:
+        from ddgs import DDGS
+        with DDGS() as ddgs:
+            for q in queries:
+                try:
+                    results = list(ddgs.text(q, max_results=max_results))
+                    for r in results:
+                        url = r.get("href", "")
+                        if url and url not in found and (".pdf" in url.lower() or "mofpi" in url or "msme" in url):
+                            found.append(url)
+                    if found:
+                        break
+                except Exception:
+                    pass
+                time.sleep(1)
+    except ImportError:
+        pass
+    return found[:5]
+
+
+def extract_pdf_text(pdf_url, max_chars=6000):
+    """Download a PDF and return extracted plain text. Returns '' on any failure."""
+    try:
+        import pdfplumber
+        req = urllib.request.Request(
+            pdf_url,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; KidharMilega-bot/1.0)"}
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read()
+        with pdfplumber.open(io.BytesIO(data)) as pdf:
+            text = "\n".join(page.extract_text() or "" for page in pdf.pages[:15])
+        return text[:max_chars] if text.strip() else ""
+    except Exception:
+        return ""
+
+
+def pdf_fallback(client, district, product, state, pre_urls=None):
+    """Try pre-discovered PDF URLs first, then search MoFPI. Returns scraped-facts dict or {}."""
+    pdf_urls = list(pre_urls or []) or search_mofpi_pdfs(district, product, state)
+    for url in pdf_urls:
+        text = extract_pdf_text(url)
+        if text:
+            try:
+                facts = scrape_facts(client, text, district, product, state)
+                facts["_source"] = f"pdf:{url}"
+                return facts
+            except Exception:
+                pass
+    return {}
+
+
+def search_youtube_videos(district, product, api_key, max_results=5):
+    """Search YouTube Data API v3 for relevant videos. Returns list of video IDs."""
+    try:
+        from googleapiclient.discovery import build as yt_build
+        yt = yt_build("youtube", "v3", developerKey=api_key)
+    except Exception:
+        return []
+    queries = [
+        f"{product} {district} business manufacturing",
+        f"ODOP {product} {district}",
+    ]
+    ids = []
+    for q in queries:
+        try:
+            res = yt.search().list(
+                q=q, part="id", type="video",
+                maxResults=max_results, relevanceLanguage="hi"
+            ).execute()
+            for item in res.get("items", []):
+                vid = item["id"].get("videoId", "")
+                if vid and vid not in ids:
+                    ids.append(vid)
+        except Exception:
+            pass
+        if len(ids) >= 5:
+            break
+    return ids[:5]
+
+
+def youtube_fallback(client, district, product, state, pre_ids=None):
+    """Use pre-discovered video IDs first, then search YouTube API. Returns facts dict or {}."""
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+    except ImportError:
+        return {}
+    video_ids = list(pre_ids or [])
+    if not video_ids:
+        api_key = os.environ.get("YOUTUBE_API_KEY", "")
+        if not api_key:
+            return {}
+        video_ids = search_youtube_videos(district, product, api_key)
+    if not video_ids:
+        return {}
+    transcripts = []
+    for vid in video_ids:
+        try:
+            segs = YouTubeTranscriptApi.get_transcript(vid, languages=["hi", "en", "hi-IN"])
+            text = " ".join(s["text"] for s in segs)
+            transcripts.append(text[:2500])
+        except Exception:
+            pass
+        if len(transcripts) >= 3:
+            break
+    if not transcripts:
+        return {}
+    combined = "\n\n---\n".join(transcripts)
+    try:
+        facts = scrape_facts(client, combined, district, product, state)
+        facts["_source"] = "youtube"
+        return facts
+    except Exception:
+        return {}
+
+
 def fetch_sheet():
     result = subprocess.run(
         ["curl", "-sL", SHEET_URL],
@@ -424,10 +654,22 @@ def save_scraped_facts(facts):
     )
 
 
+def parse_json_response(text):
+    """Robustly extract and parse a JSON object from LLM output."""
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text).strip()
+    start = text.find("{")
+    end   = text.rfind("}") + 1
+    if start != -1 and end > start:
+        text = text[start:end]
+    return json.loads(text)
+
+
 def scrape_facts(client, page_content, district, product, state):
-    """Stage 1: extract only what's explicitly on the govt page. Fast, cheap, focused."""
+    """Stage 1: extract facts from combined multi-source research content."""
     prompt = SCRAPE_PROMPT.format(
-        district=district, product=product, state=state, page_content=page_content[:6000]
+        district=district, product=product, state=state, page_content=page_content[:14000]
     )
     msg = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -435,10 +677,7 @@ def scrape_facts(client, page_content, district, product, state):
         system="Extract only facts explicitly stated on this page. Return only valid JSON.",
         messages=[{"role": "user", "content": prompt}],
     )
-    text = msg.content[0].text.strip()
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
-    return json.loads(text)
+    return parse_json_response(msg.content[0].text)
 
 
 def format_facts(facts, govt_url=""):
@@ -487,14 +726,11 @@ def generate_content(client, row, verified_facts_str):
     )
     msg = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=4096,
+        max_tokens=8192,
         system="You are a business data researcher. Return only valid JSON — no markdown, no prose.",
         messages=[{"role": "user", "content": prompt}],
     )
-    text = msg.content[0].text.strip()
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
-    return json.loads(text)
+    return parse_json_response(msg.content[0].text)
 
 
 def build_row(sheet_row, ai, idx):
@@ -660,8 +896,8 @@ def quality_check(data):
 
 
 def write_report(report_rows):
-    cols = ["district","state","product","govt_url","page_quality","facts_count",
-            "fields_changed","key_changes","warnings","enriched_at"]
+    cols = ["district","state","product","govt_url","url_status","data_source",
+            "page_quality","facts_count","fields_changed","key_changes","warnings","enriched_at"]
     with open(REPORT_CSV, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
@@ -689,13 +925,100 @@ def print_report_summary(report_rows):
     print("─"*60)
 
 
+# ── Source collector (aggregate all P1–P4 sources) ────────────────────────────
+
+def collect_all_source_texts(district, product, state, govt_url, url_status, sources):
+    """
+    Fetch raw text from every available source for this district.
+    Returns (list of (label, text) tuples, list of log tokens).
+    Never stops early — always tries all sources.
+    """
+    texts = []
+    log   = []
+
+    # P1 — Official govt ODOP page
+    if govt_url and url_status in ("MATCH", "BASE", "UNKNOWN"):
+        raw = fetch_govt_page(govt_url)
+        if raw:
+            texts.append(("Official Govt ODOP page", raw))
+            log.append("[gov:ok]")
+        else:
+            log.append("[gov:miss]")
+    else:
+        log.append("[gov:skip]")
+
+    # P2 — Google / DuckDuckGo research URLs (pre-populated by find_urls.py --google)
+    for g_url in sources.get("google_urls", [])[:3]:
+        raw = fetch_govt_page(g_url)
+        if raw:
+            texts.append(("Research article", raw))
+            log.append("[g:ok]")
+        else:
+            log.append("[g:miss]")
+
+    # P3 — PDFs pre-discovered by find_urls.py (no live search — use CSV data)
+    for pdf_url in sources.get("pdf_urls", [])[:2]:
+        raw = extract_pdf_text(pdf_url)
+        if raw:
+            texts.append(("Government PDF/handbook", raw))
+            log.append("[pdf:ok]")
+            break
+    if not any("[pdf:ok]" in t for t in log):
+        if sources.get("pdf_urls"):
+            log.append("[pdf:miss]")
+
+    # P4 — YouTube transcripts (pre-discovered by find_urls.py --youtube)
+    yt_ids = sources.get("youtube_ids", [])
+    if yt_ids:
+        try:
+            from youtube_transcript_api import YouTubeTranscriptApi
+            yt_texts = []
+            for vid in yt_ids[:3]:
+                try:
+                    segs = YouTubeTranscriptApi.get_transcript(vid, languages=["hi", "en", "hi-IN"])
+                    text = " ".join(s["text"] for s in segs)
+                    if text.strip():
+                        yt_texts.append(text[:2500])
+                except Exception:
+                    pass
+            if yt_texts:
+                texts.append(("YouTube video transcripts", "\n\n---\n".join(yt_texts)))
+                log.append(f"[yt:{len(yt_texts)}ok]")
+            else:
+                log.append("[yt:miss]")
+        except ImportError:
+            log.append("[yt:no-lib]")
+
+    return texts, log
+
+
+def combine_sources(source_texts):
+    """Merge (label, text) pairs into one labelled research document."""
+    if not source_texts:
+        return ""
+    return "\n\n".join(
+        f"=== {label.upper()} ===\n{text.strip()}"
+        for label, text in source_texts
+    )
+
+
 # ── CLI ────────────────────────────────────────────────────────────────────────
+
+_REFRESH_FIELDS = ["opportunity_score", "alert_stat", "geo_anchor", "faq_1", "faq_2",
+                   "logistics_info", "success_story_name", "suitable_for"]
+
+
+def needs_refresh(cached_data):
+    """Return True if a cached entry is missing the new content fields."""
+    return any(not str(cached_data.get(f, "")).strip() for f in _REFRESH_FIELDS)
+
 
 def parse_args():
     args = sys.argv[1:]
     force_all    = "--all" in args
-    scrape_only  = "--scrape-only" in args   # Stage 1 only — fetch + extract, no generation
-    force_scrape = "--force-scrape" in args  # Re-scrape pages even if already cached
+    refresh      = "--refresh" in args       # Re-enrich entries missing new fields (safe — no cache wipe)
+    scrape_only  = "--scrape-only" in args
+    force_scrape = "--force-scrape" in args
     limit       = None
     filter_set  = set()
     for i, a in enumerate(args):
@@ -703,11 +1026,11 @@ def parse_args():
             limit = int(args[i + 1])
         if a == "--filter" and i + 1 < len(args):
             filter_set = {s.strip().lower() for s in args[i + 1].split(",")}
-    return force_all, scrape_only, force_scrape, limit, filter_set
+    return force_all, refresh, scrape_only, force_scrape, limit, filter_set
 
 
 def main():
-    force_all, scrape_only, force_scrape, limit, filter_set = parse_args()
+    force_all, refresh, scrape_only, force_scrape, limit, filter_set = parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: ANTHROPIC_API_KEY is not set.")
@@ -736,13 +1059,29 @@ def main():
     scraped_facts = {} if force_scrape else load_scraped_facts()
     client        = anthropic.Anthropic()
 
+    def _stale_cache(key):
+        """True if cache entry was generated without real scraped facts but we now have some."""
+        if key not in scraped_facts:
+            return False
+        sf_quality = scraped_facts[key].get("page_quality", "")
+        if sf_quality in ("empty", "", None):
+            return False  # scraped facts are still empty — nothing to improve on
+        cached_quality = cache.get(key, {}).get("_scraped_quality", "none")
+        return cached_quality in ("none", "", None, "empty")  # cache predates real facts
+
     to_process = [
         (idx, key, row) for idx, key, row in unique_rows
-        if (force_all or key not in cache)
+        if (force_all or force_scrape
+            or key not in cache           # never enriched
+            or key not in scraped_facts   # has cache but never actually scraped — needs sourcing
+            or _stale_cache(key)          # scraped since last gen run — regenerate with real facts
+            or (refresh and needs_refresh(cache.get(key, {}))))
         and (not filter_set or row.get("District","").strip().lower() in filter_set)
     ]
+    needs_scrape_count = sum(1 for _, k, _ in to_process if k not in scraped_facts)
     cap = min(limit, len(to_process)) if limit else len(to_process)
     print(f"Cached: {len(unique_rows)-len(to_process)}  |  To process: {cap}"
+          + (f"  ({needs_scrape_count} need scraping)" if needs_scrape_count else "")
           + ("  [scrape-only]" if scrape_only else ""))
     print()
 
@@ -759,22 +1098,31 @@ def main():
         product  = row.get("Product", "").strip()
         print(f"  [{newly_done+1}/{cap}] {district}, {state}", end="  ", flush=True)
 
-        # ── Stage 1: Scrape govt page ──────────────────────────────────────
-        govt_url = govt_url_for(state, district)
-        facts    = scraped_facts.get(key, {})
+        # ── Stage 1: Scrape govt page (P1→P2→P3 fallback chain) ───────────
+        govt_url   = govt_url_for(state, district)
+        url_status = get_odop_status(state, district)
+        sources    = get_fallback_sources(state, district)
+        facts      = scraped_facts.get(key, {})
 
-        if govt_url and (key not in scraped_facts or force_scrape):
-            raw_html = fetch_govt_page(govt_url)
-            if raw_html:
+        if key not in scraped_facts or force_scrape:
+            # Aggregate all sources — always collects P1+P2+P3+P4, never stops early
+            source_texts, source_log = collect_all_source_texts(
+                district, product, state, govt_url, url_status, sources
+            )
+            print(" ".join(source_log), end="  ", flush=True)
+
+            combined = combine_sources(source_texts)
+            if combined:
                 try:
-                    facts = scrape_facts(client, raw_html, district, product, state)
+                    facts = scrape_facts(client, combined, district, product, state)
+                    facts["_source"] = "|".join(label for label, _ in source_texts)
                     scraped_facts[key] = facts
                     save_scraped_facts(scraped_facts)
-                    print(f"[scraped: {facts.get('page_quality','?')}]", end="  ", flush=True)
+                    print(f"→ [quality:{facts.get('page_quality','?')}]", end=" ", flush=True)
                 except Exception as e:
-                    print(f"[scrape-err: {e}]", end="  ", flush=True)
+                    print(f"[extract-err:{e}]", end=" ", flush=True)
             else:
-                print("[page-empty]", end="  ", flush=True)
+                print("[no-sources]", end=" ", flush=True)
 
         if scrape_only:
             newly_done += 1
@@ -782,11 +1130,24 @@ def main():
             continue
 
         # ── Stage 2: Generate content ──────────────────────────────────────
-        old_data         = cache.get(key, {})
+        # Skip regeneration if: facts are still empty AND district already has cached content.
+        # Never overwrite real cached content with content generated from zero facts.
+        has_real_facts = bool(facts and facts.get("page_quality") not in ("empty", "", None))
+        already_cached = key in cache
+        if not has_real_facts and already_cached and not force_all:
+            print(f"(no-facts, keeping cache)")
+            newly_done += 1
+            continue
+
+        old_data           = cache.get(key, {})
         verified_facts_str = format_facts(facts, govt_url or "")
 
         try:
             new_data = generate_content(client, row, verified_facts_str)
+            # Record what quality facts were used to generate this entry —
+            # used by the to_process check to detect stale cache entries
+            new_data["_scraped_quality"] = facts.get("page_quality", "none") if facts else "none"
+            new_data["_scraped_source"]  = facts.get("_source", "gov") if facts else "none"
             cache[key] = new_data
             save_cache(cache)
 
@@ -800,6 +1161,8 @@ def main():
                 "state":         state,
                 "product":       product,
                 "govt_url":      govt_url or "",
+                "url_status":    url_status,
+                "data_source":   facts.get("_source", "gov" if facts else "none"),
                 "page_quality":  facts.get("page_quality", "no-url"),
                 "facts_count":   facts_count,
                 "fields_changed": len(changed),

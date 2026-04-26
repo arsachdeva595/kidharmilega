@@ -147,43 +147,87 @@ def build_homepage(districts):
 </a>'''
     search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/index.html'} for d in live])
     return (
-        head("KidharMilega — Apne shehar ka goldmine business dhundo",
-             "Bheed ka hissa mat bano. Har district mein ek product, ek market, ek entry point hai. 787 districts, real data, free.", "/") +
-        '<div style="background:#111111;color:#fff;text-align:center;padding:10px 20px;font-size:13px">Bheed ka hissa mat bano. <strong style="color:#00B4D8">Apne shehar ka goldmine</strong> yahan hai &#8212; real data ke saath, bilkul free.</div>' +
+        head("KidharMilega — Find a Business Idea Near You",
+             "Stop chasing metro city jobs. Find high-demand ODOP products, verified manufacturers, and profitable business ideas within 50km of your home. 787 districts mapped.", "/") +
+        '<div style="background:#111111;color:#fff;text-align:center;padding:10px 20px;font-size:13px">Stop migrating. <strong style="color:#00B4D8">Your district has a goldmine business</strong> &#8212; real data, zero cost to browse.</div>' +
         nav("home") + f'''
 <main><div class="container">
-  <section class="hero">
-    <div class="hero-eyebrow">787 districts. 787 goldmines.</div>
-    <h1 class="hero-title">Tera shehar.<br><em>Tera goldmine.</em></h1>
-    <p class="hero-sub">Har district mein ek product, ek supply chain, ek entry point hai. Metro mein ek aur candidate banne se pehle &#8212; yeh dekho.</p>
-    <div style="position:relative;max-width:480px;margin:28px 0 20px">
-      <span class="search-icon">&#128269;</span>
-      <input class="search-input" type="text" id="hpSearch" placeholder="District ya product ka naam type karo..." autocomplete="off">
-      <div id="hpResults" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);display:none;max-height:260px;overflow-y:auto;z-index:200"></div>
+  <section class="hero" style="text-align:center">
+    <div class="hero-eyebrow">India&#x2019;s Next Manufacturing Revolution is in Your Backyard</div>
+    <h1 class="hero-title" style="max-width:760px;margin-left:auto;margin-right:auto">Stop Chasing &#8377;15k Jobs<br>in Metro Cities.<br><em>Start a Business in Your Own District.</em></h1>
+    <p class="hero-sub" style="max-width:600px;margin-left:auto;margin-right:auto">You don&#x2019;t need to migrate to build a future. India&#x2019;s next big manufacturing revolution is happening in your backyard. Find high-demand ODOP products, verified manufacturers, and profitable ideas&#8212;all within 50km of your home.</p>
+    <div style="position:relative;max-width:580px;margin:32px auto 20px;display:flex;gap:8px;align-items:center">
+      <div style="position:relative;flex:1">
+        <span class="search-icon">&#128269;</span>
+        <input class="search-input" type="text" id="hpSearch" placeholder="Search your District or a Product (e.g., Makhana, Leather, Silk)..." autocomplete="off">
+        <div id="hpResults" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);display:none;max-height:260px;overflow-y:auto;z-index:200;text-align:left"></div>
+      </div>
+      <a href="{p('/products/index.html')}" class="btn btn-primary" style="flex-shrink:0;white-space:nowrap">Find Opportunity</a>
     </div>
-    <div class="hero-actions">
-      <a href="{p('/products/index.html')}" class="btn btn-primary">Sabhi {len(live)} districts dekho &#8594;</a>
-      <a href="https://instagram.com/startupwalebhaia" class="btn btn-ghost" target="_blank">Community join karo</a>
-    </div>
-    <div class="stat-strip">
-      <div class="stat-item"><div class="stat-val">{len(live)}</div><div class="stat-label">Districts live</div></div>
-      <div class="stat-item"><div class="stat-val">550+</div><div class="stat-label">Products mapped</div></div>
-      <div class="stat-item"><div class="stat-val">&#8377;0</div><div class="stat-label">Browse karne mein</div></div>
-      <div class="stat-item"><div class="stat-val">Live</div><div class="stat-label">Events data</div></div>
+    <div class="stat-strip" style="justify-content:center">
+      <div class="stat-item"><div class="stat-val">10+</div><div class="stat-label">Years Ground-Level Experience</div></div>
+      <div class="stat-item"><div class="stat-val">15K+</div><div class="stat-label">Entrepreneurs Following</div></div>
+      <div class="stat-item"><div class="stat-val">{len(live)}</div><div class="stat-label">Districts Mapped &amp; Counting</div></div>
+      <div class="stat-item"><div class="stat-val">550+</div><div class="stat-label">ODOP Products Identified</div></div>
     </div>
   </section>
   <section class="section-sm">
-    <div class="section-label">Featured opportunities</div>
-    <p style="font-size:15px;color:var(--mid);margin-bottom:24px">Yeh wohi districts hain jahan real data hai &#8212; market size, entry cost, step-by-step guide.</p>
+    <div class="section-label">Explore India&#x2019;s Manufacturing Map</div>
+    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">Explore India&#x2019;s Manufacturing Map</h2>
+    <p style="font-size:15px;color:var(--mid);margin-bottom:24px">From the Zardozi of Bareilly to the Blue Pottery of Jaipur&#8212;your next venture starts here.</p>
     <div class="grid-3" style="margin-bottom:28px">{feat_cards}</div>
     <div style="text-align:center;padding:8px 0">
-      <a href="{p('/products/index.html')}" class="btn btn-ghost">Sabhi {len(live)} districts dekho &#8594;</a>
+      <a href="{p('/products/index.html')}" class="btn btn-ghost">View All {len(live)}+ Districts &#8594;</a>
     </div>
   </section>
+  <div style="padding:48px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-label">Why I Say Build Closer to Home</div>
+    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">&#x201C;The Math Doesn&#x2019;t Add Up.&#x201D;</h2>
+    <p style="font-size:15px;color:var(--mid);margin-bottom:28px">A quick honest comparison &#8212; before you book that train ticket to Bangalore.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px">
+      <div style="background:#111;border-radius:var(--radius-lg);padding:28px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:16px">&#127961; &#8377;25,000 Salary in Bangalore</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Rent</span><span style="color:#fff;font-weight:600">&#8722;&#8377;12,000</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Commute</span><span style="color:#fff;font-weight:600">&#8722;&#8377;3,000</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Food</span><span style="color:#fff;font-weight:600">&#8722;&#8377;6,000</span></div>
+          <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Savings</span><span style="color:#ef4444;font-weight:700;font-size:16px">&#8377;0 left</span></div>
+        </div>
+      </div>
+      <div style="background:var(--orange-l);border:2px solid var(--orange-m);border-radius:var(--radius-lg);padding:28px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:16px">&#127968; &#8377;15,000 Profit at Home</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Rent</span><span style="color:var(--green);font-weight:600">Zero</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Commute</span><span style="color:var(--green);font-weight:600">Zero</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Growth Potential</span><span style="color:var(--green);font-weight:600">Unlimited</span></div>
+          <div style="border-top:1px solid var(--orange-m);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:var(--mid)">Actual Wealth</span><span style="color:var(--green);font-weight:700;font-size:16px">Building &#8593;</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:48px 0;border-bottom:1px solid var(--border)">
+    <div class="section-label">Real Talk. No Gas.</div>
+    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">Catch the Latest on Instagram</h2>
+    <p style="font-size:15px;color:var(--mid);margin-bottom:28px">Manufacturing hacks, credit card optimisations for business, and startup reality checks &#8212; no fluff.</p>
+    <a href="https://instagram.com/startupwalebhaia" target="_blank" style="display:inline-flex;align-items:center;gap:12px;background:#111;color:#fff;border-radius:var(--radius-lg);padding:20px 28px;text-decoration:none" onmouseover="this.style.opacity=&#x27;0.85&#x27;" onmouseout="this.style.opacity=&#x27;1&#x27;">
+      <span style="font-size:28px">&#128247;</span>
+      <div>
+        <div style="font-size:16px;font-weight:600">@startupwalebhaia</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:2px">15,000+ entrepreneurs following &middot; Real updates daily</div>
+      </div>
+      <span style="margin-left:8px;color:rgba(255,255,255,0.4);font-size:18px">&#8594;</span>
+    </a>
+  </div>
   <div class="cta-block" style="margin-top:60px">
-    <div><div class="cta-title">Metro seat nahi hai. Apne district mein opportunity hai.</div>
-    <div class="cta-sub">Anantapuram mein roz 60,000 jeans bante hain. Murshidabad silk duniya mein export hoti hai. Tera district bhi kuch bana raha hai &#8212; bas kisi ne dhundha nahi.</div></div>
-    <div class="cta-actions"><a href="{p('/products/index.html')}" class="btn btn-primary">Apna goldmine dhundo &#8594;</a></div>
+    <div>
+      <div class="cta-title">Don&#x2019;t Build Alone. Build with the Tribe.</div>
+      <div class="cta-sub">Join the KidharMilega Community. Get access to direct manufacturer contacts, subsidy guides, and a network of 1,000+ local entrepreneurs who are tired of the &#x201C;rat race.&#x201D;</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:12px">It&#x2019;s free to join, but the insights are worth lakhs.</div>
+    </div>
+    <div class="cta-actions">
+      <a href="https://www.facebook.com/groups/kidharmilega" target="_blank" class="btn btn-primary">Join the KidharMilega Community &#8594;</a>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)">Follow @startupwalebhaia</a>
+    </div>
   </div>
 </div></main>''' + f'<script>var HP_DS={search_data};var si=document.getElementById("hpSearch"),sr=document.getElementById("hpResults");si.addEventListener("input",function(){{var v=this.value.toLowerCase().trim();if(v.length<2){{sr.style.display="none";return;}}var m=HP_DS.filter(function(x){{return x.n.toLowerCase().includes(v)||x.d.toLowerCase().includes(v)||x.s.toLowerCase().includes(v);}}).slice(0,6);if(!m.length){{sr.style.display="none";return;}}sr.innerHTML=m.map(function(x){{return\'<a href="\'+x.u+\'" style="display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-bottom:1px solid #eee;text-decoration:none;color:inherit"><span style="font-size:14px;font-weight:600;color:#111">\'+x.n+\'</span><span style="font-size:12px;color:#888">\'+x.d+" · "+x.s+\'</span></a>\';}}  ).join("");sr.style.display="block";}});document.addEventListener("click",function(e){{if(!si.contains(e.target)&&!sr.contains(e.target))sr.style.display="none";}});</script>' + footer() + "</body></html>"
     )
@@ -249,10 +293,43 @@ def build_odop_page(districts):
     <h1 class="page-header-title">Har district mein<br><em>ek goldmine hai</em></h1>
     <p class="page-header-sub">787 districts. Sab ka ek government-recognised product. Real market data, entry cost, export potential aur step-by-step guide.</p>
   </div>
+  <div style="margin-bottom:20px">
+    <div style="position:relative;max-width:560px;margin-bottom:16px">
+      <span class="search-icon">&#128269;</span>
+      <input class="search-input" type="text" id="productSearch" placeholder="Search district, product, or state..." autocomplete="off" oninput="applyFilters()" style="padding-right:20px">
+    </div>
+    <select id="stateFilter" onchange="applyFilters()" style="padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;color:var(--mid);background:var(--bg);font-family:var(--font-body);cursor:pointer;outline:none">
+      <option value="">All States</option>
+    </select>
+  </div>
   <div class="filter-tabs">{tabs}</div>
   <div class="grid-3" id="odopGrid">{cards}</div>
 </div></main>
-<script>function filterODOP(cat,btn){{document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#odopGrid .district-card').forEach(c=>{{c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';}});}}</script>''' + footer() + "</body></html>"
+<script>
+var _odopCat='all';
+function filterODOP(cat,btn){{_odopCat=cat;document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}}
+function applyFilters(){{
+  var state=document.getElementById('stateFilter').value;
+  var search=document.getElementById('productSearch').value.toLowerCase().trim();
+  document.querySelectorAll('#odopGrid .district-card').forEach(function(c){{
+    var catOk=_odopCat==='all'||c.dataset.cat===_odopCat;
+    var stEl=c.querySelector('.district-name-hin');
+    var cardState=stEl?stEl.textContent.split('·')[1]?.trim()||'':'';
+    var stateOk=!state||cardState===state;
+    var searchOk=!search||c.textContent.toLowerCase().includes(search);
+    c.style.display=(catOk&&stateOk&&searchOk)?'':'none';
+  }});
+}}
+document.addEventListener('DOMContentLoaded',function(){{
+  var states=new Set();
+  document.querySelectorAll('#odopGrid .district-card .district-name-hin').forEach(function(el){{
+    var p=el.textContent.split('·');
+    if(p[1])states.add(p[1].trim());
+  }});
+  var sel=document.getElementById('stateFilter');
+  [...states].sort().forEach(function(s){{var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);}});
+}});
+</script>''' + footer() + "</body></html>"
 
 def build_events_page():
     return head("Trade Events & Expos | KidharMilega","Find upcoming trade shows and expos across 100 Indian cities.","/events/") + nav("events") + f'''
@@ -282,21 +359,24 @@ def build_vendors_page(vendors, districts):
   <div class="vendor-cat">{esc(v.get('category',''))} &middot; {esc(v.get('city',''))}, {esc(v.get('state',''))}</div>
   <div class="vendor-desc">{esc(v.get('description',''))}</div>
   <div class="vendor-actions">{wa}</div></div>'''
-    return head("Vendor Directory | KidharMilega","Find verified suppliers for every ODOP product.","/vendors/") + nav("vendors") + f'''
+    return head("Vendor Directory | KidharMilega","Find verified suppliers for every ODOP product.","/vendors/") + nav("vendors") + '''
 <main><div class="container">
   <div class="page-header">
     <div class="section-label">Vendor Directory</div>
-    <h1 class="page-header-title">Find your<br><em>supplier</em></h1>
-    <p class="page-header-sub">Verified raw material suppliers and manufacturers &#8212; mapped to each ODOP product and district.</p>
+    <h1 class="page-header-title">Coming<br><em>soon</em></h1>
+    <p class="page-header-sub">Verified supplier directory aa raha hai. Tab tak, direct connect karo.</p>
   </div>
-  <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:var(--radius);padding:16px 20px;margin-bottom:32px;font-size:14px">
-    <strong>Are you a vendor?</strong> Get a premium listing with full contact details.
-    <a href="https://instagram.com/startupwalebhaia" target="_blank" style="color:var(--orange);font-weight:600;margin-left:8px">Contact us &#8594;</a>
+  <div style="max-width:560px;margin:0 auto;text-align:center;padding:60px 0 80px">
+    <div style="font-size:56px;margin-bottom:24px">&#128274;</div>
+    <h2 style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--dark);margin-bottom:12px">Vendor Directory &#8212; Work in Progress</h2>
+    <p style="font-size:16px;color:var(--mid);line-height:1.7;margin-bottom:32px">Hum verified suppliers ka database bana rahe hain &#8212; har ODOP product ke liye, har district ke liye. Abhi ke liye, <strong>@startupwalebhaia</strong> ke through directly contact karo ya Facebook group join karo.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" class="btn btn-primary" style="width:260px;justify-content:center">Follow @startupwalebhaia &#8594;</a>
+      <a href="https://www.facebook.com/groups/kidharmilega" target="_blank" class="btn btn-ghost" style="width:260px;justify-content:center">Join Facebook Group &#8594;</a>
+    </div>
+    <p style="font-size:13px;color:var(--light);margin-top:24px">Manufacturers, suppliers, aur raw material contacts &#8212; sab wahan milega.</p>
   </div>
-  <div class="filter-tabs">{tabs}</div>
-  <div class="grid-3" id="vendorGrid">{cards}</div>
-</div></main>
-<script>function filterVendors(cat,btn){{document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#vendorGrid .vendor-card').forEach(c=>{{c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';}});}}</script>''' + footer() + "</body></html>"
+</div></main>''' + footer() + "</body></html>"
 
 def build_district_page(d, vendors, all_districts=[]):
     pg = product_page_slug(d)
@@ -371,20 +451,27 @@ def build_district_page(d, vendors, all_districts=[]):
     photo_html = f'<div class="odop-photo-wrap"><img src="{esc(photo)}" alt="{esc(d.get("odop_product_name",""))} from {esc(d["district_name"])}" class="odop-photo" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>' if photo else ""
     gi_badge = f'<span class="tag tag-green" style="font-size:13px;padding:5px 12px">&#10003; GI Certified {esc(d.get("gi_tag_year",""))}</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
 
-    # ── Revenue flow (D2C → Wholesale → Export) ──
-    d2c   = d.get('gross_margin_d2c','').strip()
-    ws    = d.get('gross_margin_wholesale','').strip()
-    exp_m = d.get('export_margin','').strip() or 'Per order'
-    rs1   = d.get('revenue_stream_1','').strip() or 'D2C — Myntra, Amazon, apni website'
-    rs2   = d.get('revenue_stream_2','').strip() or 'Wholesale — retailers, distributors'
-    rs3   = d.get('revenue_stream_3','').strip() or 'Export — international buyers'
-    rev_html = f'''<div class="rev-flow">
-  <div class="rev-row primary"><div class="rev-step">1</div><div><div class="ri-name">D2C &mdash; pehle yahan shuru karo</div><div class="ri-desc">{esc(rs1[:90])}</div></div><div class="rev-margin">{esc(d2c) if d2c else "High"}</div></div>
-  <div class="rev-arr">&#8595;</div>
-  <div class="rev-row"><div class="rev-step" style="background:var(--border);color:var(--mid)">2</div><div><div class="ri-name">Wholesale</div><div class="ri-desc">{esc(rs2[:90])}</div></div><div class="rev-margin" style="color:var(--mid)">{esc(ws) if ws else "Medium"}</div></div>
-  <div class="rev-arr">&#8595;</div>
-  <div class="rev-row"><div class="rev-step rev-step-b">3</div><div><div class="ri-name">Export &mdash; Year 2+ goal</div><div class="ri-desc">{esc(rs3[:90])}</div></div><div class="rev-margin" style="color:var(--mid)">{esc(exp_m)}</div></div>
-</div>''' if (d2c or rs1) else ''
+    # ── Revenue flow (contextual from revenue_stream_N fields) ──
+    _sm  = [d.get('gross_margin_d2c','').strip(), d.get('gross_margin_wholesale','').strip(), d.get('export_margin','').strip()]
+    _rss = [d.get(f'revenue_stream_{i}','').strip() for i in range(1,6)]
+    _rss = [rs for rs in _rss if rs]
+    rev_html = ''
+    if _rss:
+        _rows = ''
+        for _i, _rs in enumerate(_rss):
+            _sp    = _rs.split(' — ', 1) if ' — ' in _rs else (_rs.split(' - ', 1) if ' - ' in _rs else None)
+            _label = _sp[0].strip()[:55] if _sp else ' '.join(_rs.split()[:5])
+            _desc  = (_sp[1].strip() if len(_sp) > 1 else _rs)[:100] if _sp else _rs[:100]
+            _mgn   = _sm[_i] if _i < len(_sm) else ''
+            _is_p  = _i == 0
+            _s_sty = '' if _is_p else ' style="background:var(--border);color:var(--mid)"'
+            _r_cls = ' primary' if _is_p else ''
+            _m_sty = '' if _is_p else ' style="color:var(--mid)"'
+            _m_htm = f'<div class="rev-margin"{_m_sty}>{esc(_mgn)}</div>' if _mgn else ''
+            _rows += f'<div class="rev-row{_r_cls}"><div class="rev-step"{_s_sty}>{_i+1}</div><div><div class="ri-name">{esc(_label)}</div><div class="ri-desc">{esc(_desc)}</div></div>{_m_htm}</div>'
+            if _i < len(_rss) - 1:
+                _rows += '<div class="rev-arr">&#8595;</div>'
+        rev_html = f'<div class="rev-flow">{_rows}</div>'
 
     # ── Steps (dark numbered boxes) ──
     step_labels = ["Learn / Research","Source Raw Materials","Produce / Partner","Brand &amp; Register","First Sale","Scale"]
@@ -451,12 +538,13 @@ def build_district_page(d, vendors, all_districts=[]):
         is_p = v.get("listing_type","").lower()=="premium"
         wa = f'<a href="https://wa.me/91{esc(v["contact_whatsapp"])}" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a>' if v.get("contact_whatsapp","") else ""
         vendors_html += f'<div class="vendor-card{" premium" if is_p else ""}">{"<span class=\"tag tag-orange\" style=\"display:inline-block;margin-bottom:8px\">Premium</span><br>" if is_p else ""}<div class="vendor-name">{esc(v.get("vendor_name",""))}</div><div class="vendor-cat">{esc(v.get("category",""))} &middot; {esc(v.get("city",""))}</div><div class="vendor-desc" style="margin:8px 0">{esc(v.get("description",""))}</div><div class="vendor-actions">{wa}</div></div>'
+    # DM message is shown permanently as section footer; fallback grid can be empty
     if not vendors_html:
-        vendors_html = f'<p style="font-size:14px;color:var(--mid)">{esc(d["district_name"])} ke raw material suppliers chahiye? <a href="https://instagram.com/startupwalebhaia" style="color:var(--orange);font-weight:600" target="_blank">Instagram pe seedha DM karo &#8594;</a> &#8212; reply milega.</p>'
+        vendors_html = ''
 
     # ── Brand names + marketing ──
     names_html = "".join(f'<div class="name-card">{esc(d.get(f"brand_name_idea_{i}",""))}</div>' for i in range(1,6) if d.get(f"brand_name_idea_{i}",""))
-    mkt_html   = "".join(f'<li style="margin-bottom:10px;font-size:14px;color:var(--mid)">{esc(d.get(f"marketing_idea_{i}",""))}</li>' for i in range(1,4) if d.get(f"marketing_idea_{i}",""))
+    mkt_html   = "".join(f'<li style="margin-bottom:10px;font-size:14px;color:var(--mid)">{esc(d.get(f"marketing_idea_{i}",""))}</li>' for i in range(1,6) if d.get(f"marketing_idea_{i}",""))
 
     # ── Related districts ──
     rd_html = ''
@@ -503,7 +591,7 @@ def build_district_page(d, vendors, all_districts=[]):
     </div>
     {ss_html}
   </section>
-  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Revenue Streams</div><h2 class='section-title'>D2C pehle, phir scale karo</h2><p class='section-sub'>Sequence matter karta hai. Pehle margin validate karo, tab volume.</p><div style='max-width:600px'>"+rev_html+"</div></section>" if rev_html else ""}
+  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Revenue Streams</div><h2 class='section-title'>Paise kaise aayenge — revenue roadmap</h2><p class='section-sub'>Sequence matter karta hai. Pehle margin validate karo, tab volume.</p><div style='max-width:600px'>"+rev_html+"</div></section>" if rev_html else ""}
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Step-by-Step Roadmap</div>
@@ -523,18 +611,20 @@ def build_district_page(d, vendors, all_districts=[]):
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Vendors &amp; Suppliers</div>
-    <h2 class="section-title">Kahan se source karein</h2>
-    <div class="grid-2">{vendors_html}</div>
+    <h2 class="section-title">Sourcing aur vendors ki tension mat lo</h2>
+    {f'<div class="grid-2">{vendors_html}</div>' if vendors_html else ''}
+    <p style="margin-top:16px;font-size:14px;color:var(--mid)">Raw material suppliers chahiye for starting this business? <a href="https://instagram.com/startupwalebhaia" style="color:var(--orange);font-weight:600" target="_blank">Instagram pe seedha DM karo &#8594;</a> &#8212; reply milega.</p>
   </section>
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Frequently Asked Questions</div><h2 class='section-title'>Seedhe sawaal, seedhe jawab</h2>"+faq_html+"</section>" if faq_html else ""}
-  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Brand Name Ideas</div><h2 class='section-title'>Pehle product validate karo, phir brand banao</h2><div class='names-grid' style='margin-bottom:24px'>"+names_html+"</div>"+(f"<div class='section-label' style='margin-top:24px'>Marketing — Zero Budget Se Shuru Karo</div><ul style='list-style:none;margin-top:12px'>"+mkt_html+"</ul>" if mkt_html else "")+"</section>" if names_html else ""}
+  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Brand Name Ideas</div><h2 class='section-title'>Pehle product validate karo, phir brand banao</h2><div class='names-grid'>"+names_html+"</div></section>" if names_html else ""}
+  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Marketing</div><h2 class='section-title'>Ye marketing ideas try karna mat bhulna</h2><ul style='list-style:none;margin-top:16px'>"+mkt_html+"</ul></section>" if mkt_html else ""}
   <hr class="sec-divider">
   {rd_html}
   <div class="cta-block">
     <div><div class="cta-title">{esc(d["district_name"])} se ho, ya jaane ka plan hai?</div>
     <div class="cta-sub">Is district ke aur founders se connect karo. Sawaal karo, contacts dhundo, community mein shaamil ho.</div></div>
     <div class="cta-actions">
-      <a href="https://instagram.com/startupwalebhaia" class="btn btn-primary" target="_blank">Is opportunity ko claim karo &#8594;</a>
+      <a href="https://www.facebook.com/groups/startupwalebhaia" class="btn btn-primary" target="_blank">Find like minded entrepreneurs &#8594;</a>
       <a href="{p('/products/index.html')}" class="btn btn-ghost">Aur districts dekho</a>
     </div>
   </div>
