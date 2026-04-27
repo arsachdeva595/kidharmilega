@@ -9,8 +9,8 @@ BUILD_DATE = datetime.now().strftime("%B %Y")
 CSV_URL_DISTRICTS = "YOUR_GOOGLE_SHEET_CSV_URL_HERE"
 CSV_URL_VENDORS   = "YOUR_VENDORS_SHEET_CSV_URL_HERE"
 
-# GitHub Pages subfolder = '/kidharmilega'  |  Custom domain or local = ''
-BASE_PATH = '' if '--local' in sys.argv else '/kidharmilega'
+# Custom domain: always root. Pass --subfolder only if testing on raw github.io URL.
+BASE_PATH = '/kidharmilega' if '--subfolder' in sys.argv else ''
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -741,6 +741,9 @@ def build():
     print(f"✓ {len(live)} district pages")
 
     (DIST_DIR/".nojekyll").write_text("")
+    # CNAME tells GitHub Pages to serve on the custom domain
+    if '--subfolder' not in sys.argv:
+        (DIST_DIR/"CNAME").write_text("kidharmilega.in")
     total = len(list(DIST_DIR.rglob("*.html")))
     print(f"\n✅ Done → docs/ ({total} HTML files)")
     print(f"   BASE_PATH = '{BASE_PATH}'")
