@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /master.html
+
+Sitemap: https://kidharmilega.in/sitemap.xml

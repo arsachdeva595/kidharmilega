@@ -110,13 +110,14 @@ def ae_events_section(district, state, odop_category=""):
   {ae_widget(fb_city, "Business")}
 </div>'''
 
-def head(title, desc, canonical="", image=None, extra_head=""):
+def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
     og_image = image if image else f"{SITE_URL}{BASE_PATH}/data/logo.png"
+    robots_tag = '<meta name="robots" content="noindex, follow">\n' if noindex else ''
     return f'''<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
-<link rel="canonical" href="{SITE_URL}{canonical}">
+{robots_tag}<link rel="canonical" href="{SITE_URL}{canonical}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:image" content="{og_image}">
@@ -146,9 +147,19 @@ def build_homepage(districts):
   <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}</div>
 </a>'''
     search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/index.html'} for d in live])
+    hp_schema = json.dumps([
+        {"@context":"https://schema.org","@type":"WebSite","name":"KidharMilega","url":f"{SITE_URL}/",
+         "description":"Find business opportunities near you — ODOP products, market data, and step-by-step guides for every district in India.",
+         "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":f"{SITE_URL}/products/?q={{search_term_string}}"},"query-input":"required name=search_term_string"}},
+        {"@context":"https://schema.org","@type":"Organization","name":"KidharMilega","url":f"{SITE_URL}/",
+         "logo":f"{SITE_URL}/assets/logo.png",
+         "sameAs":["https://instagram.com/startupwalebhaia","https://www.facebook.com/groups/startupwalebhaia/"]},
+    ], ensure_ascii=False)
+    hp_extra_head = f'<script type="application/ld+json">{hp_schema}</script>'
     return (
         head("KidharMilega — Find a Business Idea Near You",
-             "Stop chasing metro city jobs. Find high-demand ODOP products, verified manufacturers, and profitable business ideas within 50km of your home. 787 districts mapped.", "/") +
+             "Stop chasing metro city jobs. Find high-demand ODOP products, verified manufacturers, and profitable business ideas within 50km of your home. 787 districts mapped.", "/",
+             extra_head=hp_extra_head) +
         '<div style="background:#111111;color:#fff;text-align:center;padding:10px 20px;font-size:13px">Stop migrating. <strong style="color:#00B4D8">Your district has a goldmine business</strong> &#8212; real data, zero cost to browse.</div>' +
         nav("home") + f'''
 <main><div class="container">
@@ -287,7 +298,17 @@ def build_odop_page(districts):
   <div class="district-desc" style="margin-top:8px">{esc((d.get('why_this_district','') or '')[:110])}</div>
   <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}<span class="tag tag-gray">{esc(d.get('export_potential',''))} export</span></div>
 </a>'''
-    return head("Business Opportunities by District | KidharMilega","Har district ka ODOP product aur business opportunity — market size, entry cost, step-by-step guide.","/products/") + nav("products") + f'''
+    item_list_schema = json.dumps({"@context":"https://schema.org","@type":"ItemList",
+        "name":"ODOP Business Opportunities by District — India",
+        "description":"One District One Product business opportunities across all districts of India",
+        "numberOfItems":len(live),
+        "itemListElement":[{"@type":"ListItem","position":i+1,
+            "name":f"{d.get('odop_product_name','')} — {d['district_name']}, {d['state']}",
+            "url":f"{SITE_URL}/products/{product_page_slug(d)}/"}
+            for i,d in enumerate(live[:100])]}, ensure_ascii=False)
+    odop_extra_head = f'<script type="application/ld+json">{item_list_schema}</script>'
+    return head("Business Opportunities by District | KidharMilega","Har district ka ODOP product aur business opportunity — market size, entry cost, step-by-step guide.","/products/",
+                extra_head=odop_extra_head) + nav("products") + f'''
 <main><div class="container">
   <div class="page-header">
     <div class="section-label">Business opportunities</div>
@@ -360,7 +381,7 @@ def build_vendors_page(vendors, districts):
   <div class="vendor-cat">{esc(v.get('category',''))} &middot; {esc(v.get('city',''))}, {esc(v.get('state',''))}</div>
   <div class="vendor-desc">{esc(v.get('description',''))}</div>
   <div class="vendor-actions">{wa}</div></div>'''
-    return head("Vendor Directory | KidharMilega","Find verified suppliers for every ODOP product.","/vendors/") + nav("vendors") + '''
+    return head("Vendor Directory | KidharMilega","Find verified suppliers for every ODOP product.","/vendors/",noindex=True) + nav("vendors") + '''
 <main><div class="container">
   <div class="page-header">
     <div class="section-label">Vendor Directory</div>
@@ -658,6 +679,30 @@ def build_district_page(d, vendors, all_districts=[]):
                 d.get("meta_description","") or f'{d["district_name"]} mein {d.get("odop_product_name","")} business guide — market size, entry cost, vendors, schemes aur step-by-step roadmap.',
                 f'/products/{pg}/', image=photo or None, extra_head=extra_head) + alert_html + nav("products") + body + faq_js + footer() + AE_SCRIPT + "</body></html>"
 
+def build_sitemap(districts):
+    live = [d for d in districts if d.get("page_status","").lower()=="live"]
+    today = datetime.now().strftime("%Y-%m-%d")
+    def u(loc, freq, pri):
+        return f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>{freq}</changefreq>\n    <priority>{pri}</priority>\n  </url>'
+    entries = [
+        u(f"{SITE_URL}/",          "weekly",  "1.0"),
+        u(f"{SITE_URL}/products/", "weekly",  "0.9"),
+        u(f"{SITE_URL}/events/",   "daily",   "0.6"),
+    ]
+    for d in live:
+        pg  = product_page_slug(d)
+        pri = "0.8" if d.get("step_1_learn","").strip() else "0.6"
+        entries.append(u(f"{SITE_URL}/products/{pg}/", "monthly", pri))
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(entries) + "\n</urlset>"
+
+def build_robots():
+    return f"""User-agent: *
+Allow: /
+Disallow: /master.html
+
+Sitemap: {SITE_URL}/sitemap.xml
+"""
+
 def build():
     print(f"\n KidharMilega Builder  [BASE_PATH='{BASE_PATH}']")
     print("="*50)
@@ -684,7 +729,9 @@ def build():
     (DIST_DIR/"products"/"index.html").write_text(build_odop_page(districts))
     (DIST_DIR/"events"/"index.html").write_text(build_events_page())
     (DIST_DIR/"vendors"/"index.html").write_text(build_vendors_page(vendors, districts))
-    print("✓ Directory pages")
+    (DIST_DIR/"sitemap.xml").write_text(build_sitemap(districts))
+    (DIST_DIR/"robots.txt").write_text(build_robots())
+    print("✓ Directory pages + sitemap.xml + robots.txt")
 
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     for d in live:
