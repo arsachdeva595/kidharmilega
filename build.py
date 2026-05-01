@@ -114,6 +114,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
     og_image = image if image else f"{SITE_URL}{BASE_PATH}/data/logo.png"
     robots_tag = '<meta name="robots" content="noindex, follow">\n' if noindex else ''
     return f'''<!DOCTYPE html><html lang="en"><head>
+<!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-WP8DXGKB1F');</script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
