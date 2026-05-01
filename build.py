@@ -554,15 +554,6 @@ def build_district_page(d, vendors, all_districts=[]):
             t2 = parts[0].strip(); ds = parts[1].strip() if len(parts)>1 else ""
             schemes_html += f'<div class="scheme-item"><div class="scheme-icon">{icon}</div><div><div class="scheme-title">{esc(t2)}</div><div class="scheme-desc">{esc(ds)}</div></div></div>'
 
-    # ── Vendors ──
-    vendors_html = ""
-    for v in dv:
-        is_p = v.get("listing_type","").lower()=="premium"
-        wa = f'<a href="https://wa.me/91{esc(v["contact_whatsapp"])}" class="btn btn-sm btn-primary" target="_blank">WhatsApp</a>' if v.get("contact_whatsapp","") else ""
-        vendors_html += f'<div class="vendor-card{" premium" if is_p else ""}">{"<span class=\"tag tag-orange\" style=\"display:inline-block;margin-bottom:8px\">Premium</span><br>" if is_p else ""}<div class="vendor-name">{esc(v.get("vendor_name",""))}</div><div class="vendor-cat">{esc(v.get("category",""))} &middot; {esc(v.get("city",""))}</div><div class="vendor-desc" style="margin:8px 0">{esc(v.get("description",""))}</div><div class="vendor-actions">{wa}</div></div>'
-    # DM message is shown permanently as section footer; fallback grid can be empty
-    if not vendors_html:
-        vendors_html = ''
 
     # ── Brand names + marketing ──
     names_html = "".join(f'<div class="name-card">{esc(d.get(f"brand_name_idea_{i}",""))}</div>' for i in range(1,6) if d.get(f"brand_name_idea_{i}",""))
@@ -634,8 +625,7 @@ def build_district_page(d, vendors, all_districts=[]):
   <section class="page-section">
     <div class="section-label">Vendors &amp; Suppliers</div>
     <h2 class="section-title">Sourcing aur vendors ki tension mat lo</h2>
-    {f'<div class="grid-2">{vendors_html}</div>' if vendors_html else ''}
-    <p style="margin-top:16px;font-size:14px;color:var(--mid)">Raw material suppliers chahiye for starting this business? <a href="https://instagram.com/startupwalebhaia" style="color:var(--orange);font-weight:600" target="_blank">Instagram pe seedha DM karo &#8594;</a> &#8212; reply milega.</p>
+    <p style="font-size:14px;color:var(--mid)">Raw material suppliers chahiye for starting this business? <a href="https://instagram.com/startupwalebhaia" style="color:var(--orange);font-weight:600" target="_blank">Instagram pe seedha DM karo &#8594;</a> &#8212; reply milega.</p>
   </section>
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Frequently Asked Questions</div><h2 class='section-title'>Seedhe sawaal, seedhe jawab</h2>"+faq_html+"</section>" if faq_html else ""}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Brand Name Ideas</div><h2 class='section-title'>Pehle product validate karo, phir brand banao</h2><div class='names-grid'>"+names_html+"</div></section>" if names_html else ""}
