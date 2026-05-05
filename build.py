@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, json, os, shutil, re, sys
+import csv, json, os, shutil, re, sys, markdown as md_lib
 from pathlib import Path
 from datetime import datetime
 
@@ -39,13 +39,20 @@ def product_page_slug(d):
     return slug(product) + "-" + slug(district)
 
 def nav(active="home"):
-    links = [("Home",p("/index.html"),"home"),("Products",p("/products/index.html"),"products"),
-             ("Events",p("/events/index.html"),"events"),("Vendors",p("/vendors/index.html"),"vendors")]
+    links = [
+        ("Home",       p("/index.html"),          "home"),
+        ("Products",   p("/products/index.html"),  "products"),
+        ("Events",     p("/events/index.html"),    "events"),
+        ("Why ODOP?",  p("/what-is-odop/index.html"), "odop-guide"),
+        ("About Us",   p("/about-us/index.html"),  "about"),
+        ("Contact",    p("/contact/index.html"),   "contact"),
+    ]
     items = "".join(f'<a href="{href}"{" class=\"active\"" if k==active else ""}>{label}</a>' for label,href,k in links)
-    return f'''<nav class="site-nav"><div class="nav-inner">
+    return f'''<nav class="site-nav" id="siteNav"><div class="nav-inner">
   <a href="{p('/index.html')}" class="nav-logo"><img src="{p('/assets/logo.png')}" alt="KidharMilega" class="nav-logo-img"></a>
-  <div class="nav-links">{items}</div>
+  <div class="nav-links" id="navLinks">{items}</div>
   <a href="https://instagram.com/startupwalebhaia" class="nav-ig" target="_blank">{IG_HANDLE}</a>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="(function(){{var n=document.getElementById('navLinks');var b=document.getElementById('navHamburger');var open=n.classList.toggle('nav-open');b.innerHTML=open?'&#10005;':'&#9776;';b.setAttribute('aria-expanded',open);}})()">&#9776;</button>
 </div></nav>'''
 
 def footer():
@@ -55,9 +62,13 @@ def footer():
     <a href="{p('/index.html')}">Home</a>
     <a href="{p('/products/index.html')}">Products</a>
     <a href="{p('/events/index.html')}">Events</a>
-    <a href="{p('/vendors/index.html')}">Vendors</a>
+    <a href="{p('/what-is-odop/index.html')}">Why ODOP?</a>
+    <a href="{p('/about-us/index.html')}">About Us</a>
+    <a href="{p('/team/index.html')}">Team</a>
+    <a href="{p('/contact/index.html')}">Contact</a>
+    <a href="{p('/terms-of-service/index.html')}">Terms</a>
   </div>
-  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">{IG_HANDLE}</a> · {BUILD_DATE}</div>
+  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">{IG_HANDLE}</a> · {BUILD_DATE} · &copy; Rupantran Biz Pvt Ltd</div>
 </div></footer>'''
 
 # AllEvents.in widget helpers
@@ -89,6 +100,28 @@ AE_FALLBACK = {
 
 AE_SCRIPT = '<script src="https://allevents.in/scripts/public/ae-plugin-embed-lib.js"></script>'
 
+EXHIBITION_SLUGS = [
+    'exhibitions-in-agra','business-events-in-srinagar','business-events-in-kolkata',
+    'exhibitions-in-tiruchirappalli','exhibitions-in-meerut','exhibitions-in-mumbai',
+    'exhibitions-in-chandigarh','business-events-in-mumbai','business-events-in-vadodara',
+    'exhibitions-in-jodhpur','business-events-in-ahmedabad','business-events-in-kalyan-dombivali',
+    'exhibitions-in-gurgaon','business-events-in-delhi','exhibitions-in-vijayawada',
+    'exhibitions-in-kalyan-dombivali','business-events-in-chennai','exhibitions-in-ahmedabad',
+    'business-events-in-allahabad','business-events-in-indore','exhibitions-in-kanpurup-india',
+    'exhibitions-in-vadodara','exhibitions-in-haora','exhibitions-in-pune',
+    'exhibitions-in-allahabad','business-events-in-gurgaon','business-events-in-kanpurup-india',
+    'events-in-india','business-events-in-jalandhar','exhibitions-in-hyderabad',
+    'exhibitions-in-chennai','exhibitions-in-surat','business-events-in-guwahati',
+    'exhibitions-in-aligarh','exhibitions-in-belgaum','business-events-in-jaipur',
+    'business-events-in-pune','business-events-in-bhopal','business-events-in-surat',
+    'business-events-in-pimpri-chinchwad','exhibitions-in-ghaziabad','exhibitions-in-nashik',
+    'exhibitions-in-thane','business-events-in-ludhiana','business-events-in-patna',
+    'exhibitions-in-mangalore','business-events-in-chandigarh','exhibitions-in-jammu',
+    'exhibitions-in-lucknow','exhibitions-in-guwahati','exhibitions-in-dehradun',
+    'exhibitions-in-pimpri-chinchwad','business-events-in-navi-mumbai','exhibitions-in-solapur',
+    'exhibitions-in-kota','business-events-in-visakhapatnam','business-events-in-aurangabad',
+]
+
 def ae_widget(city, category="Business", height=480):
     """Single AllEvents embed div (script loaded once per page via AE_SCRIPT)."""
     return (
@@ -110,6 +143,26 @@ def ae_events_section(district, state, odop_category=""):
   {ae_widget(fb_city, "Business")}
 </div>'''
 
+def gdrive_img(url):
+    """Convert Google Drive uc?export=view URLs to thumbnail API format for reliable embedding."""
+    if not url:
+        return url
+    m = re.search(r'[?&]id=([^&]+)', url)
+    return f'https://drive.google.com/thumbnail?id={m.group(1)}&sz=w800' if m else url
+
+def parse_wp_shortcode(content):
+    """Extract city and category from [city-events city='X' category='Y']."""
+    m = re.search(r"\[city-events city='([^']+)' category='([^']+)'", content)
+    return (m.group(1), m.group(2)) if m else (None, None)
+
+def strip_wp_blocks(content):
+    """Remove WP block comment wrappers and shortcode blocks, return clean HTML."""
+    content = re.sub(r'<!-- wp:shortcode -->\s*\[[^\]]*\]\s*<!-- /wp:shortcode -->', '', content, flags=re.DOTALL)
+    content = re.sub(r'<!-- wp:shortcode /-->', '', content)
+    content = re.sub(r'<!-- /?wp:[^>]*-->', '', content)
+    content = re.sub(r'\n{3,}', '\n\n', content)
+    return content.strip()
+
 def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
     og_image = image if image else f"{SITE_URL}{BASE_PATH}/data/logo.png"
     robots_tag = '<meta name="robots" content="noindex, follow">\n' if noindex else ''
@@ -129,6 +182,37 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{p('/assets/style.css')}">
 {extra_head}
+<script>
+(function(){{
+  // Disable right-click
+  document.addEventListener('contextmenu',function(e){{e.preventDefault();}});
+  // Disable copy, cut, select-all
+  document.addEventListener('copy',function(e){{e.preventDefault();}});
+  document.addEventListener('cut',function(e){{e.preventDefault();}});
+  // Block DevTools shortcuts and View Source
+  document.addEventListener('keydown',function(e){{
+    var k=e.key||'';
+    // F12
+    if(k==='F12'){{e.preventDefault();return false;}}
+    // Ctrl/Cmd + Shift + I/J/C (DevTools)
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(k==='I'||k==='i'||k==='J'||k==='j'||k==='C'||k==='c')){{e.preventDefault();return false;}}
+    // Ctrl/Cmd + U (View Source)
+    if((e.ctrlKey||e.metaKey)&&(k==='U'||k==='u')){{e.preventDefault();return false;}}
+    // Ctrl/Cmd + S (Save page)
+    if((e.ctrlKey||e.metaKey)&&(k==='S'||k==='s')){{e.preventDefault();return false;}}
+    // Ctrl/Cmd + A (Select All)
+    if((e.ctrlKey||e.metaKey)&&(k==='A'||k==='a')){{e.preventDefault();return false;}}
+    // Ctrl/Cmd + P (Print)
+    if((e.ctrlKey||e.metaKey)&&(k==='P'||k==='p')){{e.preventDefault();return false;}}
+  }});
+  // Detect DevTools open via size diff (basic)
+  var _dv=false;setInterval(function(){{
+    if(window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){{
+      if(!_dv){{_dv=true;document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:18px;color:#555">Please close DevTools to continue.</div>';}}
+    }}else{{_dv=false;}}
+  }},1000);
+}})();
+</script>
 </head><body>'''
 
 def build_homepage(districts):
@@ -284,13 +368,45 @@ def build_master_page():
 def build_odop_page(districts):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     cats = sorted(set(d.get("odop_category","") for d in live if d.get("odop_category","")))
-    tabs = '<button class="filter-tab active" onclick="filterODOP(\'all\',this)">Sab categories</button>'
-    tabs += "".join(f'<button class="filter-tab" onclick="filterODOP(\'{slug(c)}\',this)">{esc(c)}</button>' for c in cats)
+    states = sorted(set(d['state'] for d in live if d.get('state','')))
+
+    # Sidebar: category checkboxes
+    cat_checks = "".join(
+        f'<label class="filter-check"><input type="checkbox" class="fcb-cat" value="{slug(c)}" onchange="applyFilters()"><span>{esc(c)}</span></label>'
+        for c in cats)
+
+    # Sidebar: state checkboxes (scrollable)
+    state_checks = "".join(
+        f'<label class="filter-check"><input type="checkbox" class="fcb-state" value="{esc(s)}" onchange="applyFilters()"><span>{esc(s)}</span></label>'
+        for s in states)
+
+    # Sidebar: investment radios
+    inv_opts = [('','Any Budget'),('u1','Under ₹1L'),('1to5','₹1L – ₹5L'),('5to20','₹5L – ₹20L'),('20plus','₹20L+')]
+    inv_radios = "".join(
+        f'<label class="filter-check"><input type="radio" name="fInv" value="{v}" onchange="applyFilters()"{" checked" if v=="" else ""}><span>{l}</span></label>'
+        for v,l in inv_opts)
+
+    # Sidebar: score radios
+    score_opts = [('','Any Score'),('high','High (8–10)'),('mid','Medium (5–7)'),('early','Early Stage (1–4)')]
+    score_radios = "".join(
+        f'<label class="filter-check"><input type="radio" name="fScore" value="{v}" onchange="applyFilters()"{" checked" if v=="" else ""}><span>{l}</span></label>'
+        for v,l in score_opts)
+
+    sidebar = f'''<aside class="filter-sidebar" id="filterSidebar">
+  <div class="fsb-head"><span class="fsb-title">Filters</span><button class="fsb-clear" onclick="clearFilters()">Clear all</button></div>
+  <div class="filter-group"><div class="fgrp-label">Category</div><div class="fcheck-list">{cat_checks}</div></div>
+  <div class="filter-group"><div class="fgrp-label">State</div><div class="fcheck-list fcheck-scroll">{state_checks}</div></div>
+  <div class="filter-group"><div class="fgrp-label">Min. Investment</div><div class="fcheck-list">{inv_radios}</div></div>
+  <div class="filter-group" style="border-bottom:none"><div class="fgrp-label">Opportunity Score</div><div class="fcheck-list">{score_radios}</div></div>
+</aside>'''
+
     cards = ""
     for d in live:
         pg = product_page_slug(d)
         gi = '<span class="tag tag-green">GI Tag</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
-        cards += f'''<a href="{p('/products/')}{pg}/index.html" class="district-card" data-cat="{slug(d.get('odop_category',''))}">
+        min_cost = d.get('min_setup_cost','0') or '0'
+        score_val = d.get('opportunity_score','0') or '0'
+        cards += f'''<a href="{p('/products/')}{pg}/index.html" class="district-card" data-cat="{slug(d.get('odop_category',''))}" data-state="{esc(d['state'])}" data-min-cost="{min_cost}" data-score="{score_val}">
   <div class="district-card-head"><div>
     <div class="district-name">{esc(d.get('odop_product_name',''))}</div>
     <div class="district-name-hin">{esc(d['district_name'])} &middot; {esc(d['state'])}</div>
@@ -299,6 +415,7 @@ def build_odop_page(districts):
   <div class="district-desc" style="margin-top:8px">{esc((d.get('why_this_district','') or '')[:110])}</div>
   <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}<span class="tag tag-gray">{esc(d.get('export_potential',''))} export</span></div>
 </a>'''
+
     item_list_schema = json.dumps({"@context":"https://schema.org","@type":"ItemList",
         "name":"ODOP Business Opportunities by District — India",
         "description":"One District One Product business opportunities across all districts of India",
@@ -316,45 +433,97 @@ def build_odop_page(districts):
     <h1 class="page-header-title">Har district mein<br><em>ek goldmine hai</em></h1>
     <p class="page-header-sub">787 districts. Sab ka ek government-recognised product. Real market data, entry cost, export potential aur step-by-step guide.</p>
   </div>
-  <div style="margin-bottom:20px">
-    <div style="position:relative;max-width:560px;margin-bottom:16px">
+  <div class="products-topbar">
+    <div style="position:relative;flex:1;max-width:520px">
       <span class="search-icon">&#128269;</span>
-      <input class="search-input" type="text" id="productSearch" placeholder="Search district, product, or state..." autocomplete="off" oninput="applyFilters()" style="padding-right:20px">
+      <input class="search-input" type="text" id="productSearch" placeholder="Search district, product, or state..." autocomplete="off" oninput="applyFilters()">
     </div>
-    <select id="stateFilter" onchange="applyFilters()" style="padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;color:var(--mid);background:var(--bg);font-family:var(--font-body);cursor:pointer;outline:none">
-      <option value="">All States</option>
-    </select>
+    <button class="fsb-mobile-toggle" id="fsbToggle" onclick="toggleSidebar()">&#9776; Filters <span class="filter-badge" id="filterBadge" style="display:none">0</span></button>
   </div>
-  <div class="filter-tabs">{tabs}</div>
-  <div class="grid-3" id="odopGrid">{cards}</div>
+  <div class="products-layout">
+    {sidebar}
+    <div class="products-main">
+      <div class="result-count" id="resultCount"></div>
+      <div class="grid-3" id="odopGrid">{cards}</div>
+    </div>
+  </div>
 </div></main>
 <script>
-var _odopCat='all';
-function filterODOP(cat,btn){{_odopCat=cat;document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}}
 function applyFilters(){{
-  var state=document.getElementById('stateFilter').value;
   var search=document.getElementById('productSearch').value.toLowerCase().trim();
+  var cats=[...document.querySelectorAll('.fcb-cat:checked')].map(function(x){{return x.value;}});
+  var sts=[...document.querySelectorAll('.fcb-state:checked')].map(function(x){{return x.value;}});
+  var inv=(document.querySelector('input[name="fInv"]:checked')||{{}}).value||'';
+  var sc=(document.querySelector('input[name="fScore"]:checked')||{{}}).value||'';
+  var vis=0;
   document.querySelectorAll('#odopGrid .district-card').forEach(function(c){{
-    var catOk=_odopCat==='all'||c.dataset.cat===_odopCat;
-    var stEl=c.querySelector('.district-name-hin');
-    var cardState=stEl?stEl.textContent.split('·')[1]?.trim()||'':'';
-    var stateOk=!state||cardState===state;
-    var searchOk=!search||c.textContent.toLowerCase().includes(search);
-    c.style.display=(catOk&&stateOk&&searchOk)?'':'none';
+    var catOk=cats.length===0||cats.indexOf(c.dataset.cat)>-1;
+    var stOk=sts.length===0||sts.indexOf(c.dataset.state)>-1;
+    var mc=parseInt(c.dataset.minCost||'0');
+    var invOk=true;
+    if(inv==='u1')invOk=mc<100000;
+    else if(inv==='1to5')invOk=mc>=100000&&mc<500000;
+    else if(inv==='5to20')invOk=mc>=500000&&mc<2000000;
+    else if(inv==='20plus')invOk=mc>=2000000;
+    var sv=parseInt(c.dataset.score||'0');
+    var scOk=true;
+    if(sc==='high')scOk=sv>=8;
+    else if(sc==='mid')scOk=sv>=5&&sv<=7;
+    else if(sc==='early')scOk=sv>=1&&sv<=4;
+    var srOk=!search||c.textContent.toLowerCase().indexOf(search)>-1;
+    var show=catOk&&stOk&&invOk&&scOk&&srOk;
+    c.style.display=show?'':'none';
+    if(show)vis++;
   }});
+  var rc=document.getElementById('resultCount');
+  if(rc)rc.textContent=vis+' opportunities found';
+  var active=cats.length+sts.length+(inv?1:0)+(sc?1:0);
+  var badge=document.getElementById('filterBadge');
+  if(badge){{badge.textContent=active;badge.style.display=active>0?'inline-flex':'none';}}
 }}
-document.addEventListener('DOMContentLoaded',function(){{
-  var states=new Set();
-  document.querySelectorAll('#odopGrid .district-card .district-name-hin').forEach(function(el){{
-    var p=el.textContent.split('·');
-    if(p[1])states.add(p[1].trim());
-  }});
-  var sel=document.getElementById('stateFilter');
-  [...states].sort().forEach(function(s){{var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);}});
-}});
+function clearFilters(){{
+  document.querySelectorAll('.fcb-cat,.fcb-state').forEach(function(c){{c.checked=false;}});
+  var fi=document.querySelector('input[name="fInv"]');if(fi)fi.checked=true;
+  var fs=document.querySelector('input[name="fScore"]');if(fs)fs.checked=true;
+  document.getElementById('productSearch').value='';
+  applyFilters();
+}}
+function toggleSidebar(){{
+  document.getElementById('filterSidebar').classList.toggle('fsb-open');
+}}
+document.addEventListener('DOMContentLoaded',function(){{applyFilters();}});
 </script>''' + footer() + "</body></html>"
 
-def build_events_page():
+def build_events_page(exhibition_posts=None):
+    posts = exhibition_posts or []
+    cards_html = ''
+    for post in posts:
+        sv    = post['post_name']
+        title = post['post_title']
+        raw   = post['post_content']
+        first_p = re.search(r'<p[^>]*>(.*?)</p>', raw, re.DOTALL)
+        desc    = re.sub(r'<[^>]+>', '', first_p.group(1).strip())[:120] if first_p else ''
+        ae_city, _ = parse_wp_shortcode(raw)
+        if 'exhibitions' in sv:
+            dtype, tlabel, tcls = 'exhibitions', 'Exhibitions', 'tag-orange'
+        elif 'business-events' in sv:
+            dtype, tlabel, tcls = 'business', 'Business Events', 'tag-blue'
+        else:
+            dtype, tlabel, tcls = 'general', 'Events', 'tag-gray'
+        cards_html += f'''<a href="{p('/')}{sv}/index.html" class="district-card" data-type="{dtype}">
+  <div class="district-card-head"><div>
+    <div class="district-name">{esc(title)}</div>
+    {f'<div class="district-name-hin">{esc(ae_city)}</div>' if ae_city else ''}
+  </div><span class="district-arrow">&#8594;</span></div>
+  {f'<div class="district-desc">{esc(desc)}</div>' if desc else ''}
+  <div class="district-meta"><span class="tag {tcls}">{tlabel}</span></div>
+</a>'''
+    ftabs = '<button class="filter-tab active" onclick="filterEv(\'all\',this)">All Cities</button><button class="filter-tab" onclick="filterEv(\'exhibitions\',this)">Exhibitions</button><button class="filter-tab" onclick="filterEv(\'business\',this)">Business Events</button>'
+    city_section = (f'<div><div class="section-label">Browse by City</div>'
+        f'<h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:16px">Find Events in Your City</h2>'
+        f'<div class="filter-tabs">{ftabs}</div><div class="grid-3" id="evGrid">{cards_html}</div></div>'
+        f'<script>function filterEv(t,btn){{document.querySelectorAll(".filter-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#evGrid .district-card").forEach(function(c){{c.style.display=(t==="all"||c.dataset.type===t)?"":"none";}});}}</script>'
+    ) if cards_html else ''
     return head("Trade Events & Expos | KidharMilega","Find upcoming trade shows and expos across 100 Indian cities.","/events/") + nav("events") + f'''
 <main><div class="container">
   <div class="page-header">
@@ -362,11 +531,57 @@ def build_events_page():
     <h1 class="page-header-title">Trade shows across<br><em>100 Indian cities</em></h1>
     <p class="page-header-sub">Real-time event listings &#8212; trade fairs, B2B summits, craft expos and local haats.</p>
   </div>
-  <div class="ae-section-label" style="margin-bottom:12px">Trade events across India</div>
-  {ae_widget("Delhi", "Exhibitions")}
-  <div class="ae-section-label" style="margin-top:32px;margin-bottom:12px">Business &amp; B2B events</div>
-  {ae_widget("Mumbai", "Business")}
+  {city_section}
 </div></main>''' + footer() + AE_SCRIPT + "</body></html>"
+
+def build_exhibition_page(post):
+    sv      = post['post_name']
+    title   = post['post_title']
+    raw     = post['post_content']
+    ae_city, ae_cat = parse_wp_shortcode(raw)
+    if not ae_cat:
+        ae_cat = 'Exhibitions' if 'exhibitions' in sv else 'Business'
+    if not ae_city:
+        ae_city = 'Delhi'
+    clean   = strip_wp_blocks(raw)
+    first_p = re.search(r'<p[^>]*>(.*?)</p>', clean, re.DOTALL)
+    tagline  = first_p.group(1).strip() if first_p else ''
+    body_html = clean[first_p.end():].strip() if first_p else clean
+    if 'exhibitions' in sv:
+        eyebrow = 'Trade Shows &amp; Exhibitions'
+    elif 'business-events' in sv:
+        eyebrow = 'Business Events &amp; B2B'
+    else:
+        eyebrow = 'Events &amp; Expos'
+    meta_desc = re.sub(r'<[^>]+>', '', tagline)[:155] or f'Find upcoming {title} — trade shows, exhibitions and business events in India.'
+    content_section = (f'<hr class="sec-divider"><section class="page-section"><div class="exhibition-content">{body_html}</div></section>'
+                       ) if body_html.strip() else ''
+    body = f'''<main><div class="container">
+  <section class="district-hero">
+    <div class="breadcrumb"><a href="{p('/index.html')}">Home</a> &#8594; <a href="{p('/events/index.html')}">Events &amp; Expos</a> &#8594; {esc(title)}</div>
+    <div class="hero-eyebrow">{eyebrow}</div>
+    <h1 class="district-page-title">{esc(title)}</h1>
+    {f'<p class="district-tagline">{tagline}</p>' if tagline else ''}
+  </section>
+  <hr class="sec-divider">
+  <section class="page-section">
+    <div class="section-label">Upcoming Events</div>
+    <h2 class="section-title">Events in {esc(ae_city)}</h2>
+    <div style="margin-top:16px">{ae_widget(ae_city, ae_cat)}</div>
+  </section>
+  {content_section}
+  <div class="cta-block" style="margin-top:60px">
+    <div>
+      <div class="cta-title">Explore all city events</div>
+      <div class="cta-sub">Browse trade shows, exhibitions and B2B events across 50+ Indian cities.</div>
+    </div>
+    <div class="cta-actions">
+      <a href="{p('/events/index.html')}" class="btn btn-primary">All Events &amp; Cities &#8594;</a>
+      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)">Join Community</a>
+    </div>
+  </div>
+</div></main>'''
+    return head(f'{title} | KidharMilega', meta_desc, f'/{sv}/') + nav('events') + body + footer() + AE_SCRIPT + '</body></html>'
 
 def build_vendors_page(vendors, districts):
     cats = sorted(set(v.get("category","") for v in vendors if v.get("category","")))
@@ -401,7 +616,7 @@ def build_vendors_page(vendors, districts):
   </div>
 </div></main>''' + footer() + "</body></html>"
 
-def build_district_page(d, vendors, all_districts=[]):
+def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     pg = product_page_slug(d)
     dv = [v for v in vendors if v.get("district_slug","")==d["url_slug"]]
 
@@ -470,9 +685,84 @@ def build_district_page(d, vendors, all_districts=[]):
         ss_html = f'<div class="success-box"><div class="ss-label">&#10003; Verified Success Story</div><div class="ss-name">{esc(d.get("success_story_name",""))}</div><p class="ss-body">{esc(d.get("success_story_desc",""))}</p><div class="ss-nums">{ss_nums}</div>{src}</div>'
 
     # ── Photo ──
-    photo = d.get("odop_photo","").strip()
-    photo_html = f'<div class="odop-photo-wrap"><img src="{esc(photo)}" alt="{esc(d.get("odop_product_name",""))} from {esc(d["district_name"])}" class="odop-photo" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>' if photo else ""
+    photo = gdrive_img(d.get("odop_photo","").strip())
+    photo_html = f'<div class="odop-photo-wrap"><img src="{esc(photo)}" alt="{esc(d.get("odop_product_name",""))} from {esc(d["district_name"])}" class="odop-photo" loading="lazy"></div>' if photo else ""
     gi_badge = f'<span class="tag tag-green" style="font-size:13px;padding:5px 12px">&#10003; GI Certified {esc(d.get("gi_tag_year",""))}</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
+
+    # ── YouTube + News from odop_urls ──
+    url_row    = (odop_urls or {}).get((d.get('state',''), d.get('district_name','')), {})
+    yt_ids     = [x.strip() for x in url_row.get('youtube_ids','').split(',') if x.strip()][:2]
+    news_links = [x.strip() for x in url_row.get('google_urls','').split('|') if x.strip()][:4]
+
+    yt_html = ''
+    if yt_ids:
+        iframes = ''.join(
+            f'<div class="yt-embed-wrap"><iframe src="https://www.youtube.com/embed/{esc(vid)}" '
+            f'title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; '
+            f'encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'
+            for vid in yt_ids
+        )
+        yt_html = (f'<hr class="sec-divider"><section class="page-section">'
+            f'<div class="section-label">Video Resources</div>'
+            f'<h2 class="section-title">Watch: How It\'s Made &amp; Sold</h2>'
+            f'<p class="section-sub">Real process, real margins &#8212; see how this product is actually made and sold before you invest a rupee.</p>'
+            f'<div class="yt-grid">{iframes}</div></section>')
+
+    _PUBLISHERS = {
+        'timesofindia':'Times of India','economictimes':'Economic Times',
+        'thehindu':'The Hindu','hindustantimes':'Hindustan Times',
+        'indianexpress':'Indian Express','newindianexpress':'New Indian Express',
+        'ndtv':'NDTV','livemint':'Mint','businessstandard':'Business Standard',
+        'financialexpress':'Financial Express','pib.gov':'PIB — Govt. of India',
+        'india.gov':'India.gov.in','msme.gov':'MSME Ministry',
+        'startupindia':'Startup India','investindia':'Invest India',
+        'vikaspedia':'Vikaspedia','makingindia':'Make in India',
+    }
+    def _publisher(url):
+        m = re.search(r'https?://(?:www\.)?([^/?]+)', url)
+        domain = m.group(1) if m else ''
+        for key, name in _PUBLISHERS.items():
+            if key in domain:
+                return name
+        parts = domain.split('.')
+        if parts and parts[0] in ('www','en','m','blog'):
+            parts = parts[1:]
+        return parts[0].replace('-',' ').title() if parts else domain
+
+    def _title(url):
+        path = re.sub(r'https?://[^/]+', '', url).rstrip('/')
+        # Try each path segment from right to left, pick first meaningful one
+        segments = [p for p in path.split('/') if p]
+        seg = ''
+        for s in reversed(segments):
+            s = s.split('?')[0]
+            s = re.sub(r'\.(html?|php|aspx|jsp|pdf)$', '', s, flags=re.I)
+            if s and not s.isdigit() and len(s) >= 5 and not re.fullmatch(r'[a-z]{1,3}(\..*)?', s, re.I):
+                seg = s
+                break
+        if not seg:
+            return 'Read Article'
+        # Split CamelCase (e.g. PressReleasePage → Press Release Page)
+        seg = re.sub(r'([A-Z][a-z]+)', r' \1', re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1 \2', seg)).strip()
+        # Hyphens/underscores → spaces, then title case
+        title = re.sub(r'[-_]+', ' ', seg).strip()
+        title = ' '.join(w.capitalize() for w in title.split())
+        return (title[:72] + '…') if len(title) > 72 else title
+
+    news_html = ''
+    if news_links:
+        cards = ''.join(
+            f'<a href="{esc(u)}" class="news-card" target="_blank" rel="noopener">'
+            f'<div class="news-source">{esc(_publisher(u))}</div>'
+            f'<div class="news-title">{esc(_title(u))}</div>'
+            f'<span class="news-arrow">&#8594;</span></a>'
+            for u in news_links
+        )
+        news_html = (f'<hr class="sec-divider"><section class="page-section">'
+            f'<div class="section-label">Market Intelligence</div>'
+            f'<h2 class="section-title">What\'s Happening in This Market</h2>'
+            f'<p class="section-sub">Industry reports and news &#8212; understand the market before you enter it.</p>'
+            f'<div class="news-grid">{cards}</div></section>')
 
     # ── Revenue flow (contextual from revenue_stream_N fields) ──
     _sm  = [d.get('gross_margin_d2c','').strip(), d.get('gross_margin_wholesale','').strip(), d.get('export_margin','').strip()]
@@ -605,7 +895,9 @@ def build_district_page(d, vendors, all_districts=[]):
     </div>
     {ss_html}
   </section>
+  {yt_html}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Revenue Streams</div><h2 class='section-title'>Paise kaise aayenge — revenue roadmap</h2><p class='section-sub'>Sequence matter karta hai. Pehle margin validate karo, tab volume.</p><div style='max-width:600px'>"+rev_html+"</div></section>" if rev_html else ""}
+  {news_html}
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Step-by-Step Roadmap</div>
@@ -619,8 +911,9 @@ def build_district_page(d, vendors, all_districts=[]):
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Events &amp; Expos</div>
-    <h2 class="section-title">Kahan dikhna hai &#8212; buyers yahan milte hain</h2>
-    {ae_events_section(d["district_name"], d.get("state",""), d.get("odop_category",""))}
+    <h2 class="section-title">Apna brand dikhao &#8212; buyers yahan milte hain</h2>
+    <p class="section-sub">Trade fairs aur B2B summits hi woh jagah hai jahan ek sahi deal tumhara business badal sakti hai. Pehli baar jao research ke liye, doosri baar order leke aao. Neeche apna city select karo aur upcoming exhibitions dekho.</p>
+    {ae_widget(AE_FALLBACK.get(d.get("state",""), d["district_name"]), AE_CATEGORY.get(d.get("odop_category",""), "Business"))}
   </section>
   <hr class="sec-divider">
   <section class="page-section">
@@ -670,16 +963,176 @@ def build_district_page(d, vendors, all_districts=[]):
                 d.get("meta_description","") or f'{d["district_name"]} mein {d.get("odop_product_name","")} business guide — market size, entry cost, vendors, schemes aur step-by-step roadmap.',
                 f'/products/{pg}/', image=photo or None, extra_head=extra_head) + alert_html + nav("products") + body + faq_js + footer() + AE_SCRIPT + "</body></html>"
 
+def build_about_page():
+    return head("About KidharMilega — Explore Local, Build Global", "Hum kaun hain? KidharMilega ka mission, philosophy, aur proof of concept.", "/about-us/") + nav("about") + '''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">About Us</div>
+    <h1 class="page-header-title">Explore Local,<br><em>Build Global.</em></h1>
+    <p class="page-header-sub">India ke har district mein ek goldmine chhupi hai. Hum tumhe woh dikhate hain.</p>
+  </div>
+  <div class="prose-section">
+    <div class="prose-block">
+      <div class="section-label">The Mission</div>
+      <h2 class="section-title">Why We Exist</h2>
+      <blockquote class="site-blockquote">"Ek jhooth jo sabko becha gaya hai: Bada aadmi banna hai toh metro city jaana padega. Par mein, tumhe Bheed ka Hissa nahi, kissa banane ke liye zidd pakad kar baitha hu&hellip;"<br><span style="font-size:13px;color:var(--light);display:block;margin-top:8px">— Anmol Ratan Sachdeva, @startupwalebhaia</span></blockquote>
+      <p>Most of India's youth is trapped in a Metro-City Rat Race. We are told that success only lives in Bangalore, Gurgaon, or Mumbai. At KidharMilega, we believe that after AI, the service industry is broken, and every desk job is either low-paying or high-intensity.</p>
+      <p>Our philosophy is simple: <strong>Explore Local, Build Global.</strong> India has always been a hub for outsourcing services — now it is time to become the world's hub for Exports. Instead of importing white-labeled products from China, we want you to discover the "gold" in your own district: local crafts, unique produce, and manufacturing secrets that have been hidden for decades.</p>
+    </div>
+    <hr class="sec-divider" style="margin:40px 0">
+    <div class="prose-block">
+      <div class="section-label">Proof of Concept</div>
+      <h2 class="section-title">Hum hawa mein baatein nahi karte.</h2>
+      <div class="success-box">
+        <div class="ss-label">&#10003; Real Story — August 2025</div>
+        <div class="ss-name">17 साल का student. 15 दिन. ₹5 Lakh/month.</div>
+        <p class="ss-body">In August 2025, a 17-year-old student worked with us for just 15 days. He identified a local handicraft product in his city, launched it globally via Etsy, and as of today he is generating over ₹5 Lakhs in monthly revenue. He didn't need a fancy degree — he just needed the right information and a local network. That's exactly what KidharMilega provides.</p>
+      </div>
+    </div>
+    <hr class="sec-divider" style="margin:40px 0">
+    <div class="prose-block">
+      <div class="section-label">Who We Are</div>
+      <h2 class="section-title">KidharMilega &mdash; Rupantran Biz Pvt Ltd</h2>
+      <p>KidharMilega is an initiative by <strong>Rupantran Biz Pvt Ltd</strong>, led by Startup Wale Bhaia and a team of specialists dedicated to business automation and digital discoverability. Our one goal: aapko dhandhe ka sahi rasta dikhana.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
+        <a href="/team/index.html" class="btn btn-ghost">Meet the Team &rarr;</a>
+        <a href="https://instagram.com/startupwalebhaia" class="btn btn-primary" target="_blank">Follow @startupwalebhaia</a>
+      </div>
+    </div>
+  </div>
+</div></main>''' + footer() + "</body></html>"
+
+def build_team_page():
+    team = [
+        ("Anmol Ratan Sachdeva", "Founder", "Known as Startup Wale Bhaia, Anmol is a content marketer and consultant who believes in Profit-First businesses. He built KidharMilega to help you skip the rat race.", "https://instagram.com/startupwalebhaia"),
+        ("Anshulika", "AI Video Lead Editor", "The wizard behind our product storytelling. Anshulika uses AI to create process videos that show the world how local Indian products are made.", None),
+        ("Manish", "Data Entry & Operations", "The Groundwork King. Every single data point — from district names to product categories — passes through Manish's lens to ensure accuracy.", None),
+        ("Kshitij", "Lead, Partnerships & Outreach", "The bridge-builder. Kshitij collaborates with creators (some with 20M+ followers) to ensure that local ODOP products get the national spotlight they deserve.", None),
+    ]
+    cards = ""
+    for name, role, bio, link in team:
+        initials = "".join(w[0] for w in name.split()[:2]).upper()
+        cta = f'<a href="{esc(link)}" class="btn btn-sm btn-ghost" target="_blank" style="margin-top:12px">Instagram &rarr;</a>' if link else ""
+        cards += f'''<div class="team-card">
+  <div class="team-avatar">{initials}</div>
+  <div class="team-name">{esc(name)}</div>
+  <div class="team-role">{esc(role)}</div>
+  <p class="team-bio">{esc(bio)}</p>
+  {cta}
+</div>'''
+    return head("Our Team | KidharMilega", "Meet the people mapping India's 787 districts — and building the tools to help you find your business.", "/team/") + nav() + f'''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">The Team</div>
+    <h1 class="page-header-title">People behind<br><em>the platform</em></h1>
+    <p class="page-header-sub">787 districts map karna aasaan kaam nahi. Meet the people who are doing it.</p>
+  </div>
+  <div class="team-grid">{cards}</div>
+</div></main>''' + footer() + "</body></html>"
+
+def build_odop_guide_page():
+    raw = (BASE_DIR / "data" / "page content" / "what-is-odop.md").read_text(encoding="utf-8")
+    # Strip the frontmatter-style lines at top (URL Slug, Meta Description, ---)
+    raw = re.sub(r'^\*\*URL Slug:\*\*.*\n', '', raw)
+    raw = re.sub(r'^\*\*Meta Description:\*\*.*\n', '', raw)
+    raw = re.sub(r'^---\n', '', raw, count=2)
+    html_body = md_lib.markdown(raw, extensions=['tables', 'extra'])
+    return head(
+        "ODOP Kya Hai? Your First ₹50k Business Idea Is Already Government-Approved | KidharMilega",
+        "One District One Product — India's biggest business cheat code. Apne district ka goldmine product, government subsidies, aur pehla ₹50k kaise kamayein.",
+        "/what-is-odop/"
+    ) + nav("odop-guide") + f'''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">ODOP Guide</div>
+    <h1 class="page-header-title">Your first ₹50k business idea<br><em>is government-approved.</em></h1>
+    <p class="page-header-sub">Stop migrating. Your district already has a goldmine — you just haven&rsquo;t looked.</p>
+  </div>
+  <div class="prose-article">{html_body}</div>
+  <div class="cta-block" style="margin-top:60px">
+    <div>
+      <div class="cta-title">Apna district ka product dhundo</div>
+      <div class="cta-sub">787 districts. 550+ products. Market data, entry cost, aur step-by-step guide — sab free.</div>
+    </div>
+    <div class="cta-actions">
+      <a href="/products/index.html" class="btn btn-primary">Browse All Districts &rarr;</a>
+    </div>
+  </div>
+</div></main>''' + footer() + "</body></html>"
+
+def build_contact_page():
+    return head("Contact KidharMilega", "Partnerships, business queries, or just want to say hello — reach us here.", "/contact/") + nav("contact") + '''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">Contact Us</div>
+    <h1 class="page-header-title">Let&rsquo;s talk<br><em>business.</em></h1>
+    <p class="page-header-sub">Partnerships, outreach, or just want to connect — we&rsquo;re reachable.</p>
+  </div>
+  <div class="grid-2" style="max-width:760px;margin-top:40px">
+    <div class="contact-card">
+      <div class="contact-icon">&#9993;</div>
+      <div class="contact-label">Partnerships &amp; Business</div>
+      <a href="mailto:contact@kidharmilega.in" class="contact-value">contact@kidharmilega.in</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">&#128247;</div>
+      <div class="contact-label">Community &amp; Direct</div>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" class="contact-value">@startupwalebhaia</a>
+    </div>
+  </div>
+  <div class="contact-address">
+    <div class="contact-label" style="margin-bottom:8px">Registered Office</div>
+    <p style="font-size:15px;color:var(--dark);font-weight:500">Rupantran Biz Pvt Ltd</p>
+    <p style="font-size:14px;color:var(--mid)">First Floor, 56B, Chitrakoot Nagar<br>Udaipur — 313001, Rajasthan</p>
+  </div>
+</div></main>''' + footer() + "</body></html>"
+
+def build_terms_page():
+    return head("Terms of Service | KidharMilega", "The KidharMilega disclaimer and terms of use — plain language, no legalese.", "/terms-of-service/") + nav() + '''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">Terms &amp; Disclaimer</div>
+    <h1 class="page-header-title">The &ldquo;Bhaia&rdquo;<br><em>Disclaimer</em></h1>
+    <p class="page-header-sub">Think of us as your Bhaia who guides you in the right direction. You are the one who has to run the business.</p>
+  </div>
+  <div class="prose-section" style="max-width:720px">
+    <div class="prose-block">
+      <h2 class="section-title">Our Commitment to You</h2>
+      <div class="terms-list">
+        <div class="terms-item"><div class="terms-icon">&#128683;</div><div><strong>No Guarantees</strong><p>We provide information based on public government research and our own data gathering. We do not guarantee profits, subsidies, or loan approvals.</p></div></div>
+        <div class="terms-item"><div class="terms-icon">&#129330;</div><div><strong>Your Responsibility</strong><p>If you invest money based on information found here, you must practice your own due diligence. We are not liable for any business losses.</p></div></div>
+        <div class="terms-item"><div class="terms-icon">&#128176;</div><div><strong>No Fees for Info</strong><p>We do not ask for money in exchange for this information. We don&#x27;t sell insurance, loans, or specific financial products.</p></div></div>
+      </div>
+    </div>
+    <hr class="sec-divider" style="margin:40px 0">
+    <div class="prose-block">
+      <h2 class="section-title">Terms of Service</h2>
+      <p>KidharMilega is an entity under <strong>Rupantran Biz Pvt Ltd</strong>. By using this site, you agree that:</p>
+      <div class="terms-list">
+        <div class="terms-item"><div class="terms-icon">&#128218;</div><div><strong>Educational Use Only</strong><p>All content is for educational and discovery purposes only.</p></div></div>
+        <div class="terms-item"><div class="terms-icon">&#128274;</div><div><strong>No Scraping</strong><p>You will not scrape or copy our database for commercial gain. Our data team has spent considerable effort building this resource.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div></main>''' + footer() + "</body></html>"
+
 def build_sitemap(districts):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     today = datetime.now().strftime("%Y-%m-%d")
     def u(loc, freq, pri):
         return f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>{freq}</changefreq>\n    <priority>{pri}</priority>\n  </url>'
     entries = [
-        u(f"{SITE_URL}/",          "weekly",  "1.0"),
-        u(f"{SITE_URL}/products/", "weekly",  "0.9"),
-        u(f"{SITE_URL}/events/",   "daily",   "0.6"),
+        u(f"{SITE_URL}/",                    "weekly",  "1.0"),
+        u(f"{SITE_URL}/products/",           "weekly",  "0.9"),
+        u(f"{SITE_URL}/events/",             "daily",   "0.8"),
+        u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
+        u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
+        u(f"{SITE_URL}/team/",               "monthly", "0.5"),
+        u(f"{SITE_URL}/contact/",            "monthly", "0.6"),
+        u(f"{SITE_URL}/terms-of-service/",   "monthly", "0.3"),
     ]
+    for sv in EXHIBITION_SLUGS:
+        entries.append(u(f"{SITE_URL}/{sv}/", "weekly", "0.7"))
     for d in live:
         pg  = product_page_slug(d)
         pri = "0.8" if d.get("step_1_learn","").strip() else "0.6"
@@ -702,7 +1155,7 @@ def build():
     for d in ["assets","products","events","vendors"]: (DIST_DIR/d).mkdir()
 
     # Write CSS inline (no external file needed)
-    css_content = """*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}img{max-width:100%;display:block}a{color:inherit;text-decoration:none}:root{--orange:#00B4D8;--orange-l:#E6F8FD;--orange-m:#7DD8EE;--dark:#111111;--mid:#555555;--light:#888888;--border:#E2EEF2;--bg:#FFFFFF;--bg-2:#F5FBFD;--bg-3:#EAF5F9;--green:#2D7D46;--green-l:#EAF4EE;--blue:#0077A8;--blue-l:#E0F2FA;--radius:10px;--radius-lg:16px;--shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04);--shadow-lg:0 2px 8px rgba(0,0,0,0.10),0 8px 32px rgba(0,0,0,0.06);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--max-w:1120px}body{font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15}p{color:var(--mid)}.container{max-width:var(--max-w);margin:0 auto;padding:0 24px}.section{padding:80px 0}.section-sm{padding:48px 0}.site-nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:32px}.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}.logo-mark{background:var(--orange);color:#fff;font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:1px;padding:4px 7px;border-radius:4px}.logo-mark.small{font-size:10px;padding:3px 6px}.logo-text{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--dark)}.logo-text strong{color:var(--orange);font-weight:600}.nav-logo-img{height:36px;width:auto}.nav-links{display:flex;gap:4px;flex:1}.nav-links a{font-size:14px;color:var(--mid);padding:6px 12px;border-radius:6px;transition:all 0.15s}.nav-links a:hover,.nav-links a.active{color:var(--dark);background:var(--bg-3)}.nav-links a.active{color:var(--orange)}.nav-ig{font-size:13px;color:var(--orange);font-weight:500;flex-shrink:0}.nav-ig:hover{text-decoration:underline}.site-footer{border-top:1px solid var(--border);padding:40px 0;background:var(--bg-2);margin-top:80px}.footer-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}.footer-links{display:flex;gap:20px;flex:1}.footer-links a{font-size:13px;color:var(--mid)}.footer-links a:hover{color:var(--dark)}.footer-meta{font-size:12px;color:var(--light)}.footer-meta a{color:var(--orange)}.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:var(--radius);font-size:14px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;text-decoration:none}.btn-primary{background:var(--orange);color:#fff;border-color:var(--orange)}.btn-primary:hover{background:#0096B8;border-color:#0096B8}.btn-ghost{background:transparent;color:var(--dark);border-color:var(--border)}.btn-ghost:hover{background:var(--bg-3);border-color:var(--dark)}.btn-sm{padding:8px 14px;font-size:13px}.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;letter-spacing:0.3px}.tag-orange{background:var(--orange-l);color:var(--orange)}.tag-green{background:var(--green-l);color:var(--green)}.tag-blue{background:var(--blue-l);color:var(--blue)}.tag-gray{background:var(--bg-3);color:var(--mid)}.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:box-shadow 0.2s,transform 0.2s}.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}.hero{padding:80px 0 60px}.hero-eyebrow{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:20px}.hero-title{font-family:var(--font-display);font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;color:var(--dark);margin-bottom:20px}.hero-title em{font-style:italic;color:var(--orange)}.hero-sub{font-size:18px;color:var(--mid);max-width:560px;line-height:1.7;margin-bottom:36px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}.stat-strip{display:flex;gap:40px;flex-wrap:wrap;padding:32px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:40px 0}.stat-item{display:flex;flex-direction:column;gap:4px}.stat-val{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--orange)}.stat-label{font-size:13px;color:var(--light)}.district-card{display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);transition:all 0.2s;background:var(--bg);text-decoration:none}.district-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.district-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.district-name{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--dark)}.district-name-hin{font-size:14px;color:var(--light);margin-top:2px}.district-product{font-size:14px;font-weight:500;color:var(--orange);margin-top:4px}.district-desc{font-size:13px;color:var(--mid);line-height:1.6}.district-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}.district-arrow{font-size:18px;color:var(--border);transition:color 0.2s}.district-card:hover .district-arrow{color:var(--orange)}.district-hero{padding:60px 0 40px;border-bottom:1px solid var(--border)}.district-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px}.breadcrumb{font-size:13px;color:var(--light);margin-bottom:16px}.breadcrumb a{color:var(--orange)}.district-page-title{font-family:var(--font-display);font-size:clamp(32px,5vw,56px);font-weight:900;color:var(--dark);line-height:1.1}.district-page-title span{color:var(--orange);font-style:italic}.district-tagline{font-size:17px;color:var(--mid);margin-top:12px;max-width:600px;line-height:1.7}.snapshot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:32px}.snapshot-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.snapshot-val{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark)}.snapshot-key{font-size:12px;color:var(--light);margin-top:4px}.page-section{padding:48px 0;border-bottom:1px solid var(--border)}.page-section:last-of-type{border-bottom:none}.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}.section-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--dark);margin-bottom:8px}.section-sub{font-size:15px;color:var(--mid);margin-bottom:28px;line-height:1.7}.odop-block{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}@media(max-width:700px){.odop-block{grid-template-columns:1fr}}.odop-detail-list{display:flex;flex-direction:column}.odop-detail-row{display:flex;padding:12px 0;border-bottom:1px solid var(--border);gap:16px}.odop-detail-row:last-child{border-bottom:none}.odop-detail-key{font-size:13px;color:var(--light);min-width:130px;flex-shrink:0}.odop-detail-val{font-size:14px;color:var(--dark);font-weight:500}.steps-list{display:flex;flex-direction:column}.step-row{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.step-num{width:36px;height:36px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;margin-top:2px}.step-content{flex:1}.step-title{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.step-desc{font-size:14px;color:var(--mid);line-height:1.6}.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}.name-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--dark)}.vendor-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.vendor-card.premium{border-color:var(--orange-m);background:var(--orange-l)}.vendor-name{font-size:16px;font-weight:600;color:var(--dark);margin-bottom:4px}.vendor-cat{font-size:13px;color:var(--mid);margin-bottom:12px}.vendor-desc{font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px}.vendor-actions{display:flex;gap:8px;flex-wrap:wrap}.scheme-list{display:flex;flex-direction:column;gap:12px}.scheme-item{display:flex;gap:16px;padding:16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);align-items:flex-start}.scheme-icon{width:36px;height:36px;background:var(--orange-l);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.scheme-title{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:3px}.scheme-desc{font-size:13px;color:var(--mid)}.cta-block{background:linear-gradient(135deg,#0077A8 0%,#00B4D8 100%);border-radius:var(--radius-lg);padding:48px;display:flex;gap:32px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:60px}.cta-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}.cta-sub{font-size:15px;color:rgba(255,255,255,0.6)}.cta-actions{display:flex;gap:12px;flex-wrap:wrap}.hero-search-row{display:flex;gap:8px;align-items:center}.math-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}.search-wrap{position:relative;max-width:480px}.search-input{width:100%;padding:14px 20px 14px 46px;border:1.5px solid var(--border);border-radius:40px;font-size:15px;font-family:var(--font-body);background:var(--bg);color:var(--dark);outline:none;transition:border-color 0.2s}.search-input:focus{border-color:var(--orange)}.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--light);font-size:18px;pointer-events:none}.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}.filter-tab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--mid);cursor:pointer;transition:all 0.15s;background:var(--bg);font-family:var(--font-body)}.filter-tab:hover,.filter-tab.active{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}.events-placeholder{background:var(--bg-2);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center}.events-placeholder h3{font-family:var(--font-display);font-size:20px;margin-bottom:8px}.page-header{padding:48px 0 32px;border-bottom:1px solid var(--border);margin-bottom:40px}.page-header-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:900;color:var(--dark);margin-bottom:8px}.page-header-title em{font-style:italic;color:var(--orange)}.page-header-sub{font-size:16px;color:var(--mid);max-width:520px}.master-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-bottom:60px}.module-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:16px;transition:all 0.2s;text-decoration:none}.module-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.module-icon{font-size:28px}.module-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--dark)}.module-desc{font-size:14px;color:var(--mid);line-height:1.7}.module-link{font-size:13px;color:var(--orange);font-weight:500;margin-top:auto}.odop-photo-wrap{margin-bottom:28px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}.odop-photo{width:100%;max-height:380px;object-fit:cover;display:block}.ae-section-label{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:12px}.ae-primary,.ae-fallback{border-radius:var(--radius-lg);overflow:hidden}.sec-divider{border:none;border-top:1px solid var(--border);margin:0}.alert-strip{background:#111;color:#fff;text-align:center;padding:10px 24px;font-size:13px;font-weight:500;letter-spacing:0.2px}.for-badge{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:500;display:inline-block;margin-bottom:16px}.geo-anchor{font-size:15px;color:var(--mid);line-height:1.8;margin:12px 0 0;max-width:620px}.stat-bar-dark{background:#111;border-radius:var(--radius-lg);padding:18px 28px;display:flex;gap:32px;flex-wrap:wrap;margin:24px 0}.stat-bar-item{display:flex;flex-direction:column;gap:4px}.stat-bar-item .sv{font-family:var(--font-display);font-size:22px;font-weight:900;color:#fff}.stat-bar-item .sk{font-size:11px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px}.opp-card{display:flex;gap:28px;align-items:center;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin:24px 0;flex-wrap:wrap}.opp-ring{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}.opp-ring-num{background:var(--bg);border-radius:50%;width:76px;height:76px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--dark)}.opp-ring-num small{font-size:13px;color:var(--light);margin-left:2px}.opp-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:6px}.opp-title{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--dark);margin-bottom:10px}.opp-pills{display:flex;gap:8px;flex-wrap:wrap}.opp-pill{background:var(--green-l);color:var(--green);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500}.biz-card{background:#111;border-radius:var(--radius-lg);padding:20px 24px}.biz-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:14px}.biz-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px}.biz-row:last-child{border-bottom:none}.bk{color:rgba(255,255,255,0.55)}.bv{color:#fff;font-weight:600}.bv.g{color:#4ade80}.success-box{background:var(--bg-2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-lg);padding:24px;margin-top:28px}.ss-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:8px}.ss-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark);margin-bottom:8px}.ss-body{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:16px}.ss-nums{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:8px}.ss-num{display:flex;flex-direction:column;gap:4px}.ss-num .sv{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--dark)}.ss-num .sk{font-size:12px;color:var(--light)}.ss-source{font-size:12px;color:var(--light);font-style:italic}.rev-flow{display:flex;flex-direction:column;gap:4px;margin-top:20px}.rev-row{display:flex;align-items:center;gap:18px;padding:16px 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)}.rev-row.primary{background:var(--orange-l);border-color:var(--orange-m)}.rev-row>div:nth-child(2){flex:1}.rev-arr{color:var(--light);font-size:18px;padding:2px 0;line-height:1;padding-left:48px}.rev-step{width:32px;height:32px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}.rev-step-b{background:#111;color:#fff}.ri-name{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:2px}.ri-desc{font-size:12px;color:var(--mid)}.rev-margin{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--orange);white-space:nowrap;flex-shrink:0}.step-num-dark{width:38px;height:38px;background:#111;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;margin-top:2px}.log-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}.log-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.log-icon{font-size:22px;margin-bottom:8px}.log-name{font-size:11px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}.log-detail{font-size:14px;color:var(--dark);font-weight:500}.park-list{display:flex;flex-direction:column;gap:10px;margin-top:20px}.park-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius)}.park-name{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.park-desc{font-size:13px;color:var(--mid)}.park-tag{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}.faq-list{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:20px}.faq-item{border-bottom:1px solid var(--border)}.faq-item:last-child{border-bottom:none}.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--bg);border:none;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;font-family:var(--font-body);text-align:left;gap:16px}.faq-btn:hover{background:var(--bg-2)}.faq-icon{font-size:18px;color:var(--light);flex-shrink:0;transition:transform 0.2s}.faq-item.open .faq-btn{background:var(--bg-2);color:var(--orange)}.faq-item.open .faq-icon{transform:rotate(45deg)}.faq-body{display:none;padding:0 20px 16px;font-size:14px;color:var(--mid);line-height:1.7}.faq-item.open .faq-body{display:block}.rd-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:12px}.rd-grid{display:flex;gap:10px;flex-wrap:wrap}.rd-chip{display:flex;flex-direction:column;gap:3px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:all 0.15s;background:var(--bg);min-width:140px}.rd-chip:hover{border-color:var(--orange-m);background:var(--orange-l)}.rd-p{font-size:13px;font-weight:600;color:var(--dark)}.rd-s{font-size:11px;color:var(--light)}.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:20px}.cluster-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.cluster-card.active{border-color:var(--orange-m);background:var(--orange-l)}.cc-town{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--light);margin-bottom:4px}.cc-name{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--dark);margin-bottom:8px}.cc-facts{list-style:none}.cc-facts li{font-size:12px;color:var(--mid);padding:3px 0}.info-box{border-radius:var(--radius);padding:14px 18px;font-size:14px;line-height:1.6}.info-neutral{background:var(--bg-2);border:1px solid var(--border);color:var(--mid)}@media(max-width:640px){.container{padding:0 16px}.nav-links{display:none}.section{padding:48px 0}.cta-block{padding:24px;flex-direction:column;align-items:stretch}.cta-actions{flex-direction:column;width:100%}.cta-actions .btn{width:100%;justify-content:center}.stat-strip{gap:24px}.hero-search-row{flex-direction:column;align-items:stretch}.hero-search-row>*{width:100% !important;max-width:100% !important}.hero-search-btn{justify-content:center}.math-grid{grid-template-columns:1fr}}"""
+    css_content = """*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}img{max-width:100%;display:block}a{color:inherit;text-decoration:none}:root{--orange:#00B4D8;--orange-l:#E6F8FD;--orange-m:#7DD8EE;--dark:#111111;--mid:#555555;--light:#888888;--border:#E2EEF2;--bg:#FFFFFF;--bg-2:#F5FBFD;--bg-3:#EAF5F9;--green:#2D7D46;--green-l:#EAF4EE;--blue:#0077A8;--blue-l:#E0F2FA;--radius:10px;--radius-lg:16px;--shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04);--shadow-lg:0 2px 8px rgba(0,0,0,0.10),0 8px 32px rgba(0,0,0,0.06);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--max-w:1120px}body{font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15}p{color:var(--mid)}.container{max-width:var(--max-w);margin:0 auto;padding:0 24px}.section{padding:80px 0}.section-sm{padding:48px 0}.site-nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:32px}.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}.logo-mark{background:var(--orange);color:#fff;font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:1px;padding:4px 7px;border-radius:4px}.logo-mark.small{font-size:10px;padding:3px 6px}.logo-text{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--dark)}.logo-text strong{color:var(--orange);font-weight:600}.nav-logo-img{height:36px;width:auto}.nav-links{display:flex;gap:4px;flex:1}.nav-links a{font-size:14px;color:var(--mid);padding:6px 12px;border-radius:6px;transition:all 0.15s}.nav-links a:hover,.nav-links a.active{color:var(--dark);background:var(--bg-3)}.nav-links a.active{color:var(--orange)}.nav-ig{font-size:13px;color:var(--orange);font-weight:500;flex-shrink:0}.nav-ig:hover{text-decoration:underline}.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--dark);padding:4px 8px;line-height:1;margin-left:8px}.site-footer{border-top:1px solid var(--border);padding:40px 0;background:var(--bg-2);margin-top:80px}.footer-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}.footer-links{display:flex;gap:20px;flex:1}.footer-links a{font-size:13px;color:var(--mid)}.footer-links a:hover{color:var(--dark)}.footer-meta{font-size:12px;color:var(--light)}.footer-meta a{color:var(--orange)}.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:var(--radius);font-size:14px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;text-decoration:none}.btn-primary{background:var(--orange);color:#fff;border-color:var(--orange)}.btn-primary:hover{background:#0096B8;border-color:#0096B8}.btn-ghost{background:transparent;color:var(--dark);border-color:var(--border)}.btn-ghost:hover{background:var(--bg-3);border-color:var(--dark)}.btn-sm{padding:8px 14px;font-size:13px}.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;letter-spacing:0.3px}.tag-orange{background:var(--orange-l);color:var(--orange)}.tag-green{background:var(--green-l);color:var(--green)}.tag-blue{background:var(--blue-l);color:var(--blue)}.tag-gray{background:var(--bg-3);color:var(--mid)}.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:box-shadow 0.2s,transform 0.2s}.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}.hero{padding:80px 0 60px}.hero-eyebrow{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:20px}.hero-title{font-family:var(--font-display);font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;color:var(--dark);margin-bottom:20px}.hero-title em{font-style:italic;color:var(--orange)}.hero-sub{font-size:18px;color:var(--mid);max-width:560px;line-height:1.7;margin-bottom:36px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}.stat-strip{display:flex;gap:40px;flex-wrap:wrap;padding:32px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:40px 0}.stat-item{display:flex;flex-direction:column;gap:4px}.stat-val{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--orange)}.stat-label{font-size:13px;color:var(--light)}.district-card{display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);transition:all 0.2s;background:var(--bg);text-decoration:none}.district-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.district-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.district-name{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--dark)}.district-name-hin{font-size:14px;color:var(--light);margin-top:2px}.district-product{font-size:14px;font-weight:500;color:var(--orange);margin-top:4px}.district-desc{font-size:13px;color:var(--mid);line-height:1.6}.district-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}.district-arrow{font-size:18px;color:var(--border);transition:color 0.2s}.district-card:hover .district-arrow{color:var(--orange)}.district-hero{padding:60px 0 40px;border-bottom:1px solid var(--border)}.district-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px}.breadcrumb{font-size:13px;color:var(--light);margin-bottom:16px}.breadcrumb a{color:var(--orange)}.district-page-title{font-family:var(--font-display);font-size:clamp(32px,5vw,56px);font-weight:900;color:var(--dark);line-height:1.1}.district-page-title span{color:var(--orange);font-style:italic}.district-tagline{font-size:17px;color:var(--mid);margin-top:12px;max-width:600px;line-height:1.7}.snapshot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:32px}.snapshot-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.snapshot-val{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark)}.snapshot-key{font-size:12px;color:var(--light);margin-top:4px}.page-section{padding:48px 0;border-bottom:1px solid var(--border)}.page-section:last-of-type{border-bottom:none}.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}.section-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--dark);margin-bottom:8px}.section-sub{font-size:15px;color:var(--mid);margin-bottom:28px;line-height:1.7}.odop-block{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}@media(max-width:700px){.odop-block{grid-template-columns:1fr}}.odop-detail-list{display:flex;flex-direction:column}.odop-detail-row{display:flex;padding:12px 0;border-bottom:1px solid var(--border);gap:16px}.odop-detail-row:last-child{border-bottom:none}.odop-detail-key{font-size:13px;color:var(--light);min-width:130px;flex-shrink:0}.odop-detail-val{font-size:14px;color:var(--dark);font-weight:500}.steps-list{display:flex;flex-direction:column}.step-row{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.step-num{width:36px;height:36px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;margin-top:2px}.step-content{flex:1}.step-title{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.step-desc{font-size:14px;color:var(--mid);line-height:1.6}.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}.name-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--dark)}.vendor-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.vendor-card.premium{border-color:var(--orange-m);background:var(--orange-l)}.vendor-name{font-size:16px;font-weight:600;color:var(--dark);margin-bottom:4px}.vendor-cat{font-size:13px;color:var(--mid);margin-bottom:12px}.vendor-desc{font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px}.vendor-actions{display:flex;gap:8px;flex-wrap:wrap}.scheme-list{display:flex;flex-direction:column;gap:12px}.scheme-item{display:flex;gap:16px;padding:16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);align-items:flex-start}.scheme-icon{width:36px;height:36px;background:var(--orange-l);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.scheme-title{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:3px}.scheme-desc{font-size:13px;color:var(--mid)}.cta-block{background:linear-gradient(135deg,#0077A8 0%,#00B4D8 100%);border-radius:var(--radius-lg);padding:48px;display:flex;gap:32px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:60px}.cta-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}.cta-sub{font-size:15px;color:rgba(255,255,255,0.6)}.cta-actions{display:flex;gap:12px;flex-wrap:wrap}.hero-search-row{display:flex;gap:8px;align-items:center}.math-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}.search-wrap{position:relative;max-width:480px}.search-input{width:100%;padding:14px 20px 14px 46px;border:1.5px solid var(--border);border-radius:40px;font-size:15px;font-family:var(--font-body);background:var(--bg);color:var(--dark);outline:none;transition:border-color 0.2s}.search-input:focus{border-color:var(--orange)}.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--light);font-size:18px;pointer-events:none}.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}.filter-tab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--mid);cursor:pointer;transition:all 0.15s;background:var(--bg);font-family:var(--font-body)}.filter-tab:hover,.filter-tab.active{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}.events-placeholder{background:var(--bg-2);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center}.events-placeholder h3{font-family:var(--font-display);font-size:20px;margin-bottom:8px}.page-header{padding:48px 0 32px;border-bottom:1px solid var(--border);margin-bottom:40px}.page-header-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:900;color:var(--dark);margin-bottom:8px}.page-header-title em{font-style:italic;color:var(--orange)}.page-header-sub{font-size:16px;color:var(--mid);max-width:520px}.master-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-bottom:60px}.module-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:16px;transition:all 0.2s;text-decoration:none}.module-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.module-icon{font-size:28px}.module-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--dark)}.module-desc{font-size:14px;color:var(--mid);line-height:1.7}.module-link{font-size:13px;color:var(--orange);font-weight:500;margin-top:auto}.odop-photo-wrap{margin-bottom:28px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}.odop-photo{width:100%;max-height:380px;object-fit:cover;display:block}.ae-section-label{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:12px}.ae-primary,.ae-fallback{border-radius:var(--radius-lg);overflow:hidden}.sec-divider{border:none;border-top:1px solid var(--border);margin:0}.alert-strip{background:#111;color:#fff;text-align:center;padding:10px 24px;font-size:13px;font-weight:500;letter-spacing:0.2px}.for-badge{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:500;display:inline-block;margin-bottom:16px}.geo-anchor{font-size:15px;color:var(--mid);line-height:1.8;margin:12px 0 0;max-width:620px}.stat-bar-dark{background:#111;border-radius:var(--radius-lg);padding:18px 28px;display:flex;gap:32px;flex-wrap:wrap;margin:24px 0}.stat-bar-item{display:flex;flex-direction:column;gap:4px}.stat-bar-item .sv{font-family:var(--font-display);font-size:22px;font-weight:900;color:#fff}.stat-bar-item .sk{font-size:11px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px}.opp-card{display:flex;gap:28px;align-items:center;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin:24px 0;flex-wrap:wrap}.opp-ring{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}.opp-ring-num{background:var(--bg);border-radius:50%;width:76px;height:76px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--dark)}.opp-ring-num small{font-size:13px;color:var(--light);margin-left:2px}.opp-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:6px}.opp-title{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--dark);margin-bottom:10px}.opp-pills{display:flex;gap:8px;flex-wrap:wrap}.opp-pill{background:var(--green-l);color:var(--green);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500}.biz-card{background:#111;border-radius:var(--radius-lg);padding:20px 24px}.biz-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:14px}.biz-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px}.biz-row:last-child{border-bottom:none}.bk{color:rgba(255,255,255,0.55)}.bv{color:#fff;font-weight:600}.bv.g{color:#4ade80}.success-box{background:var(--bg-2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-lg);padding:24px;margin-top:28px}.ss-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:8px}.ss-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark);margin-bottom:8px}.ss-body{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:16px}.ss-nums{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:8px}.ss-num{display:flex;flex-direction:column;gap:4px}.ss-num .sv{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--dark)}.ss-num .sk{font-size:12px;color:var(--light)}.ss-source{font-size:12px;color:var(--light);font-style:italic}.rev-flow{display:flex;flex-direction:column;gap:4px;margin-top:20px}.rev-row{display:flex;align-items:center;gap:18px;padding:16px 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)}.rev-row.primary{background:var(--orange-l);border-color:var(--orange-m)}.rev-row>div:nth-child(2){flex:1}.rev-arr{color:var(--light);font-size:18px;padding:2px 0;line-height:1;padding-left:48px}.rev-step{width:32px;height:32px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}.rev-step-b{background:#111;color:#fff}.ri-name{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:2px}.ri-desc{font-size:12px;color:var(--mid)}.rev-margin{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--orange);white-space:nowrap;flex-shrink:0}.step-num-dark{width:38px;height:38px;background:#111;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;margin-top:2px}.log-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}.log-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.log-icon{font-size:22px;margin-bottom:8px}.log-name{font-size:11px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}.log-detail{font-size:14px;color:var(--dark);font-weight:500}.park-list{display:flex;flex-direction:column;gap:10px;margin-top:20px}.park-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius)}.park-name{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.park-desc{font-size:13px;color:var(--mid)}.park-tag{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}.faq-list{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:20px}.faq-item{border-bottom:1px solid var(--border)}.faq-item:last-child{border-bottom:none}.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--bg);border:none;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;font-family:var(--font-body);text-align:left;gap:16px}.faq-btn:hover{background:var(--bg-2)}.faq-icon{font-size:18px;color:var(--light);flex-shrink:0;transition:transform 0.2s}.faq-item.open .faq-btn{background:var(--bg-2);color:var(--orange)}.faq-item.open .faq-icon{transform:rotate(45deg)}.faq-body{display:none;padding:0 20px 16px;font-size:14px;color:var(--mid);line-height:1.7}.faq-item.open .faq-body{display:block}.rd-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:12px}.rd-grid{display:flex;gap:10px;flex-wrap:wrap}.rd-chip{display:flex;flex-direction:column;gap:3px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:all 0.15s;background:var(--bg);min-width:140px}.rd-chip:hover{border-color:var(--orange-m);background:var(--orange-l)}.rd-p{font-size:13px;font-weight:600;color:var(--dark)}.rd-s{font-size:11px;color:var(--light)}.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:20px}.cluster-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.cluster-card.active{border-color:var(--orange-m);background:var(--orange-l)}.cc-town{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--light);margin-bottom:4px}.cc-name{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--dark);margin-bottom:8px}.cc-facts{list-style:none}.cc-facts li{font-size:12px;color:var(--mid);padding:3px 0}.info-box{border-radius:var(--radius);padding:14px 18px;font-size:14px;line-height:1.6}.info-neutral{background:var(--bg-2);border:1px solid var(--border);color:var(--mid)}.yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:20px}.yt-embed-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius-lg);background:#000}.yt-embed-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius-lg)}.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:20px}.news-card{display:flex;flex-direction:column;gap:8px;padding:16px 18px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:all 0.15s}.news-card:hover{border-color:var(--orange-m);background:var(--orange-l);transform:translateY(-1px)}.news-source{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange)}.news-title{font-size:14px;font-weight:500;color:var(--dark);line-height:1.5}.news-arrow{font-size:14px;color:var(--light);margin-top:4px}.prose-section{max-width:760px}.prose-block{padding:40px 0}.site-blockquote{border-left:3px solid var(--orange);padding:16px 24px;background:var(--orange-l);border-radius:0 var(--radius) var(--radius) 0;font-family:var(--font-display);font-size:17px;font-style:italic;color:var(--dark);margin:24px 0;line-height:1.7}.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:8px}.team-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:8px}.team-avatar{width:52px;height:52px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;font-weight:700;flex-shrink:0;margin-bottom:4px}.team-name{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--dark)}.team-role{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--orange)}.team-bio{font-size:13px;color:var(--mid);line-height:1.7;margin-top:4px}.prose-article{max-width:760px;margin-top:8px}.prose-article h2{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--dark);margin:40px 0 12px;padding-top:8px;border-top:1px solid var(--border)}.prose-article h2:first-child{border-top:none;margin-top:0}.prose-article h3{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--dark);margin:24px 0 8px}.prose-article p{font-size:15px;color:var(--mid);line-height:1.8;margin-bottom:16px}.prose-article ul,.prose-article ol{margin:0 0 20px 0;padding-left:20px}.prose-article li{font-size:14px;color:var(--mid);line-height:1.8;margin-bottom:6px}.prose-article strong{color:var(--dark);font-weight:600}.prose-article a{color:var(--orange);text-decoration:underline}.prose-article hr{border:none;border-top:1px solid var(--border);margin:36px 0}.prose-article blockquote{border-left:3px solid var(--orange);padding:12px 20px;background:var(--orange-l);border-radius:0 var(--radius) var(--radius) 0;margin:24px 0}.prose-article table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}.prose-article th{background:var(--bg-3);padding:10px 14px;text-align:left;font-weight:600;color:var(--dark);border:1px solid var(--border)}.prose-article td{padding:10px 14px;border:1px solid var(--border);color:var(--mid)}.prose-article tr:nth-child(even) td{background:var(--bg-2)}.contact-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:10px}.contact-icon{font-size:28px}.contact-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light)}.contact-value{font-size:16px;font-weight:600;color:var(--orange)}.contact-address{margin-top:48px;padding-top:32px;border-top:1px solid var(--border)}.terms-list{display:flex;flex-direction:column;gap:16px;margin-top:20px}.terms-item{display:flex;gap:16px;padding:20px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);align-items:flex-start}.terms-icon{font-size:22px;flex-shrink:0;margin-top:2px}.terms-item p{font-size:14px;color:var(--mid);margin-top:4px;line-height:1.7}.exhibition-content h3{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark);margin:28px 0 12px}.exhibition-content p{font-size:15px;color:var(--mid);line-height:1.8;margin-bottom:16px}.exhibition-content ul{list-style:none;margin-bottom:20px;display:flex;flex-direction:column;gap:8px}.exhibition-content li{display:flex;gap:12px;font-size:14px;color:var(--mid);line-height:1.7;padding:12px 16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius)}.exhibition-content li::before{content:"→";color:var(--orange);flex-shrink:0;font-weight:600;margin-top:1px}.products-topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}.products-layout{display:flex;gap:28px;align-items:flex-start}.filter-sidebar{width:232px;flex-shrink:0;position:sticky;top:72px;max-height:calc(100vh - 88px);overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);padding:0 0 8px}.fsb-head{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 12px;border-bottom:1px solid var(--border);margin-bottom:4px}.fsb-title{font-size:14px;font-weight:700;color:var(--dark)}.fsb-clear{font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:var(--font-body);font-weight:500;padding:0}.fsb-clear:hover{text-decoration:underline}.filter-group{padding:14px 16px;border-bottom:1px solid var(--border)}.fgrp-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:10px}.fcheck-list{display:flex;flex-direction:column;gap:6px}.fcheck-scroll{max-height:220px;overflow-y:auto;padding-right:4px}.filter-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--mid);line-height:1.4}.filter-check input{accent-color:var(--orange);width:14px;height:14px;flex-shrink:0;cursor:pointer}.filter-check:hover span{color:var(--dark)}.products-main{flex:1;min-width:0}.result-count{font-size:13px;color:var(--light);margin-bottom:12px;min-height:20px}.fsb-mobile-toggle{display:none;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;color:var(--mid);background:var(--bg);cursor:pointer;font-family:var(--font-body);white-space:nowrap}.fsb-mobile-toggle:hover{border-color:var(--orange);color:var(--orange)}.filter-badge{background:var(--orange);color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:1px 7px;min-width:18px;justify-content:center}@media(max-width:640px){.container{padding:0 16px}.site-nav{position:relative}.nav-hamburger{display:flex;align-items:center;justify-content:center;margin-left:auto}.nav-links{display:none;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:8px 16px 16px;gap:2px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,0.08)}.nav-links.nav-open{display:flex}.nav-links a{padding:11px 14px;border-radius:var(--radius);font-size:15px}.nav-ig{display:none}.fsb-mobile-toggle{display:inline-flex}.products-layout{flex-direction:column}.filter-sidebar{width:100%;position:static;max-height:none;display:none;border-radius:var(--radius-lg)}.filter-sidebar.fsb-open{display:block}.section{padding:48px 0}.cta-block{padding:24px;flex-direction:column;align-items:stretch}.cta-actions{flex-direction:column;width:100%}.cta-actions .btn{width:100%;justify-content:center}.stat-strip{gap:24px}.hero-search-row{flex-direction:column;align-items:stretch}.hero-search-row>*{width:100% !important;max-width:100% !important}.hero-search-btn{justify-content:center}.math-grid{grid-template-columns:1fr}}"""
     (DIST_DIR/"assets"/"style.css").write_text(css_content)
     # Copy logo
     logo_src = DATA_DIR / "logo.png"
@@ -714,12 +1167,43 @@ def build():
     vendors   = load_csv(DATA_DIR/"vendors.csv",   CSV_URL_VENDORS)
     print(f"✓ Loaded {len(districts)} districts, {len(vendors)} vendors")
 
+    odop_urls = {}
+    odop_urls_csv = DATA_DIR / "odop_urls.csv"
+    if odop_urls_csv.exists():
+        for row in load_csv(odop_urls_csv):
+            key = (row.get('state','').strip(), row.get('district','').strip())
+            odop_urls[key] = row
+    print(f"✓ Loaded {len(odop_urls)} odop URL entries")
+
+    # Load exhibition posts from JSON export
+    exhibition_posts = []
+    ex_json = DATA_DIR / "posts-exhibition-pages-kidharmilega.json"
+    if ex_json.exists():
+        raw_json = json.loads(ex_json.read_text(encoding="utf-8"))
+        slug_set = set(EXHIBITION_SLUGS)
+        for item in raw_json:
+            if item.get("type") == "table":
+                post_map = {p["post_name"]: p for p in item["data"] if p.get("post_name") in slug_set}
+                exhibition_posts = [post_map[s] for s in EXHIBITION_SLUGS if s in post_map]
+                break
+    print(f"✓ Loaded {len(exhibition_posts)} exhibition posts")
+
     (DIST_DIR/"index.html").write_text(build_homepage(districts))
     print("✓ Homepage")
     (DIST_DIR/"master.html").write_text(build_master_page())
     (DIST_DIR/"products"/"index.html").write_text(build_odop_page(districts))
-    (DIST_DIR/"events"/"index.html").write_text(build_events_page())
+    (DIST_DIR/"events"/"index.html").write_text(build_events_page(exhibition_posts))
     (DIST_DIR/"vendors"/"index.html").write_text(build_vendors_page(vendors, districts))
+    for slug, builder in [
+        ("about-us",        build_about_page),
+        ("team",            build_team_page),
+        ("what-is-odop",    build_odop_guide_page),
+        ("contact",         build_contact_page),
+        ("terms-of-service",build_terms_page),
+    ]:
+        d = DIST_DIR / slug
+        d.mkdir(exist_ok=True)
+        (d / "index.html").write_text(builder())
     (DIST_DIR/"sitemap.xml").write_text(build_sitemap(districts))
     (DIST_DIR/"robots.txt").write_text(build_robots())
     print("✓ Directory pages + sitemap.xml + robots.txt")
@@ -728,8 +1212,15 @@ def build():
     for d in live:
         page_dir = DIST_DIR/"products"/product_page_slug(d)
         page_dir.mkdir(parents=True, exist_ok=True)
-        (page_dir/"index.html").write_text(build_district_page(d, vendors, districts))
+        (page_dir/"index.html").write_text(build_district_page(d, vendors, districts, odop_urls))
     print(f"✓ {len(live)} district pages")
+
+    for post in exhibition_posts:
+        sv = post["post_name"]
+        ex_dir = DIST_DIR / sv
+        ex_dir.mkdir(parents=True, exist_ok=True)
+        (ex_dir / "index.html").write_text(build_exhibition_page(post))
+    print(f"✓ {len(exhibition_posts)} exhibition/event city pages")
 
     (DIST_DIR/".nojekyll").write_text("")
     # CNAME tells GitHub Pages to serve on the custom domain

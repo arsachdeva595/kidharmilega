@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-WP8DXGKB1F");</script>
+<!DOCTYPE html><html lang="en"><head>
+<!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-WP8DXGKB1F');</script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trade Events &amp; Expos | KidharMilega</title>
 <meta name="description" content="Find upcoming trade shows and expos across 100 Indian cities.">
@@ -13,10 +14,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
 
-</head><body><nav class="site-nav"><div class="nav-inner">
+<script>
+(function(){
+  // Disable right-click
+  document.addEventListener('contextmenu',function(e){e.preventDefault();});
+  // Disable copy, cut, select-all
+  document.addEventListener('copy',function(e){e.preventDefault();});
+  document.addEventListener('cut',function(e){e.preventDefault();});
+  // Block DevTools shortcuts and View Source
+  document.addEventListener('keydown',function(e){
+    var k=e.key||'';
+    // F12
+    if(k==='F12'){e.preventDefault();return false;}
+    // Ctrl/Cmd + Shift + I/J/C (DevTools)
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(k==='I'||k==='i'||k==='J'||k==='j'||k==='C'||k==='c')){e.preventDefault();return false;}
+    // Ctrl/Cmd + U (View Source)
+    if((e.ctrlKey||e.metaKey)&&(k==='U'||k==='u')){e.preventDefault();return false;}
+    // Ctrl/Cmd + S (Save page)
+    if((e.ctrlKey||e.metaKey)&&(k==='S'||k==='s')){e.preventDefault();return false;}
+    // Ctrl/Cmd + A (Select All)
+    if((e.ctrlKey||e.metaKey)&&(k==='A'||k==='a')){e.preventDefault();return false;}
+    // Ctrl/Cmd + P (Print)
+    if((e.ctrlKey||e.metaKey)&&(k==='P'||k==='p')){e.preventDefault();return false;}
+  });
+  // Detect DevTools open via size diff (basic)
+  var _dv=false;setInterval(function(){
+    if(window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){
+      if(!_dv){_dv=true;document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:18px;color:#555">Please close DevTools to continue.</div>';}
+    }else{_dv=false;}
+  },1000);
+})();
+</script>
+</head><body><nav class="site-nav" id="siteNav"><div class="nav-inner">
   <a href="/index.html" class="nav-logo"><img src="/assets/logo.png" alt="KidharMilega" class="nav-logo-img"></a>
-  <div class="nav-links"><a href="/index.html">Home</a><a href="/products/index.html">Products</a><a href="/events/index.html" class="active">Events</a><a href="/vendors/index.html">Vendors</a></div>
+  <div class="nav-links" id="navLinks"><a href="/index.html">Home</a><a href="/products/index.html">Products</a><a href="/events/index.html" class="active">Events</a><a href="/what-is-odop/index.html">Why ODOP?</a><a href="/about-us/index.html">About Us</a><a href="/contact/index.html">Contact</a></div>
   <a href="https://instagram.com/startupwalebhaia" class="nav-ig" target="_blank">@startupwalebhaia</a>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="(function(){var n=document.getElementById('navLinks');var b=document.getElementById('navHamburger');var open=n.classList.toggle('nav-open');b.innerHTML=open?'&#10005;':'&#9776;';b.setAttribute('aria-expanded',open);})()">&#9776;</button>
 </div></nav>
 <main><div class="container">
   <div class="page-header">
@@ -24,17 +57,417 @@
     <h1 class="page-header-title">Trade shows across<br><em>100 Indian cities</em></h1>
     <p class="page-header-sub">Real-time event listings &#8212; trade fairs, B2B summits, craft expos and local haats.</p>
   </div>
-  <div class="ae-section-label" style="margin-bottom:12px">Trade events across India</div>
-  <div class="ae-embed-plugin" data-type="city" data-cityname="Delhi" data-category="Exhibitions" data-height="480" data-width="100%" data-header="1" data-border="0" data-transparency=""></div>
-  <div class="ae-section-label" style="margin-top:32px;margin-bottom:12px">Business &amp; B2B events</div>
-  <div class="ae-embed-plugin" data-type="city" data-cityname="Mumbai" data-category="Business" data-height="480" data-width="100%" data-header="1" data-border="0" data-transparency=""></div>
+  <div><div class="section-label">Browse by City</div><h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:16px">Find Events in Your City</h2><div class="filter-tabs"><button class="filter-tab active" onclick="filterEv('all',this)">All Cities</button><button class="filter-tab" onclick="filterEv('exhibitions',this)">Exhibitions</button><button class="filter-tab" onclick="filterEv('business',this)">Business Events</button></div><div class="grid-3" id="evGrid"><a href="/exhibitions-in-agra/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Agra</div>
+    <div class="district-name-hin">Agra</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-srinagar/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Srinagar</div>
+    <div class="district-name-hin">Srinagar</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Srinagar, renowned for its beautiful landscapes and rich cultural heritage, is also an emerging hub for various business</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-kolkata/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Kolkata</div>
+    <div class="district-name-hin">Kolkata</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Kolkata, known for its rich history and vibrant culture, is also a growing hub for business events that attract entrepre</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-tiruchirappalli/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Bhubaneswar</div>
+    <div class="district-name-hin">Bhubaneswar</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Bhubaneswar, the capital of Odisha, is rapidly emerging as a vibrant hub for trade shows, especially in sectors such as </div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-meerut/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Rajkot</div>
+    <div class="district-name-hin">Rajkot</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Rajkot, located in the vibrant state of Gujarat, is a burgeoning hub for industries such as jewelry, automotive parts, a</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-mumbai/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Mumbai</div>
+    <div class="district-name-hin">Mumbai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Mumbai, the bustling financial and entertainment capital of India, is a thriving hub for trade shows that attract divers</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-chandigarh/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Chandigarh</div>
+    <div class="district-name-hin">Chandigarh</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Chandigarh, known for its modern architecture and urban design, is also a vibrant commercial hub that hosts various trad</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-mumbai/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Mumbai</div>
+    <div class="district-name-hin">Mumbai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Mumbai, the financial and entertainment capital of India, is a bustling metropolis renowned for its dynamic business env</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-vadodara/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Vadodara</div>
+    <div class="district-name-hin">Vadodara</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Vadodara, also known as Baroda, is one of Gujarat's major industrial cities, known for its large-scale industries such a</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-jodhpur/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Raipur</div>
+    <div class="district-name-hin">Raipur</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Raipur, the capital city of Chhattisgarh, is increasingly becoming a hotspot for trade shows, especially in sectors like</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-ahmedabad/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Ahmedabad</div>
+    <div class="district-name-hin">Ahmedabad</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ahmedabad, a vibrant entrepreneurial city in the heart of Gujarat, is increasingly recognized for its dynamic business e</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-kalyan-dombivali/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Varanasi</div>
+    <div class="district-name-hin">Varanasi</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Varanasi, one of the oldest cities in the world, is not only a cultural and religious hub but also a growing center for </div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-gurgaon/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Gurgaon</div>
+    <div class="district-name-hin">Gurgaon</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Gurgaon, a major corporate and technology hub near New Delhi, is renowned for hosting high-profile trade shows, especial</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-delhi/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in New Delhi</div>
+    <div class="district-name-hin">New Delhi</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">New Delhi, India's capital, is a focal point for political, cultural, and business activities, making it a prime locatio</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-vijayawada/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Vijayawada</div>
+    <div class="district-name-hin">Vijayawada</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Vijayawada, a pivotal city in Andhra Pradesh, is known for its dynamic commerce and as a significant trade hub in the re</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-kalyan-dombivali/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Navi Mumbai</div>
+    <div class="district-name-hin">Navi Mumbai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Navi Mumbai, a planned satellite township of Mumbai, is known for its well-organized infrastructure and rapidly growing </div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-chennai/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Chennai</div>
+    <div class="district-name-hin">Chennai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Chennai, a city known for its rich cultural heritage and thriving business environment, hosts a variety of business even</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-ahmedabad/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Ahmedabad</div>
+    <div class="district-name-hin">Ahmedabad</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ahmedabad, one of India's most vibrant economic hubs, offers a dynamic stage for trade shows, particularly for industrie</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-allahabad/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Coimbatore</div>
+    <div class="district-name-hin">Coimbatore</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Coimbatore, known as the Manchester of South India, is a thriving hub for textiles, manufacturing, and information techn</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-indore/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Indore</div>
+    <div class="district-name-hin">Indore</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Indore, the commercial capital of Madhya Pradesh, is quickly becoming a focal point for business events in central India</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-kanpurup-india/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Nagpur</div>
+    <div class="district-name-hin">Nagpur</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Nagpur, often referred to as the &quot;Orange City&quot; for its large-scale trade of oranges, is also a growing economic center i</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-vadodara/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Vadodara</div>
+    <div class="district-name-hin">Vadodara</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Vadodara, also known as Baroda, is one of Gujarat's key industrial cities, known for its vibrant cultural scene and stro</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-haora/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Coimbatore</div>
+    <div class="district-name-hin">Coimbatore</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Coimbatore, known as the &quot;Manchester of South India,&quot; is a thriving hub for industries like textiles, automotive compone</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-pune/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Pune</div>
+    <div class="district-name-hin">Pune</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Pune, recognized for its educational institutions and as a burgeoning hub for IT and automotive industries, offers a str</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-allahabad/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Ranchi</div>
+    <div class="district-name-hin">Ranchi</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ranchi, the capital city of Jharkhand, is growing as a strategic location for trade shows, particularly in sectors like </div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-gurgaon/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Gurgaon</div>
+    <div class="district-name-hin">Gurgaon</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Gurgaon, now officially known as Gurugram, is a leading financial and technology hub in India, known for its modern infr</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-kanpurup-india/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Nagpur</div>
+    <div class="district-name-hin">Nagpur</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Nagpur, prominently known as the &quot;Orange City&quot; of India, is rapidly developing into a significant hub for commerce and t</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/events-in-india/index.html" class="district-card" data-type="general">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in India</div>
+    
+  </div><span class="district-arrow">&#8594;</span></div>
+  
+  <div class="district-meta"><span class="tag tag-gray">Events</span></div>
+</a><a href="/business-events-in-jalandhar/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Jalandhar</div>
+    <div class="district-name-hin">Jalandhar</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Jalandhar, a major urban center in Punjab, is known for its robust industry sectors, including sports goods, hand tools,</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-hyderabad/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Hyderabad</div>
+    <div class="district-name-hin">Hyderabad</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Hyderabad, with its unique blend of rich heritage and a burgeoning tech industry, is a significant center for trade show</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-chennai/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Chennai</div>
+    <div class="district-name-hin">Chennai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Chennai, recognized for its strong manufacturing and IT sectors, offers an excellent environment for trade shows. This c</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-surat/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Surat</div>
+    <div class="district-name-hin">Surat</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Surat, a bustling commercial center known for its thriving diamond and textile industries, offers fertile ground for tra</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-guwahati/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Guwahati</div>
+    <div class="district-name-hin">Guwahati</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Guwahati, a major commercial and educational hub in Northeast India, is rapidly expanding in sectors such as retail, man</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-aligarh/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Jalandhar</div>
+    <div class="district-name-hin">Jalandhar</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-belgaum/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Belgaum</div>
+    <div class="district-name-hin">Belgaum</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Belgaum, also known as Belagavi, in Karnataka is an important center for the manufacture of heavy machinery and foundry </div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-jaipur/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Jaipur</div>
+    <div class="district-name-hin">Jaipur</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Jaipur, with its rich cultural heritage and emerging business landscape, hosts a variety of business events that attract</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-pune/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Pune</div>
+    <div class="district-name-hin">Pune</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Pune, recognized for its educational institutions and flourishing tech industry, is also becoming a hub for diverse busi</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-bhopal/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Bhopal</div>
+    <div class="district-name-hin">Bhopal</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Bhopal, the capital city of Madhya Pradesh, is increasingly becoming a center for business events that cater to diverse </div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-surat/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Surat</div>
+    <div class="district-name-hin">Surat</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Surat, a rapidly growing commercial center known for its diamond and textile industries, is increasingly hosting busines</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-pimpri-chinchwad/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Pimpri &amp;amp; Chinchwad</div>
+    <div class="district-name-hin">Pimpri Chinchwad</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Pimpri &amp;amp; Chinchwad, twin cities located near Pune, Maharashtra, are recognized for their significant industrial grow</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-ghaziabad/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Ludhiana</div>
+    <div class="district-name-hin">Ludhiana</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ludhiana, a major industrial hub in Punjab, is renowned for its robust textile and manufacturing sectors. Trade shows in</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-nashik/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Nashik</div>
+    <div class="district-name-hin">Nashik</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Nashik, often recognized for its pivotal role in agriculture and as one of India's foremost wine-producing regions, is a</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-thane/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Visakhapatnam</div>
+    <div class="district-name-hin">Visakhapatnam</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Visakhapatnam, a major port city on the southeast coast of India, is emerging as a significant venue for trade shows, es</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-ludhiana/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Ludhiana</div>
+    <div class="district-name-hin">Ludhiana</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ludhiana, known as the industrial hub of Punjab, specializes in textiles, bicycle manufacturing, and machinery. The city</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-patna/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Patna</div>
+    <div class="district-name-hin">Patna</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Patna, the capital city of Bihar, is emerging as a promising location for business events, particularly in the sectors o</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-mangalore/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Udaipur</div>
+    <div class="district-name-hin">Udaipur</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Udaipur, known as the City of Lakes, is not only a major tourist destination but also a growing center for trade shows, </div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-chandigarh/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Chandigarh</div>
+    <div class="district-name-hin">Chandigarh</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Chandigarh hosts numerous events that offer incredible opportunities for small business owners. Here are some events whe</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-jammu/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Jammu</div>
+    <div class="district-name-hin">Jammu</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Jammu, known for its beautiful landscapes and as the winter capital of Jammu and Kashmir, hosts several trade shows, par</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-lucknow/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Lucknow</div>
+    <div class="district-name-hin">Lucknow</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Lucknow, a city celebrated for its rich history and cultural elegance, is an emerging hub for trade shows, especially in</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-guwahati/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Guwahati</div>
+    <div class="district-name-hin">Guwahati</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Guwahati, the gateway to Northeast India, is a burgeoning hub for trade shows, particularly in sectors like tea producti</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-dehradun/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Ujjain</div>
+    <div class="district-name-hin">Ujjain</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Ujjain, an ancient city with rich cultural heritage in Madhya Pradesh, also hosts trade shows that attract a diverse aud</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-pimpri-chinchwad/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Patna</div>
+    <div class="district-name-hin">Patna</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Patna, the capital city of Bihar, is gaining momentum as an attractive venue for trade shows, especially in sectors like</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-navi-mumbai/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Navi Mumbai</div>
+    <div class="district-name-hin">Navi Mumbai</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Navi Mumbai, known for its planned infrastructure and booming commercial sectors, is rapidly becoming a hotspot for busi</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/exhibitions-in-solapur/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Moradabad</div>
+    <div class="district-name-hin">Moradabad</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Moradabad, often referred to as the &quot;Brass City&quot; of India due to its renowned brass handicrafts industry, is an excellen</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/exhibitions-in-kota/index.html" class="district-card" data-type="exhibitions">
+  <div class="district-card-head"><div>
+    <div class="district-name">Exhibitions in Kota</div>
+    <div class="district-name-hin">Kota</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Kota, known primarily for its educational coaching institutes, also plays a significant role in the agricultural and man</div>
+  <div class="district-meta"><span class="tag tag-orange">Exhibitions</span></div>
+</a><a href="/business-events-in-visakhapatnam/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Visakhapatnam</div>
+    <div class="district-name-hin">Visakhapatnam</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Visakhapatnam, commonly known as Vizag, is rapidly emerging as a significant economic hub in South India, especially pro</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a><a href="/business-events-in-aurangabad/index.html" class="district-card" data-type="business">
+  <div class="district-card-head"><div>
+    <div class="district-name">Business Events in Amritsar</div>
+    <div class="district-name-hin">Amritsar</div>
+  </div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">Amritsar, a city renowned for its rich cultural heritage and vibrant economy, is an important hub for trade and commerce</div>
+  <div class="district-meta"><span class="tag tag-blue">Business Events</span></div>
+</a></div></div><script>function filterEv(t,btn){document.querySelectorAll(".filter-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#evGrid .district-card").forEach(function(c){c.style.display=(t==="all"||c.dataset.type===t)?"":"none";});}</script>
 </div></main><footer class="site-footer"><div class="footer-inner">
   <div class="footer-brand"><img src="/assets/logo.png" alt="KidharMilega" style="height:28px;width:auto"></div>
   <div class="footer-links">
     <a href="/index.html">Home</a>
     <a href="/products/index.html">Products</a>
     <a href="/events/index.html">Events</a>
-    <a href="/vendors/index.html">Vendors</a>
+    <a href="/what-is-odop/index.html">Why ODOP?</a>
+    <a href="/about-us/index.html">About Us</a>
+    <a href="/team/index.html">Team</a>
+    <a href="/contact/index.html">Contact</a>
+    <a href="/terms-of-service/index.html">Terms</a>
   </div>
-  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">@startupwalebhaia</a> · May 2026</div>
+  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">@startupwalebhaia</a> · May 2026 · &copy; Rupantran Biz Pvt Ltd</div>
 </div></footer><script src="https://allevents.in/scripts/public/ae-plugin-embed-lib.js"></script></body></html>
