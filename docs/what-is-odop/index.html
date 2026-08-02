@@ -14,37 +14,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
 
-<script>
-(function(){
-  // Disable right-click
-  document.addEventListener('contextmenu',function(e){e.preventDefault();});
-  // Disable copy, cut, select-all
-  document.addEventListener('copy',function(e){e.preventDefault();});
-  document.addEventListener('cut',function(e){e.preventDefault();});
-  // Block DevTools shortcuts and View Source
-  document.addEventListener('keydown',function(e){
-    var k=e.key||'';
-    // F12
-    if(k==='F12'){e.preventDefault();return false;}
-    // Ctrl/Cmd + Shift + I/J/C (DevTools)
-    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(k==='I'||k==='i'||k==='J'||k==='j'||k==='C'||k==='c')){e.preventDefault();return false;}
-    // Ctrl/Cmd + U (View Source)
-    if((e.ctrlKey||e.metaKey)&&(k==='U'||k==='u')){e.preventDefault();return false;}
-    // Ctrl/Cmd + S (Save page)
-    if((e.ctrlKey||e.metaKey)&&(k==='S'||k==='s')){e.preventDefault();return false;}
-    // Ctrl/Cmd + A (Select All)
-    if((e.ctrlKey||e.metaKey)&&(k==='A'||k==='a')){e.preventDefault();return false;}
-    // Ctrl/Cmd + P (Print)
-    if((e.ctrlKey||e.metaKey)&&(k==='P'||k==='p')){e.preventDefault();return false;}
-  });
-  // Detect DevTools open via size diff (basic)
-  var _dv=false;setInterval(function(){
-    if(window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){
-      if(!_dv){_dv=true;document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:18px;color:#555">Please close DevTools to continue.</div>';}
-    }else{_dv=false;}
-  },1000);
-})();
-</script>
 </head><body><nav class="site-nav" id="siteNav"><div class="nav-inner">
   <a href="/index.html" class="nav-logo"><img src="/assets/logo.png" alt="KidharMilega" class="nav-logo-img"></a>
   <div class="nav-links" id="navLinks"><a href="/index.html">Home</a><a href="/products/index.html">Products</a><a href="/events/index.html">Events</a><a href="/what-is-odop/index.html" class="active">Why ODOP?</a><a href="/about-us/index.html">About Us</a><a href="/contact/index.html">Contact</a></div>
@@ -196,6 +165,7 @@ Nahi. Export agents, online resellers, logistics providers, packaging businesses
   <div class="footer-links">
     <a href="/index.html">Home</a>
     <a href="/products/index.html">Products</a>
+    
     <a href="/events/index.html">Events</a>
     <a href="/what-is-odop/index.html">Why ODOP?</a>
     <a href="/about-us/index.html">About Us</a>
@@ -203,5 +173,5 @@ Nahi. Export agents, online resellers, logistics providers, packaging businesses
     <a href="/contact/index.html">Contact</a>
     <a href="/terms-of-service/index.html">Terms</a>
   </div>
-  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">@startupwalebhaia</a> · May 2026 · &copy; Rupantran Biz Pvt Ltd</div>
+  <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">@startupwalebhaia</a> · August 2026 · &copy; Rupantran Biz Pvt Ltd</div>
 </div></footer></body></html>
