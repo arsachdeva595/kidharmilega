@@ -33,6 +33,11 @@ const ideasReady = fetch("data/ideas.json").then((r) => r.json()).then((d) => {
   }
 });
 const districtsReady = fetch("data/odop.json").then((r) => r.json()).then((d) => { districts = d; });
+// Keys of ideas with a published guide on kidharmilega.in/ideas/. The site export writes this file;
+// standalone builds don't have it, so result cards simply skip the guide link.
+let guides = new Set();
+const guidesReady = fetch("data/guides.json").then((r) => (r.ok ? r.json() : [])).then((k) => { guides = new Set(k); }).catch(() => {});
+const GUIDES_URL = "../ideas/";
 
 function show(id) {
   for (const s of document.querySelectorAll(".screen")) s.hidden = s.id !== id;
@@ -111,7 +116,7 @@ function choose(id, value) {
 }
 
 async function finish() {
-  await Promise.all([ideasReady, districtsReady]);
+  await Promise.all([ideasReady, districtsReady, guidesReady]);
   const profile = computeProfile(QUESTIONS, answers);
   const result = match(ideas, profile);
   const check = checkIdea ? fitCheck(ideas, checkIdea, profile) : null;
@@ -175,6 +180,20 @@ function similarIdeas(i) {
   return sibs.length ? `<p class="fine">Similar ideas: ${sibs.map((x) => esc(x.name)).join(" · ")}</p>` : "";
 }
 
+function guideLink(i, isTop) {
+  if (!guides.size) return "";
+  if (guides.has(i.key)) {
+    return `<div class="card-actions"><a class="btn ${isTop ? "primary" : ""}" href="${GUIDES_URL}${encodeURIComponent(i.key)}/">Read Full Guide <span aria-hidden="true">→</span></a></div>`;
+  }
+  // No guide yet: point to the closest published guide on the same business model, if any.
+  const near = ideas.find((x) => x.model === i.model && guides.has(x.key));
+  if (near) {
+    return `<div class="card-actions"><a class="btn ${isTop ? "primary" : ""}" href="${GUIDES_URL}${encodeURIComponent(near.key)}/">Read Full Guide <span aria-hidden="true">→</span></a></div>
+      <p class="fine">This idea's own guide is coming soon; the guide above covers ${esc(near.name)}, which runs on the same business model.</p>`;
+  }
+  return `<p class="fine">The full guide for this idea is coming soon. <a href="${GUIDES_URL}">Browse the business ideas with guides</a>.</p>`;
+}
+
 function ideaCard(r, profile, isTop) {
   const i = r.idea;
   const m = i.modelData;
@@ -192,6 +211,7 @@ function ideaCard(r, profile, isTop) {
       </div>
       <p class="why">${esc(whyCopy(r, profile, { withIntro: isTop, district: answers.district }))}</p>
       ${i.name !== i.modelName ? `<p class="fine">Business model: ${esc(i.modelName)}</p>` : ""}
+      ${guideLink(i, isTop)}
       ${isTop ? similarIdeas(i) : ""}
       ${i.inspired_by ? `<div class="shark"><p class="shark-head">🦈 The Shark Tank India pitch behind this idea</p><ul>${stExample(i.inspired_by)}</ul></div>` : ""}
       ${odopLine(i.odop_here || m.odop)}

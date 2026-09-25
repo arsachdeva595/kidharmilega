@@ -195,7 +195,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 <link rel="icon" type="image/png" href="{p('/assets/logo.png')}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{p('/assets/style.css')}">
 {extra_head}
 </head><body>'''
@@ -203,7 +203,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 def build_homepage(districts):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     enriched = [d for d in live if d.get("step_1_learn","").strip()]
-    featured = (enriched + [d for d in live if d not in enriched])[:5]
+    featured = (enriched + [d for d in live if d not in enriched])[:6]
     feat_cards = ""
     for d in featured:
         pg = product_page_slug(d)
@@ -227,92 +227,167 @@ def build_homepage(districts):
     ], ensure_ascii=False)
     hp_extra_head = f'<script type="application/ld+json">{hp_schema}</script>'
     return (
-        head("KidharMilega — Find a Business Idea Near You",
-             "Stop chasing metro city jobs. Find high-demand ODOP products, verified manufacturers, and profitable business ideas within 50km of your home. 787 districts mapped.", "/",
+        head("KidharMilega — Find What You Want to Do",
+             "Take a 3-minute quiz to find the business that fits you, browse 1,500+ business ideas for India, or find the ODOP product of your own district. 787 districts mapped.", "/",
              extra_head=hp_extra_head) +
-        '<div style="background:#111111;color:#fff;text-align:center;padding:10px 20px;font-size:13px">Stop migrating. <strong style="color:#00B4D8">Your district has a goldmine business</strong> &#8212; real data, zero cost to browse.</div>' +
-        nav("home") + f'''
-<main><div class="container">
-  <section class="hero" style="text-align:center">
-    <div class="hero-eyebrow">India&#x2019;s Next Manufacturing Revolution is in Your Backyard</div>
-    <h1 class="hero-title" style="max-width:760px;margin-left:auto;margin-right:auto">Stop Chasing &#8377;50k Jobs<br>in Metro Cities.<br><em>Start a Business in Your Own District.</em></h1>
-    <p class="hero-sub" style="max-width:600px;margin-left:auto;margin-right:auto">You don&#x2019;t need to migrate to build a future. India&#x2019;s next big manufacturing revolution is happening in your backyard. Find high-demand ODOP products, verified manufacturers, and profitable ideas&#8212;all within 50km of your home.</p>
-    <div class="hero-search-row" style="max-width:580px;margin:32px auto 20px">
-      <div style="position:relative;flex:1;min-width:0">
-        <span class="search-icon">&#128269;</span>
-        <input class="search-input" type="text" id="hpSearch" placeholder="Search your District or a Product (e.g., Makhana, Leather, Silk)..." autocomplete="off">
-        <div id="hpResults" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);display:none;max-height:260px;overflow-y:auto;z-index:200;text-align:left"></div>
-      </div>
-      <a href="{p('/products/index.html')}" class="btn btn-primary hero-search-btn">Find Opportunity</a>
-    </div>
-    <div class="stat-strip" style="justify-content:center">
-      <div class="stat-item"><div class="stat-val">10+</div><div class="stat-label">Years Ground-Level Experience</div></div>
-      <div class="stat-item"><div class="stat-val">15K+</div><div class="stat-label">Entrepreneurs Following</div></div>
-      <div class="stat-item"><div class="stat-val">{len(live)}</div><div class="stat-label">Districts Mapped &amp; Counting</div></div>
-      <div class="stat-item"><div class="stat-val">550+</div><div class="stat-label">ODOP Products Identified</div></div>
-    </div>
-  </section>
-  <section class="section-sm">
-    <div class="section-label">Explore India&#x2019;s Manufacturing Map</div>
-    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">Explore India&#x2019;s Manufacturing Map</h2>
-    <p style="font-size:15px;color:var(--mid);margin-bottom:24px">From the Zardozi of Bareilly to the Blue Pottery of Jaipur&#8212;your next venture starts here.</p>
-    <div class="grid-3" style="margin-bottom:28px">{feat_cards}</div>
-    <div style="text-align:center;padding:8px 0">
-      <a href="{p('/products/index.html')}" class="btn btn-ghost">View All {len(live)}+ Districts &#8594;</a>
-    </div>
-  </section>
-  <div style="padding:48px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-    <div class="section-label">Why I Say Build Closer to Home</div>
-    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">&#x201C;The Math Doesn&#x2019;t Add Up.&#x201D;</h2>
-    <p style="font-size:15px;color:var(--mid);margin-bottom:28px">A quick honest comparison &#8212; before you book that train ticket to Bangalore.</p>
-    <div class="math-grid">
-      <div style="background:#111;border-radius:var(--radius-lg);padding:28px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:16px">&#127961; &#8377;80,000 Salary in Bangalore</div>
-        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
-          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Rent (PG/flat)</span><span style="color:#fff;font-weight:600">&#8722;&#8377;25,000</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Commute</span><span style="color:#fff;font-weight:600">&#8722;&#8377;8,000</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Food</span><span style="color:#fff;font-weight:600">&#8722;&#8377;15,000</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Misc/lifestyle</span><span style="color:#fff;font-weight:600">&#8722;&#8377;15,000</span></div>
-          <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Left over</span><span style="color:#ef4444;font-weight:700;font-size:16px">&#8377;17k &#8212; no growth</span></div>
-        </div>
-      </div>
-      <div style="background:var(--orange-l);border:2px solid var(--orange-m);border-radius:var(--radius-lg);padding:28px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:16px">&#127968; &#8377;30k+ Profit at Home</div>
-        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Rent</span><span style="color:var(--green);font-weight:600">Zero</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Commute</span><span style="color:var(--green);font-weight:600">Zero</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--mid)">Growth potential</span><span style="color:var(--green);font-weight:600">Unlimited</span></div>
-          <div style="border-top:1px solid var(--orange-m);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:var(--mid)">Actual wealth</span><span style="color:var(--green);font-weight:700;font-size:16px">Building &#8593;</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="padding:48px 0;border-bottom:1px solid var(--border)">
-    <div class="section-label">Real Talk. No Gas.</div>
-    <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--dark);margin-bottom:8px">Catch the Latest on Instagram</h2>
-    <p style="font-size:15px;color:var(--mid);margin-bottom:28px">Manufacturing hacks, credit card optimisations for business, and startup reality checks &#8212; no fluff.</p>
-    <a href="https://instagram.com/startupwalebhaia" target="_blank" style="display:inline-flex;align-items:center;gap:12px;background:#111;color:#fff;border-radius:var(--radius-lg);padding:20px 28px;text-decoration:none" onmouseover="this.style.opacity=&#x27;0.85&#x27;" onmouseout="this.style.opacity=&#x27;1&#x27;">
-      <span style="font-size:28px">&#128247;</span>
-      <div>
-        <div style="font-size:16px;font-weight:600">@startupwalebhaia</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:2px">15,000+ entrepreneurs following &middot; Real updates daily</div>
-      </div>
-      <span style="margin-left:8px;color:rgba(255,255,255,0.4);font-size:18px">&#8594;</span>
-    </a>
-  </div>
-  <div class="cta-block" style="margin-top:60px">
+        '<div class="alert-strip">Stop migrating. <strong>Your district has a goldmine business</strong>. Real data, zero cost to browse.</div>' +
+        nav("home") + f"""
+<main>
+<div class="container">
+  <section class="home-hero" aria-labelledby="home-title">
     <div>
-      <div class="cta-title">Don&#x2019;t Build Alone. Build with the Tribe.</div>
-      <div class="cta-sub">Join the KidharMilega Community. Get access to direct manufacturer contacts, subsidy guides, and a network of 1,000+ local entrepreneurs who are tired of the &#x201C;rat race.&#x201D;</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:12px">It&#x2019;s free to join, but the insights are worth lakhs.</div>
+      <h1 class="home-hero__title" id="home-title">Find what you <span class="hl">want to do.</span></h1>
+      <p class="home-hero__sub">Answer 33 quick questions about what you enjoy, how you work, your budget and your district. We match you against 1,500+ business ideas for India and show the ones that fit you.</p>
+      <div class="home-hero__actions">
+        <a href="{p('/quiz/')}" class="btn btn-primary btn-lg" data-burst>Take the 3-minute quiz <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+        <a href="{p('/ideas/')}" class="btn btn-ghost btn-lg">Browse all business ideas</a>
+      </div>
+      <p class="home-hero__note">No login. Built on O*NET career data, 789 Shark Tank India pitches and the ODOP products of {len(live)} districts.</p>
+    </div>
+    <a class="fit-card" href="{p('/quiz/')}" aria-label="Start the quiz">
+      <span class="mark" aria-hidden="true"></span>
+      <div class="fit-card__top"><span class="fit-card__label">Question 1 of 33</span><span class="fit-card__label">Fit quiz</span></div>
+      <div class="fit-card__bar"><span style="width:3%"></span></div>
+      <p class="fit-card__q">How much could you invest to get started?</p>
+      <ul class="fit-card__opts">
+        <li>Under &#8377;50,000</li>
+        <li class="is-picked">&#8377;50,000 &#8211; &#8377;2 lakh</li>
+        <li>&#8377;2 &#8211; 10 lakh</li>
+        <li>More than &#8377;10 lakh</li>
+      </ul>
+    </a>
+  </section>
+</div>
+
+<section class="band" aria-labelledby="odop-title">
+  <div class="container">
+    <div class="odop-pitch">
+      <h2 class="odop-pitch__title reveal" id="odop-title">Stop chasing &#8377;50k jobs in metro cities. <span>Start a business in your own district.</span></h2>
+      <p class="odop-pitch__sub">You don&#x2019;t need to migrate to build a future. India&#x2019;s next big manufacturing revolution is happening in your backyard. Find high-demand ODOP products, verified manufacturers and profitable ideas, all within 50&nbsp;km of your home.</p>
+      <div class="hero-search-row">
+        <div class="home-search">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input class="search-input" type="search" id="hpSearch" placeholder="Search a district or product" autocomplete="off" aria-label="Search districts and ODOP products">
+          <div class="home-search__results" id="hpResults"></div>
+        </div>
+        <a href="{p('/products/index.html')}" class="btn btn-cyan">Open the ODOP directory <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+      </div>
+    </div>
+    <div class="counters">
+      <div><div class="counter__num" data-count="10" data-suffix="+">10+</div><div class="counter__label">Years of ground-level experience</div></div>
+      <div><div class="counter__num" data-count="15" data-suffix="K+">15K+</div><div class="counter__label">Entrepreneurs following</div></div>
+      <div><div class="counter__num" data-count="{len(live)}">{len(live)}</div><div class="counter__label">Districts mapped, and counting</div></div>
+      <div><div class="counter__num" data-count="550" data-suffix="+">550+</div><div class="counter__label">ODOP products identified</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <section class="section" aria-labelledby="map-title">
+    <div class="home-head">
+      <div><h2 id="map-title" class="reveal">Explore India&#x2019;s manufacturing map</h2>
+      <p>From the Zardozi of Bareilly to the Blue Pottery of Jaipur, your next venture starts here.</p></div>
+      <a href="{p('/products/index.html')}" class="btn btn-ghost btn-sm">View all {len(live)} districts <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+    </div>
+    <div class="grid-3">{feat_cards}</div>
+  </section>
+
+  <section class="section" aria-labelledby="math-title">
+    <div class="home-head">
+      <div><h2 id="math-title" class="reveal">&#x201C;The math doesn&#x2019;t add up.&#x201D;</h2>
+      <p>A quick, honest comparison before you book that train ticket to Bangalore.</p></div>
+    </div>
+    <div class="math-compare">
+      <div class="math-card math-card--city">
+        <div class="math-card__title">&#8377;80,000 salary in Bangalore</div>
+        <div class="math-row"><span>Rent (PG/flat)</span><span>&#8722;&#8377;25,000</span></div>
+        <div class="math-row"><span>Commute</span><span>&#8722;&#8377;8,000</span></div>
+        <div class="math-row"><span>Food</span><span>&#8722;&#8377;15,000</span></div>
+        <div class="math-row"><span>Misc/lifestyle</span><span>&#8722;&#8377;15,000</span></div>
+        <div class="math-row math-row--total"><span>Left over</span><span>&#8377;17k, no growth</span></div>
+      </div>
+      <div class="math-card math-card--home">
+        <div class="math-card__title">&#8377;30k+ profit at home</div>
+        <div class="math-row"><span>Rent</span><span>Zero</span></div>
+        <div class="math-row"><span>Commute</span><span>Zero</span></div>
+        <div class="math-row"><span>Growth potential</span><span>Unlimited</span></div>
+        <div class="math-row math-row--total"><span>Actual wealth</span><span>Building &#8593;</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ig-title">
+    <div class="home-head">
+      <div><h2 id="ig-title" class="reveal">Catch the latest on Instagram</h2>
+      <p>Manufacturing hacks, credit card optimisations for business and startup reality checks. No fluff.</p></div>
+    </div>
+    <a class="ig-link" href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener">
+      <div><strong>@startupwalebhaia</strong><span>15,000+ entrepreneurs following &#183; real updates daily</span></div>
+      <span class="btn__arrow" aria-hidden="true">&#8594;</span>
+    </a>
+  </section>
+
+  <div class="cta-block">
+    <div>
+      <div class="cta-title">Don&#x2019;t build alone. Build with the tribe.</div>
+      <div class="cta-sub">Join the KidharMilega community for direct manufacturer contacts, subsidy guides and a network of 1,000+ local entrepreneurs who are tired of the rat race. It&#x2019;s free to join.</div>
     </div>
     <div class="cta-actions">
-      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" class="btn btn-primary">Join the KidharMilega Community &#8594;</a>
-      <a href="https://instagram.com/startupwalebhaia" target="_blank" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)">Follow @startupwalebhaia</a>
+      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" rel="noopener" class="btn btn-primary">Join the community <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn">Follow @startupwalebhaia</a>
     </div>
   </div>
-</div></main>''' + f'<script>var HP_DS={search_data};var si=document.getElementById("hpSearch"),sr=document.getElementById("hpResults");si.addEventListener("input",function(){{var v=this.value.toLowerCase().trim();if(v.length<2){{sr.style.display="none";return;}}var m=HP_DS.filter(function(x){{return x.n.toLowerCase().includes(v)||x.d.toLowerCase().includes(v)||x.s.toLowerCase().includes(v);}}).slice(0,6);if(!m.length){{sr.style.display="none";return;}}sr.innerHTML=m.map(function(x){{return\'<a href="\'+x.u+\'" style="display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-bottom:1px solid #eee;text-decoration:none;color:inherit"><span style="font-size:14px;font-weight:600;color:#111">\'+x.n+\'</span><span style="font-size:12px;color:#888">\'+x.d+" · "+x.s+\'</span></a>\';}}  ).join("");sr.style.display="block";}});document.addEventListener("click",function(e){{if(!si.contains(e.target)&&!sr.contains(e.target))sr.style.display="none";}});</script>' + footer() + "</body></html>"
+</div>
+</main>""" + f'<script>var HP_DS={search_data};</script>' + HOME_JS + footer() + "</body></html>"
     )
+
+# Homepage behaviour: district search, counter tick-up, heading reveal, star-burst on the quiz CTA.
+HOME_JS = """<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var si = document.getElementById('hpSearch'), sr = document.getElementById('hpResults');
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  si.addEventListener('input', function(){
+    var v = this.value.toLowerCase().trim();
+    if (v.length < 2) { sr.style.display = 'none'; return; }
+    var m = HP_DS.filter(function(x){ return x.n.toLowerCase().includes(v) || x.d.toLowerCase().includes(v) || x.s.toLowerCase().includes(v); }).slice(0, 6);
+    if (!m.length) { sr.innerHTML = '<a href="/products/index.html"><strong>No match yet</strong><span>Browse the full ODOP directory</span></a>'; sr.style.display = 'block'; return; }
+    sr.innerHTML = m.map(function(x){ return '<a href="' + x.u + '"><strong>' + esc(x.n) + '</strong><span>' + esc(x.d) + ' \\u00b7 ' + esc(x.s) + '</span></a>'; }).join('');
+    sr.style.display = 'block';
+  });
+  document.addEventListener('click', function(e){ if (!si.contains(e.target) && !sr.contains(e.target)) sr.style.display = 'none'; });
+
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      if (en.target.classList.contains('reveal')) { en.target.classList.add('is-in'); return; }
+      var el = en.target, to = +el.dataset.count, suf = el.dataset.suffix || '';
+      if (reduce) return;
+      var t0 = null;
+      function tick(t){ if (!t0) t0 = t; var k = Math.min(1, (t - t0) / 1200), e = 1 - Math.pow(1 - k, 4);
+        el.textContent = Math.round(to * e).toLocaleString('en-IN') + suf; if (k < 1) requestAnimationFrame(tick); }
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: 0.4 }) : null;
+  document.querySelectorAll('.reveal, .counter__num').forEach(function(el){
+    if (!io) { el.classList.add('is-in'); return; }
+    if (el.dataset.count && !reduce) el.textContent = '0' + (el.dataset.suffix || '');
+    io.observe(el);
+  });
+
+  if (!reduce) document.querySelectorAll('[data-burst]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      var s = document.createElement('span'); s.className = 'star-burst';
+      s.style.left = e.clientX + 'px'; s.style.top = e.clientY + 'px';
+      document.body.appendChild(s);
+      setTimeout(function(){ location.href = a.href; }, 280);
+    });
+  });
+})();
+</script>"""
 
 def build_master_page():
     return head("KidharMilega — All Business Resources","Your one-stop for ODOP products, trade events, vendor contacts and business opportunities.") + nav() + f"""
@@ -420,7 +495,7 @@ def build_odop_page(districts):
   </div>
   <div class="products-topbar">
     <div style="position:relative;flex:1;max-width:520px">
-      <span class="search-icon">&#128269;</span>
+      <span class="search-icon" aria-hidden="true"></span>
       <input class="search-input" type="text" id="productSearch" placeholder="Search district, product, or state..." autocomplete="off" oninput="applyFilters()">
     </div>
     <button class="fsb-mobile-toggle" id="fsbToggle" onclick="toggleSidebar()">&#9776; Filters <span class="filter-badge" id="filterBadge" style="display:none">0</span></button>
@@ -562,7 +637,7 @@ def build_exhibition_page(post):
     </div>
     <div class="cta-actions">
       <a href="{p('/events/index.html')}" class="btn btn-primary">All Events &amp; Cities &#8594;</a>
-      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)">Join Community</a>
+      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" class="btn">Join Community</a>
     </div>
   </div>
 </div></main>'''
@@ -644,7 +719,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
         try:
             deg = float(opp_score)/10*360
             pills = "".join(f'<span class="opp-pill g">&#10003; {esc(d.get(f"relevant_central_scheme_{i}","").split("—")[0].strip()[:40])}</span>' for i in range(1,3) if d.get(f"relevant_central_scheme_{i}",""))
-            opp_html = f'<div class="opp-card"><div class="opp-ring" style="background:conic-gradient(var(--orange) {deg:.0f}deg,#2d3a50 0)"><div class="opp-ring-num">{esc(opp_score)}<small>/10</small></div></div><div><div class="opp-label">Opportunity Score &mdash; {esc(d.get("odop_product_name",""))}, {esc(d["district_name"])}</div><div class="opp-title">{esc(d.get("famous_for_1_line","")[:80])}</div><div class="opp-pills">{pills}</div></div></div>'
+            opp_html = f'<div class="opp-card"><div class="opp-ring" style="background:conic-gradient(var(--color-accent-2) {deg:.0f}deg,var(--color-paper-3) 0)"><div class="opp-ring-num">{esc(opp_score)}<small>/10</small></div></div><div><div class="opp-label">Opportunity Score &mdash; {esc(d.get("odop_product_name",""))}, {esc(d["district_name"])}</div><div class="opp-title">{esc(d.get("famous_for_1_line","")[:80])}</div><div class="opp-pills">{pills}</div></div></div>'
         except: pass
 
     # ── ODOP detail table ──
@@ -1197,7 +1272,7 @@ document.getElementById('stFilter').addEventListener('change',_filter);
   <p class="page-header-sub">Pick your city. Get 10 curated business ideas that actually make sense there — from ODOP products to service businesses.</p>
 </div>
 <div class="products-topbar">
-  <div class="search-wrap"><span class="search-icon">🔍</span>
+  <div class="search-wrap"><span class="search-icon" aria-hidden="true"></span>
     <input id="citySearch" class="search-input" placeholder="Search city..." autocomplete="off">
   </div>
   <select id="stFilter" class="filter-tab" style="padding:7px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--border);font-family:var(--font-body);color:var(--mid);background:var(--bg);cursor:pointer">
@@ -1271,8 +1346,8 @@ def build_business_ideas_city_page(city_row, ideas, district_row):
 <div><div class="cta-title">Got questions about starting a business in {esc(city_name)}?</div>
 <div class="cta-sub">Join 4,000+ founders in the KidharMilega community. Ask questions, find co-founders.</div></div>
 <div class="cta-actions">
-  <a href="{FB_GROUP_URL}" class="btn" style="background:#fff;color:#1877F2;font-weight:600" target="_blank">Join Facebook Group →</a>
-  <a href="{p('/business-ideas/')}" class="btn btn-ghost" style="border-color:rgba(255,255,255,0.3);color:#fff">Browse other cities</a>
+  <a href="{FB_GROUP_URL}" class="btn" style="--btn-face:var(--color-paper);--btn-edge:var(--color-rule-2)" target="_blank">Join Facebook Group →</a>
+  <a href="{p('/business-ideas/')}" class="btn">Browse other cities</a>
 </div></div>'''
 
     body = f'''<main><div class="container">
@@ -1421,9 +1496,9 @@ def build_business_ideas_idea_page(idea, cities_data, all_ideas, enrich=None):
     if suitable_for or not_suitable:
         rows = ""
         if suitable_for:
-            rows += f'<div style="margin-bottom:12px"><div class="section-label" style="color:var(--green,#2e7d32)">Good fit</div><div style="font-size:14px;color:var(--mid)">{esc(suitable_for)}</div></div>'
+            rows += f'<div style="margin-bottom:12px"><div class="section-label" style="color:var(--green)">Good fit</div><div style="font-size:14px;color:var(--mid)">{esc(suitable_for)}</div></div>'
         if not_suitable:
-            rows += f'<div><div class="section-label" style="color:var(--red,#c62828)">Not for you if</div><div style="font-size:14px;color:var(--mid)">{esc(not_suitable)}</div></div>'
+            rows += f'<div><div class="section-label" style="color:var(--red)">Not for you if</div><div style="font-size:14px;color:var(--mid)">{esc(not_suitable)}</div></div>'
         fit_html = f'<div class="page-section">{rows}</div>'
 
     # Step-by-step roadmap
@@ -1479,7 +1554,7 @@ def build_business_ideas_idea_page(idea, cities_data, all_ideas, enrich=None):
             label = months[i % 12]
             bars += (
                 f'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
-                f'<div style="width:100%;height:{h}px;background:var(--orange,#e65c00);border-radius:3px 3px 0 0;min-height:4px" title="{val}"></div>'
+                f'<div style="width:100%;height:{h}px;background:var(--color-accent-2);border-radius:6px 6px 0 0;min-height:4px" title="{val}"></div>'
                 f'<div style="font-size:10px;color:var(--light);white-space:nowrap">{label}</div>'
                 f'</div>'
             )
@@ -1596,7 +1671,7 @@ function toggleFaq(btn){
     <div class="ss-label">Target Audience</div>
     <div class="ss-body">{esc(audience)}</div>
   </div>
-  {f'<div style="margin-top:20px;padding:16px;background:var(--blue-l,#e8f0fe);border-radius:var(--radius);border:1px solid var(--border)"><div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue,#1a73e8);margin-bottom:6px">Personality Fit</div><div style="font-size:14px;font-weight:600;color:var(--dark)">{esc(mbti)} — {esc(mbti_why)}</div></div>' if mbti else ""}
+  {f'<div style="margin-top:20px;padding:16px;background:var(--blue-l);border-radius:var(--radius);border:1px solid var(--border)"><div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue,#1a73e8);margin-bottom:6px">Personality Fit</div><div style="font-size:14px;font-weight:600;color:var(--dark)">{esc(mbti)} — {esc(mbti_why)}</div></div>' if mbti else ""}
 </div>
 
 {fit_html}
@@ -1665,8 +1740,8 @@ function toggleFaq(btn){
 <div><div class="cta-title">Got questions about starting a {esc(title)}?</div>
 <div class="cta-sub">Join 4,000+ founders in the KidharMilega community. Ask questions, find co-founders, get feedback.</div></div>
 <div class="cta-actions">
-  <a href="{FB_GROUP_URL}" class="btn" style="background:#fff;color:#1877F2;font-weight:600" target="_blank">Join Facebook Group →</a>
-  <a href="{p('/business-ideas/')}" class="btn btn-ghost" style="border-color:rgba(255,255,255,0.3);color:#fff">Browse all cities</a>
+  <a href="{FB_GROUP_URL}" class="btn" style="--btn-face:var(--color-paper);--btn-edge:var(--color-rule-2)" target="_blank">Join Facebook Group →</a>
+  <a href="{p('/business-ideas/')}" class="btn">Browse all cities</a>
 </div></div>
 </div></main>
 <script>{calc_js}calcRev();</script>'''
@@ -1737,6 +1812,12 @@ def publish_guides():
     for f in pages:
         html = f.read_text(encoding="utf-8")
         f.write_text(html.replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer), encoding="utf-8")
+    quiz_index = DIST_DIR / "quiz" / "index.html"
+    if quiz_index.exists():
+        site_head = f'<link rel="icon" type="image/png" href="{p("/assets/logo.png")}">\n  <link rel="stylesheet" href="{p("/assets/style.css")}">'
+        html = quiz_index.read_text(encoding="utf-8")
+        html = html.replace("<!--KM:HEAD-->", site_head).replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer)
+        quiz_index.write_text(html, encoding="utf-8")
     print(f"✓ {len(pages)} idea guide pages + quiz")
 
 def build_robots():
@@ -1756,8 +1837,8 @@ def build():
     if PUBLISH_BUSINESS_IDEAS: dist_subdirs.append("business-ideas")
     for d in dist_subdirs: (DIST_DIR/d).mkdir()
 
-    # Write CSS inline (no external file needed)
-    css_content = """*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}img{max-width:100%;display:block}a{color:inherit;text-decoration:none}:root{--orange:#00B4D8;--orange-l:#E6F8FD;--orange-m:#7DD8EE;--dark:#111111;--mid:#555555;--light:#888888;--border:#E2EEF2;--bg:#FFFFFF;--bg-2:#F5FBFD;--bg-3:#EAF5F9;--green:#2D7D46;--green-l:#EAF4EE;--blue:#0077A8;--blue-l:#E0F2FA;--radius:10px;--radius-lg:16px;--shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04);--shadow-lg:0 2px 8px rgba(0,0,0,0.10),0 8px 32px rgba(0,0,0,0.06);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--max-w:1120px}body{font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15}p{color:var(--mid)}.container{max-width:var(--max-w);margin:0 auto;padding:0 24px}.section{padding:80px 0}.section-sm{padding:48px 0}.site-nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:32px}.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}.logo-mark{background:var(--orange);color:#fff;font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:1px;padding:4px 7px;border-radius:4px}.logo-mark.small{font-size:10px;padding:3px 6px}.logo-text{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--dark)}.logo-text strong{color:var(--orange);font-weight:600}.nav-logo-img{height:36px;width:auto}.nav-links{display:flex;gap:4px;flex:1}.nav-links a{font-size:14px;color:var(--mid);padding:6px 12px;border-radius:6px;transition:all 0.15s}.nav-links a:hover,.nav-links a.active{color:var(--dark);background:var(--bg-3)}.nav-links a.active{color:var(--orange)}.nav-ig{font-size:13px;color:var(--orange);font-weight:500;flex-shrink:0}.nav-ig:hover{text-decoration:underline}.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--dark);padding:4px 8px;line-height:1;margin-left:8px}.site-footer{border-top:1px solid var(--border);padding:40px 0;background:var(--bg-2);margin-top:80px}.footer-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}.footer-links{display:flex;flex-wrap:wrap;gap:8px 20px;flex:1}.footer-links a{font-size:13px;color:var(--mid)}.footer-links a:hover{color:var(--dark)}.footer-meta{font-size:12px;color:var(--light)}.footer-meta a{color:var(--orange)}.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:var(--radius);font-size:14px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;text-decoration:none}.btn-primary{background:var(--orange);color:#fff;border-color:var(--orange)}.btn-primary:hover{background:#0096B8;border-color:#0096B8}.btn-ghost{background:transparent;color:var(--dark);border-color:var(--border)}.btn-ghost:hover{background:var(--bg-3);border-color:var(--dark)}.btn-sm{padding:8px 14px;font-size:13px}.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;letter-spacing:0.3px}.tag-orange{background:var(--orange-l);color:var(--orange)}.tag-green{background:var(--green-l);color:var(--green)}.tag-blue{background:var(--blue-l);color:var(--blue)}.tag-gray{background:var(--bg-3);color:var(--mid)}.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:box-shadow 0.2s,transform 0.2s}.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}.hero{padding:80px 0 60px}.hero-eyebrow{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:20px}.hero-title{font-family:var(--font-display);font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;color:var(--dark);margin-bottom:20px}.hero-title em{font-style:italic;color:var(--orange)}.hero-sub{font-size:18px;color:var(--mid);max-width:560px;line-height:1.7;margin-bottom:36px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}.stat-strip{display:flex;gap:40px;flex-wrap:wrap;padding:32px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:40px 0}.stat-item{display:flex;flex-direction:column;gap:4px}.stat-val{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--orange)}.stat-label{font-size:13px;color:var(--light)}.district-card{display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);transition:all 0.2s;background:var(--bg);text-decoration:none}.district-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.district-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.district-name{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--dark)}.district-name-hin{font-size:14px;color:var(--light);margin-top:2px}.district-product{font-size:14px;font-weight:500;color:var(--orange);margin-top:4px}.district-desc{font-size:13px;color:var(--mid);line-height:1.6}.district-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}.district-arrow{font-size:18px;color:var(--border);transition:color 0.2s}.district-card:hover .district-arrow{color:var(--orange)}.district-hero{padding:60px 0 40px;border-bottom:1px solid var(--border)}.district-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px}.breadcrumb{font-size:13px;color:var(--light);margin-bottom:16px}.breadcrumb a{color:var(--orange)}.district-page-title{font-family:var(--font-display);font-size:clamp(32px,5vw,56px);font-weight:900;color:var(--dark);line-height:1.1}.district-page-title span{color:var(--orange);font-style:italic}.district-tagline{font-size:17px;color:var(--mid);margin-top:12px;max-width:600px;line-height:1.7}.snapshot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:32px}.snapshot-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.snapshot-val{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark)}.snapshot-key{font-size:12px;color:var(--light);margin-top:4px}.page-section{padding:48px 0;border-bottom:1px solid var(--border)}.page-section:last-of-type{border-bottom:none}.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}.section-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--dark);margin-bottom:8px}.section-sub{font-size:15px;color:var(--mid);margin-bottom:28px;line-height:1.7}.odop-block{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}@media(max-width:700px){.odop-block{grid-template-columns:1fr}}.odop-detail-list{display:flex;flex-direction:column}.odop-detail-row{display:flex;padding:12px 0;border-bottom:1px solid var(--border);gap:16px}.odop-detail-row:last-child{border-bottom:none}.odop-detail-key{font-size:13px;color:var(--light);min-width:130px;flex-shrink:0}.odop-detail-val{font-size:14px;color:var(--dark);font-weight:500}.steps-list{display:flex;flex-direction:column}.step-row{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.step-num{width:36px;height:36px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;margin-top:2px}.step-content{flex:1}.step-title{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.step-desc{font-size:14px;color:var(--mid);line-height:1.6}.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}.name-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--dark)}.vendor-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.vendor-card.premium{border-color:var(--orange-m);background:var(--orange-l)}.vendor-name{font-size:16px;font-weight:600;color:var(--dark);margin-bottom:4px}.vendor-cat{font-size:13px;color:var(--mid);margin-bottom:12px}.vendor-desc{font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px}.vendor-actions{display:flex;gap:8px;flex-wrap:wrap}.scheme-list{display:flex;flex-direction:column;gap:12px}.scheme-item{display:flex;gap:16px;padding:16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);align-items:flex-start}.scheme-icon{width:36px;height:36px;background:var(--orange-l);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.scheme-title{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:3px}.scheme-desc{font-size:13px;color:var(--mid)}.cta-block{background:linear-gradient(135deg,#0077A8 0%,#00B4D8 100%);border-radius:var(--radius-lg);padding:48px;display:flex;gap:32px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:60px}.cta-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}.cta-sub{font-size:15px;color:rgba(255,255,255,0.6)}.cta-actions{display:flex;gap:12px;flex-wrap:wrap}.hero-search-row{display:flex;gap:8px;align-items:center}.math-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}.search-wrap{position:relative;max-width:480px}.search-input{width:100%;padding:14px 20px 14px 46px;border:1.5px solid var(--border);border-radius:40px;font-size:15px;font-family:var(--font-body);background:var(--bg);color:var(--dark);outline:none;transition:border-color 0.2s}.search-input:focus{border-color:var(--orange)}.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--light);font-size:18px;pointer-events:none}.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}.filter-tab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--mid);cursor:pointer;transition:all 0.15s;background:var(--bg);font-family:var(--font-body)}.filter-tab:hover,.filter-tab.active{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}.events-placeholder{background:var(--bg-2);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center}.events-placeholder h3{font-family:var(--font-display);font-size:20px;margin-bottom:8px}.page-header{padding:48px 0 32px;border-bottom:1px solid var(--border);margin-bottom:40px}.page-header-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:900;color:var(--dark);margin-bottom:8px}.page-header-title em{font-style:italic;color:var(--orange)}.page-header-sub{font-size:16px;color:var(--mid);max-width:520px}.master-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-bottom:60px}.module-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:16px;transition:all 0.2s;text-decoration:none}.module-card:hover{border-color:var(--orange-m);box-shadow:var(--shadow-lg);transform:translateY(-2px)}.module-icon{font-size:28px}.module-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--dark)}.module-desc{font-size:14px;color:var(--mid);line-height:1.7}.module-link{font-size:13px;color:var(--orange);font-weight:500;margin-top:auto}.odop-photo-wrap{margin-bottom:28px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}.odop-photo{width:100%;max-height:380px;object-fit:cover;display:block}.ae-section-label{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);margin-bottom:12px}.ae-primary,.ae-fallback{border-radius:var(--radius-lg);overflow:hidden}.sec-divider{border:none;border-top:1px solid var(--border);margin:0}.alert-strip{background:#111;color:#fff;text-align:center;padding:10px 24px;font-size:13px;font-weight:500;letter-spacing:0.2px}.for-badge{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:500;display:inline-block;margin-bottom:16px}.geo-anchor{font-size:15px;color:var(--mid);line-height:1.8;margin:12px 0 0;max-width:620px}.stat-bar-dark{background:#111;border-radius:var(--radius-lg);padding:18px 28px;display:flex;gap:32px;flex-wrap:wrap;margin:24px 0}.stat-bar-item{display:flex;flex-direction:column;gap:4px}.stat-bar-item .sv{font-family:var(--font-display);font-size:22px;font-weight:900;color:#fff}.stat-bar-item .sk{font-size:11px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px}.opp-card{display:flex;gap:28px;align-items:center;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin:24px 0;flex-wrap:wrap}.opp-ring{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}.opp-ring-num{background:var(--bg);border-radius:50%;width:76px;height:76px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--dark)}.opp-ring-num small{font-size:13px;color:var(--light);margin-left:2px}.opp-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:6px}.opp-title{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--dark);margin-bottom:10px}.opp-pills{display:flex;gap:8px;flex-wrap:wrap}.opp-pill{background:var(--green-l);color:var(--green);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500}.biz-card{background:#111;border-radius:var(--radius-lg);padding:20px 24px}.biz-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:14px}.biz-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px}.biz-row:last-child{border-bottom:none}.bk{color:rgba(255,255,255,0.55)}.bv{color:#fff;font-weight:600}.bv.g{color:#4ade80}.success-box{background:var(--bg-2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-lg);padding:24px;margin-top:28px}.ss-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:8px}.ss-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark);margin-bottom:8px}.ss-body{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:16px}.ss-nums{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:8px}.ss-num{display:flex;flex-direction:column;gap:4px}.ss-num .sv{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--dark)}.ss-num .sk{font-size:12px;color:var(--light)}.ss-source{font-size:12px;color:var(--light);font-style:italic}.rev-flow{display:flex;flex-direction:column;gap:4px;margin-top:20px}.rev-row{display:flex;align-items:center;gap:18px;padding:16px 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)}.rev-row.primary{background:var(--orange-l);border-color:var(--orange-m)}.rev-row>div:nth-child(2){flex:1}.rev-arr{color:var(--light);font-size:18px;padding:2px 0;line-height:1;padding-left:48px}.rev-step{width:32px;height:32px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}.rev-step-b{background:#111;color:#fff}.ri-name{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:2px}.ri-desc{font-size:12px;color:var(--mid)}.rev-margin{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--orange);white-space:nowrap;flex-shrink:0}.step-num-dark{width:38px;height:38px;background:#111;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;margin-top:2px}.log-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}.log-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.log-icon{font-size:22px;margin-bottom:8px}.log-name{font-size:11px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}.log-detail{font-size:14px;color:var(--dark);font-weight:500}.park-list{display:flex;flex-direction:column;gap:10px;margin-top:20px}.park-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius)}.park-name{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px}.park-desc{font-size:13px;color:var(--mid)}.park-tag{background:var(--orange-l);color:var(--orange);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}.faq-list{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:20px}.faq-item{border-bottom:1px solid var(--border)}.faq-item:last-child{border-bottom:none}.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--bg);border:none;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;font-family:var(--font-body);text-align:left;gap:16px}.faq-btn:hover{background:var(--bg-2)}.faq-icon{font-size:18px;color:var(--light);flex-shrink:0;transition:transform 0.2s}.faq-item.open .faq-btn{background:var(--bg-2);color:var(--orange)}.faq-item.open .faq-icon{transform:rotate(45deg)}.faq-body{display:none;padding:0 20px 16px;font-size:14px;color:var(--mid);line-height:1.7}.faq-item.open .faq-body{display:block}.rd-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:12px}.rd-grid{display:flex;gap:10px;flex-wrap:wrap}.rd-chip{display:flex;flex-direction:column;gap:3px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:all 0.15s;background:var(--bg);min-width:140px}.rd-chip:hover{border-color:var(--orange-m);background:var(--orange-l)}.rd-p{font-size:13px;font-weight:600;color:var(--dark)}.rd-s{font-size:11px;color:var(--light)}.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:20px}.cluster-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.cluster-card.active{border-color:var(--orange-m);background:var(--orange-l)}.cc-town{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--light);margin-bottom:4px}.cc-name{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--dark);margin-bottom:8px}.cc-facts{list-style:none}.cc-facts li{font-size:12px;color:var(--mid);padding:3px 0}.info-box{border-radius:var(--radius);padding:14px 18px;font-size:14px;line-height:1.6}.info-neutral{background:var(--bg-2);border:1px solid var(--border);color:var(--mid)}.yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:20px}.yt-embed-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius-lg);background:#000}.yt-embed-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius-lg)}.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:20px}.news-card{display:flex;flex-direction:column;gap:8px;padding:16px 18px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:all 0.15s}.news-card:hover{border-color:var(--orange-m);background:var(--orange-l);transform:translateY(-1px)}.news-source{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange)}.news-title{font-size:14px;font-weight:500;color:var(--dark);line-height:1.5}.news-arrow{font-size:14px;color:var(--light);margin-top:4px}.prose-section{max-width:760px}.prose-block{padding:40px 0}.site-blockquote{border-left:3px solid var(--orange);padding:16px 24px;background:var(--orange-l);border-radius:0 var(--radius) var(--radius) 0;font-family:var(--font-display);font-size:17px;font-style:italic;color:var(--dark);margin:24px 0;line-height:1.7}.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:8px}.team-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:8px}.team-avatar{width:52px;height:52px;background:var(--orange);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;font-weight:700;flex-shrink:0;margin-bottom:4px}.team-name{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--dark)}.team-role{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--orange)}.team-bio{font-size:13px;color:var(--mid);line-height:1.7;margin-top:4px}.prose-article{max-width:760px;margin-top:8px}.prose-article h2{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--dark);margin:40px 0 12px;padding-top:8px;border-top:1px solid var(--border)}.prose-article h2:first-child{border-top:none;margin-top:0}.prose-article h3{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--dark);margin:24px 0 8px}.prose-article p{font-size:15px;color:var(--mid);line-height:1.8;margin-bottom:16px}.prose-article ul,.prose-article ol{margin:0 0 20px 0;padding-left:20px}.prose-article li{font-size:14px;color:var(--mid);line-height:1.8;margin-bottom:6px}.prose-article strong{color:var(--dark);font-weight:600}.prose-article a{color:var(--orange);text-decoration:underline}.prose-article hr{border:none;border-top:1px solid var(--border);margin:36px 0}.prose-article blockquote{border-left:3px solid var(--orange);padding:12px 20px;background:var(--orange-l);border-radius:0 var(--radius) var(--radius) 0;margin:24px 0}.prose-article table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}.prose-article th{background:var(--bg-3);padding:10px 14px;text-align:left;font-weight:600;color:var(--dark);border:1px solid var(--border)}.prose-article td{padding:10px 14px;border:1px solid var(--border);color:var(--mid)}.prose-article tr:nth-child(even) td{background:var(--bg-2)}.contact-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:10px}.contact-icon{font-size:28px}.contact-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light)}.contact-value{font-size:16px;font-weight:600;color:var(--orange)}.contact-address{margin-top:48px;padding-top:32px;border-top:1px solid var(--border)}.terms-list{display:flex;flex-direction:column;gap:16px;margin-top:20px}.terms-item{display:flex;gap:16px;padding:20px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);align-items:flex-start}.terms-icon{font-size:22px;flex-shrink:0;margin-top:2px}.terms-item p{font-size:14px;color:var(--mid);margin-top:4px;line-height:1.7}.exhibition-content h3{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--dark);margin:28px 0 12px}.exhibition-content p{font-size:15px;color:var(--mid);line-height:1.8;margin-bottom:16px}.exhibition-content ul{list-style:none;margin-bottom:20px;display:flex;flex-direction:column;gap:8px}.exhibition-content li{display:flex;gap:12px;font-size:14px;color:var(--mid);line-height:1.7;padding:12px 16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius)}.exhibition-content li::before{content:"→";color:var(--orange);flex-shrink:0;font-weight:600;margin-top:1px}.products-topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}.products-layout{display:flex;gap:28px;align-items:flex-start}.filter-sidebar{width:232px;flex-shrink:0;position:sticky;top:72px;max-height:calc(100vh - 88px);overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);padding:0 0 8px}.fsb-head{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 12px;border-bottom:1px solid var(--border);margin-bottom:4px}.fsb-title{font-size:14px;font-weight:700;color:var(--dark)}.fsb-clear{font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:var(--font-body);font-weight:500;padding:0}.fsb-clear:hover{text-decoration:underline}.filter-group{padding:14px 16px;border-bottom:1px solid var(--border)}.fgrp-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:10px}.fcheck-list{display:flex;flex-direction:column;gap:6px}.fcheck-scroll{max-height:220px;overflow-y:auto;padding-right:4px}.filter-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--mid);line-height:1.4}.filter-check input{accent-color:var(--orange);width:14px;height:14px;flex-shrink:0;cursor:pointer}.filter-check:hover span{color:var(--dark)}.products-main{flex:1;min-width:0}.result-count{font-size:13px;color:var(--light);margin-bottom:12px;min-height:20px}.fsb-mobile-toggle{display:none;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;color:var(--mid);background:var(--bg);cursor:pointer;font-family:var(--font-body);white-space:nowrap}.fsb-mobile-toggle:hover{border-color:var(--orange);color:var(--orange)}.filter-badge{background:var(--orange);color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:1px 7px;min-width:18px;justify-content:center}@media(max-width:640px){.container{padding:0 16px}.site-nav{position:relative}.nav-hamburger{display:flex;align-items:center;justify-content:center;margin-left:auto}.nav-links{display:none;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:8px 16px 16px;gap:2px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,0.08)}.nav-links.nav-open{display:flex}.nav-links a{padding:11px 14px;border-radius:var(--radius);font-size:15px}.nav-ig{display:none}.fsb-mobile-toggle{display:inline-flex}.products-layout{flex-direction:column}.filter-sidebar{width:100%;position:static;max-height:none;display:none;border-radius:var(--radius-lg)}.filter-sidebar.fsb-open{display:block}.section{padding:48px 0}.cta-block{padding:24px;flex-direction:column;align-items:stretch}.cta-actions{flex-direction:column;width:100%}.cta-actions .btn{width:100%;justify-content:center}.stat-strip{gap:24px}.hero-search-row{flex-direction:column;align-items:stretch}.hero-search-row>*{width:100% !important;max-width:100% !important}.hero-search-btn{justify-content:center}.math-grid{grid-template-columns:1fr}}"""
+    # Site stylesheet (Hallmark · Hum). Source lives in styles/site.css.
+    css_content = (BASE_DIR/"styles"/"site.css").read_text(encoding="utf-8")
     (DIST_DIR/"assets"/"style.css").write_text(css_content)
     # Copy logo
     logo_src = DATA_DIR / "logo.png"
