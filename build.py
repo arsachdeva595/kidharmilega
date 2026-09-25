@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, json, os, shutil, re, sys, markdown as md_lib
+import csv, hashlib, json, os, shutil, re, sys, markdown as md_lib
 from pathlib import Path
 from datetime import datetime
 
@@ -49,22 +49,22 @@ def product_page_slug(d):
 
 def nav(active="home"):
     links = [
-        ("Home",           p("/index.html"),                  "home"),
-        ("Products",       p("/products/index.html"),          "products"),
+        ("Home",           p("/"),                  "home"),
+        ("Products",       p("/products/"),          "products"),
     ]
     if PUBLISH_IDEA_GUIDES:
         links.append(("Business Ideas", p("/ideas/"), "ideas"))
     elif PUBLISH_BUSINESS_IDEAS:
-        links.append(("Business Ideas", p("/business-ideas/index.html"), "business-ideas"))
+        links.append(("Business Ideas", p("/business-ideas/"), "business-ideas"))
     links += [
-        ("Events",         p("/events/index.html"),            "events"),
-        ("Why ODOP?",      p("/what-is-odop/index.html"),      "odop-guide"),
-        ("About Us",       p("/about-us/index.html"),          "about"),
-        ("Contact",        p("/contact/index.html"),           "contact"),
+        ("Events",         p("/events/"),            "events"),
+        ("Why ODOP?",      p("/what-is-odop/"),      "odop-guide"),
+        ("About Us",       p("/about-us/"),          "about"),
+        ("Contact",        p("/contact/"),           "contact"),
     ]
     items = "".join(f'<a href="{href}"{" class=\"active\"" if k==active else ""}>{label}</a>' for label,href,k in links)
     return f'''<nav class="site-nav" id="siteNav"><div class="nav-inner">
-  <a href="{p('/index.html')}" class="nav-logo"><img src="{p('/assets/logo.png')}" alt="KidharMilega" class="nav-logo-img"></a>
+  <a href="{p('/')}" class="nav-logo"><img src="{p('/assets/logo.png')}" alt="KidharMilega" class="nav-logo-img"></a>
   <div class="nav-links" id="navLinks">{items}</div>
   <a href="https://instagram.com/startupwalebhaia" class="nav-ig" target="_blank">{IG_HANDLE}</a>
   <button class="nav-hamburger" id="navHamburger" aria-label="Menu" onclick="(function(){{var n=document.getElementById('navLinks');var b=document.getElementById('navHamburger');var open=n.classList.toggle('nav-open');b.innerHTML=open?'&#10005;':'&#9776;';b.setAttribute('aria-expanded',open);}})()">&#9776;</button>
@@ -74,15 +74,15 @@ def footer():
     return f'''<footer class="site-footer"><div class="footer-inner">
   <div class="footer-brand"><img src="{p('/assets/logo.png')}" alt="KidharMilega" style="height:28px;width:auto"></div>
   <div class="footer-links">
-    <a href="{p('/index.html')}">Home</a>
-    <a href="{p('/products/index.html')}">Products</a>
-    {f'<a href="{p("/ideas/")}">Business Ideas</a>' if PUBLISH_IDEA_GUIDES else f'<a href="{p("/business-ideas/index.html")}">Business Ideas</a>' if PUBLISH_BUSINESS_IDEAS else ''}
-    <a href="{p('/events/index.html')}">Events</a>
-    <a href="{p('/what-is-odop/index.html')}">Why ODOP?</a>
-    <a href="{p('/about-us/index.html')}">About Us</a>
-    <a href="{p('/team/index.html')}">Team</a>
-    <a href="{p('/contact/index.html')}">Contact</a>
-    <a href="{p('/terms-of-service/index.html')}">Terms</a>
+    <a href="{p('/')}">Home</a>
+    <a href="{p('/products/')}">Products</a>
+    {f'<a href="{p("/ideas/")}">Business Ideas</a>' if PUBLISH_IDEA_GUIDES else f'<a href="{p("/business-ideas/")}">Business Ideas</a>' if PUBLISH_BUSINESS_IDEAS else ''}
+    <a href="{p('/events/')}">Events</a>
+    <a href="{p('/what-is-odop/')}">Why ODOP?</a>
+    <a href="{p('/about-us/')}">About Us</a>
+    <a href="{p('/team/')}">Team</a>
+    <a href="{p('/contact/')}">Contact</a>
+    <a href="{p('/terms-of-service/')}">Terms</a>
   </div>
   <div class="footer-meta">Built by <a href="https://instagram.com/startupwalebhaia" target="_blank">{IG_HANDLE}</a> · {BUILD_DATE} · &copy; Rupantran Biz Pvt Ltd</div>
 </div></footer>'''
@@ -179,12 +179,20 @@ def strip_wp_blocks(content):
     content = re.sub(r'\n{3,}', '\n\n', content)
     return content.strip()
 
+# One URL per page: GitHub Pages serves /x/ and /x/index.html alike and can't 301, so every internal link uses the
+# clean form, every page carries a canonical, and visitors who land on an index.html address are moved to the clean one.
+CLEAN_URL_JS = "<script>if(/\\/index\\.html$/.test(location.pathname))location.replace(location.pathname.replace(/index\\.html$/,'')+location.search+location.hash)</script>"
+
+# Set in build() from the stylesheet's content hash, so each deploy gets a fresh stylesheet URL and no browser keeps a stale copy.
+STYLE_VERSION = "dev"
+
 def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
     og_image = image if image else f"{SITE_URL}{BASE_PATH}/data/logo.png"
     robots_tag = '<meta name="robots" content="noindex, follow">\n' if noindex else ''
     return f'''<!DOCTYPE html><html lang="en"><head>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-WP8DXGKB1F');</script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+{CLEAN_URL_JS}
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 {robots_tag}<link rel="canonical" href="{SITE_URL}{canonical}">
@@ -196,7 +204,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{p('/assets/style.css')}">
+<link rel="stylesheet" href="{p('/assets/style.css')}?v={STYLE_VERSION}">
 {extra_head}
 </head><body>'''
 
@@ -208,7 +216,7 @@ def build_homepage(districts):
     for d in featured:
         pg = product_page_slug(d)
         gi = '<span class="tag tag-green">GI Tag</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
-        feat_cards += f'''<a href="{p('/products/')}{pg}/index.html" class="district-card">
+        feat_cards += f'''<a href="{p('/products/')}{pg}/" class="district-card">
   <div class="district-card-head"><div>
     <div class="district-name">{esc(d.get('odop_product_name',''))}</div>
     <div class="district-name-hin">{esc(d['district_name'])} &middot; {esc(d['state'])}</div>
@@ -216,7 +224,7 @@ def build_homepage(districts):
   <div class="district-desc">{esc((d.get('famous_for_1_line','') or '')[:110])}</div>
   <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}</div>
 </a>'''
-    search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/index.html'} for d in live])
+    search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/'} for d in live])
     hp_schema = json.dumps([
         {"@context":"https://schema.org","@type":"WebSite","name":"KidharMilega","url":f"{SITE_URL}/",
          "description":"Find business opportunities near you — ODOP products, market data, and step-by-step guides for every district in India.",
@@ -270,7 +278,7 @@ def build_homepage(districts):
           <input class="search-input" type="search" id="hpSearch" placeholder="Search a district or product" autocomplete="off" aria-label="Search districts and ODOP products">
           <div class="home-search__results" id="hpResults"></div>
         </div>
-        <a href="{p('/products/index.html')}" class="btn btn-cyan">Open the ODOP directory <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+        <a href="{p('/products/')}" class="btn btn-cyan">Open the ODOP directory <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
       </div>
     </div>
     <div class="counters">
@@ -287,7 +295,7 @@ def build_homepage(districts):
     <div class="home-head">
       <div><h2 id="map-title" class="reveal">Explore India&#x2019;s manufacturing map</h2>
       <p>From the Zardozi of Bareilly to the Blue Pottery of Jaipur, your next venture starts here.</p></div>
-      <a href="{p('/products/index.html')}" class="btn btn-ghost btn-sm">View all {len(live)} districts <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+      <a href="{p('/products/')}" class="btn btn-ghost btn-sm">View all {len(live)} districts <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
     </div>
     <div class="grid-3">{feat_cards}</div>
   </section>
@@ -351,7 +359,7 @@ HOME_JS = """<script>
     var v = this.value.toLowerCase().trim();
     if (v.length < 2) { sr.style.display = 'none'; return; }
     var m = HP_DS.filter(function(x){ return x.n.toLowerCase().includes(v) || x.d.toLowerCase().includes(v) || x.s.toLowerCase().includes(v); }).slice(0, 6);
-    if (!m.length) { sr.innerHTML = '<a href="/products/index.html"><strong>No match yet</strong><span>Browse the full ODOP directory</span></a>'; sr.style.display = 'block'; return; }
+    if (!m.length) { sr.innerHTML = '<a href="/products/"><strong>No match yet</strong><span>Browse the full ODOP directory</span></a>'; sr.style.display = 'block'; return; }
     sr.innerHTML = m.map(function(x){ return '<a href="' + x.u + '"><strong>' + esc(x.n) + '</strong><span>' + esc(x.d) + ' \\u00b7 ' + esc(x.s) + '</span></a>'; }).join('');
     sr.style.display = 'block';
   });
@@ -398,19 +406,19 @@ def build_master_page():
     <p class="page-header-sub">Three directories. All free. Continuously updated.</p>
   </div>
   <div class="master-modules">
-    <a href="{p('/products/index.html')}" class="module-card">
+    <a href="{p('/products/')}" class="module-card">
       <div class="module-icon">&#127866;</div>
       <div class="module-title">Business Opportunities</div>
       <div class="module-desc">Har district ka ODOP product mapped &#8212; market data, vendors, step-by-step guide aur business opportunity breakdown.</div>
       <div class="module-link">Sabhi opportunities dekho &#8594;</div>
     </a>
-    <a href="{p('/events/index.html')}" class="module-card">
+    <a href="{p('/events/')}" class="module-card">
       <div class="module-icon">&#127914;</div>
       <div class="module-title">Events &amp; Expos</div>
       <div class="module-desc">Trade shows, craft fairs, B2B summits and local haats &#8212; across 100 Indian cities. Real-time data.</div>
       <div class="module-link">Browse upcoming events &#8594;</div>
     </a>
-    <a href="{p('/vendors/index.html')}" class="module-card">
+    <a href="{p('/vendors/')}" class="module-card">
       <div class="module-icon">&#127981;</div>
       <div class="module-title">Vendor Directory</div>
       <div class="module-desc">Raw material suppliers, manufacturers and distributors &#8212; mapped to each ODOP product and district.</div>
@@ -466,7 +474,7 @@ def build_odop_page(districts):
         gi = '<span class="tag tag-green">GI Tag</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
         min_cost = d.get('min_setup_cost','0') or '0'
         score_val = d.get('opportunity_score','0') or '0'
-        cards += f'''<a href="{p('/products/')}{pg}/index.html" class="district-card" data-cat="{slug(d.get('odop_category',''))}" data-state="{esc(d['state'])}" data-min-cost="{min_cost}" data-score="{score_val}">
+        cards += f'''<a href="{p('/products/')}{pg}/" class="district-card" data-cat="{slug(d.get('odop_category',''))}" data-state="{esc(d['state'])}" data-min-cost="{min_cost}" data-score="{score_val}">
   <div class="district-card-head"><div>
     <div class="district-name">{esc(d.get('odop_product_name',''))}</div>
     <div class="district-name-hin">{esc(d['district_name'])} &middot; {esc(d['state'])}</div>
@@ -570,7 +578,7 @@ def build_events_page(exhibition_posts=None):
             dtype, tlabel, tcls = 'business', 'Business Events', 'tag-blue'
         else:
             dtype, tlabel, tcls = 'general', 'Events', 'tag-gray'
-        cards_html += f'''<a href="{p('/')}{sv}/index.html" class="district-card" data-type="{dtype}">
+        cards_html += f'''<a href="{p('/')}{sv}/" class="district-card" data-type="{dtype}">
   <div class="district-card-head"><div>
     <div class="district-name">{esc(title)}</div>
     {f'<div class="district-name-hin">{esc(ae_city)}</div>' if ae_city else ''}
@@ -618,7 +626,7 @@ def build_exhibition_page(post):
                        ) if body_html.strip() else ''
     body = f'''<main><div class="container">
   <section class="district-hero">
-    <div class="breadcrumb"><a href="{p('/index.html')}">Home</a> &#8594; <a href="{p('/events/index.html')}">Events &amp; Expos</a> &#8594; {esc(title)}</div>
+    <div class="breadcrumb"><a href="{p('/')}">Home</a> &#8594; <a href="{p('/events/')}">Events &amp; Expos</a> &#8594; {esc(title)}</div>
     <div class="hero-eyebrow">{eyebrow}</div>
     <h1 class="district-page-title">{esc(title)}</h1>
     {f'<p class="district-tagline">{tagline}</p>' if tagline else ''}
@@ -636,7 +644,7 @@ def build_exhibition_page(post):
       <div class="cta-sub">Browse trade shows, exhibitions and B2B events across 50+ Indian cities.</div>
     </div>
     <div class="cta-actions">
-      <a href="{p('/events/index.html')}" class="btn btn-primary">All Events &amp; Cities &#8594;</a>
+      <a href="{p('/events/')}" class="btn btn-primary">All Events &amp; Cities &#8594;</a>
       <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" class="btn">Join Community</a>
     </div>
   </div>
@@ -913,8 +921,8 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     # ── Related districts ──
     rd_html = ''
     if same_state or same_cat:
-        sc = "".join(f'<a href="{p("/products/")}{product_page_slug(x)}/index.html" class="rd-chip">{esc(x["district_name"])}<span class="rd-p">{esc(x.get("odop_product_name","")[:28])}</span><span class="rd-s">{esc(x["state"])}</span></a>' for x in same_state)
-        cc = "".join(f'<a href="{p("/products/")}{product_page_slug(x)}/index.html" class="rd-chip">{esc(x["district_name"])}<span class="rd-p">{esc(x.get("odop_product_name","")[:28])}</span><span class="rd-s">{esc(x["state"])}</span></a>' for x in same_cat)
+        sc = "".join(f'<a href="{p("/products/")}{product_page_slug(x)}/" class="rd-chip">{esc(x["district_name"])}<span class="rd-p">{esc(x.get("odop_product_name","")[:28])}</span><span class="rd-s">{esc(x["state"])}</span></a>' for x in same_state)
+        cc = "".join(f'<a href="{p("/products/")}{product_page_slug(x)}/" class="rd-chip">{esc(x["district_name"])}<span class="rd-p">{esc(x.get("odop_product_name","")[:28])}</span><span class="rd-s">{esc(x["state"])}</span></a>' for x in same_cat)
         rd_html = '<section class="page-section">'
         if sc: rd_html += f'<div class="rd-label">{esc(d["state"])} ke aur districts</div><div class="rd-grid">{sc}</div>'
         if cc: rd_html += f'<div class="rd-label" style="margin-top:20px">Same category &#8212; {esc(d.get("odop_category",""))}</div><div class="rd-grid">{cc}</div>'
@@ -925,7 +933,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     body = f'''
 <main><div class="container">
   <section class="district-hero">
-    <div class="breadcrumb"><a href="{p('/index.html')}">Home</a> &#8594; <a href="{p('/products/index.html')}">Products</a> &#8594; {esc(d["state"])} &#8594; {esc(d["district_name"])}</div>
+    <div class="breadcrumb"><a href="{p('/')}">Home</a> &#8594; <a href="{p('/products/')}">Products</a> &#8594; {esc(d["state"])} &#8594; {esc(d["district_name"])}</div>
     {for_badge}
     <div class="district-hero-top"><div>
       <div class="hero-eyebrow">{esc(market_eyebrow)}</div>
@@ -991,7 +999,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     <div class="cta-sub">Is district ke aur founders se connect karo. Sawaal karo, contacts dhundo, community mein shaamil ho.</div></div>
     <div class="cta-actions">
       <a href="https://www.facebook.com/groups/startupwalebhaia" class="btn btn-primary" target="_blank">Find like minded entrepreneurs &#8594;</a>
-      <a href="{p('/products/index.html')}" class="btn btn-ghost">Aur districts dekho</a>
+      <a href="{p('/products/')}" class="btn btn-ghost">Aur districts dekho</a>
     </div>
   </div>
 </div></main>'''
@@ -1055,7 +1063,7 @@ def build_about_page():
       <h2 class="section-title">KidharMilega &mdash; Rupantran Biz Pvt Ltd</h2>
       <p>KidharMilega is an initiative by <strong>Rupantran Biz Pvt Ltd</strong>, led by Startup Wale Bhaia and a team of specialists dedicated to business automation and digital discoverability. Our one goal: aapko dhandhe ka sahi rasta dikhana.</p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
-        <a href="/team/index.html" class="btn btn-ghost">Meet the Team &rarr;</a>
+        <a href="/team/" class="btn btn-ghost">Meet the Team &rarr;</a>
         <a href="https://instagram.com/startupwalebhaia" class="btn btn-primary" target="_blank">Follow @startupwalebhaia</a>
       </div>
     </div>
@@ -1115,7 +1123,7 @@ def build_odop_guide_page():
       <div class="cta-sub">787 districts. 550+ products. Market data, entry cost, aur step-by-step guide — sab free.</div>
     </div>
     <div class="cta-actions">
-      <a href="/products/index.html" class="btn btn-primary">Browse All Districts &rarr;</a>
+      <a href="/products/" class="btn btn-primary">Browse All Districts &rarr;</a>
     </div>
   </div>
 </div></main>''' + footer() + "</body></html>"
@@ -1212,7 +1220,7 @@ def match_city_to_district(city_row, districts):
     return best
 
 def build_business_ideas_index(cities, all_districts):
-    """Build /business-ideas/index.html — city grid."""
+    """Build /business-ideas/ — city grid."""
     # De-duplicate cities keeping highest population per city name
     seen = {}
     for c in cities:
@@ -1292,7 +1300,7 @@ document.getElementById('stFilter').addEventListener('change',_filter);
 
 
 def build_business_ideas_city_page(city_row, ideas, district_row):
-    """Build /business-ideas/{city-slug}/index.html — city hub page."""
+    """Build /business-ideas/{city-slug}/ — city hub page."""
     city_name = city_row.get("city","").strip()
     state     = city_row.get("admin_name","").strip()
     pop       = int(city_row.get("population") or 0)
@@ -1352,7 +1360,7 @@ def build_business_ideas_city_page(city_row, ideas, district_row):
 
     body = f'''<main><div class="container">
 <div class="district-hero">
-  <div class="breadcrumb"><a href="{p('/index.html')}">Home</a> → <a href="{p('/business-ideas/')}">Business Ideas</a> → {esc(city_name)}</div>
+  <div class="breadcrumb"><a href="{p('/')}">Home</a> → <a href="{p('/business-ideas/')}">Business Ideas</a> → {esc(city_name)}</div>
   <h1 class="district-page-title">Business Ideas in <span>{esc(city_name)}</span></h1>
   <p class="district-tagline">{esc(city_name)} · {esc(state)} · Population {pop_str}</p>
   <div class="stat-bar-dark" style="margin-top:20px">
@@ -1379,7 +1387,7 @@ def build_business_ideas_city_page(city_row, ideas, district_row):
 
 
 def build_business_ideas_idea_page(idea, cities_data, all_ideas, enrich=None):
-    """Build /business-ideas/{idea-slug}/index.html — enriched idea playbook page."""
+    """Build /business-ideas/{idea-slug}/ — enriched idea playbook page."""
     if enrich is None:
         enrich = {}
 
@@ -1655,7 +1663,7 @@ function toggleFaq(btn){
     body = f'''<main><div class="container">
 {alert_html}
 <div class="district-hero">
-  <div class="breadcrumb"><a href="{p('/index.html')}">Home</a> → <a href="{p('/business-ideas/')}">Business Ideas</a> → {esc(title)}</div>
+  <div class="breadcrumb"><a href="{p('/')}">Home</a> → <a href="{p('/business-ideas/')}">Business Ideas</a> → {esc(title)}</div>
   <h1 class="district-page-title">Start a <span>{esc(title)}</span></h1>
   <p class="district-tagline">{esc(idea_hook or desc[:200])}</p>
   {score_html}
@@ -1808,13 +1816,17 @@ def publish_guides():
     if (GUIDES_DIR / "quiz").exists():
         shutil.copytree(GUIDES_DIR / "quiz", DIST_DIR / "quiz")
     site_nav, site_footer = nav("ideas"), footer()
+    versioned_css = f'href="{p("/assets/style.css")}?v={STYLE_VERSION}"'
     pages = list((DIST_DIR / "ideas").rglob("index.html"))
     for f in pages:
         html = f.read_text(encoding="utf-8")
+        html = html.replace("<head>", "<head>\n" + CLEAN_URL_JS, 1).replace('href="/assets/style.css"', versioned_css)
         f.write_text(html.replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer), encoding="utf-8")
     quiz_index = DIST_DIR / "quiz" / "index.html"
     if quiz_index.exists():
-        site_head = f'<link rel="icon" type="image/png" href="{p("/assets/logo.png")}">\n  <link rel="stylesheet" href="{p("/assets/style.css")}">'
+        # ?idea=<key> variants all canonicalise to /quiz/
+        site_head = (f'{CLEAN_URL_JS}\n  <link rel="canonical" href="{SITE_URL}/quiz/">\n'
+                     f'  <link rel="icon" type="image/png" href="{p("/assets/logo.png")}">\n  <link rel="stylesheet" {versioned_css}>')
         html = quiz_index.read_text(encoding="utf-8")
         html = html.replace("<!--KM:HEAD-->", site_head).replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer)
         quiz_index.write_text(html, encoding="utf-8")
@@ -1839,6 +1851,8 @@ def build():
 
     # Site stylesheet (Hallmark · Hum). Source lives in styles/site.css.
     css_content = (BASE_DIR/"styles"/"site.css").read_text(encoding="utf-8")
+    global STYLE_VERSION
+    STYLE_VERSION = hashlib.sha1(css_content.encode("utf-8")).hexdigest()[:10]
     (DIST_DIR/"assets"/"style.css").write_text(css_content)
     # Copy logo
     logo_src = DATA_DIR / "logo.png"

@@ -1,30 +1,30 @@
-/* Hallmark · genre: playful · macrostructure: Workbench (one question at a time) · theme: Hum
+/* Hallmark · genre: playful · macrostructure: Workbench (one question at a time) · theme: Hum in KidharMilega blue (hex colours for older phone browsers)
  * Shares kidharmilega.in's Hum tokens. Works standalone and inside the site (site nav/footer + /assets/style.css). */
 :root {
-  --q-paper: oklch(97% 0.012 95);
-  --q-paper-2: oklch(94% 0.016 95);
-  --q-paper-3: oklch(91% 0.020 95);
-  --q-ink: oklch(20% 0.012 250);
-  --q-ink-2: oklch(28% 0.014 250);
-  --q-neutral: oklch(38% 0.014 100);
-  --q-muted: oklch(52% 0.014 90);
-  --q-rule: oklch(86% 0.014 90);
-  --q-rule-2: oklch(70% 0.018 85);
-  --q-pear: oklch(86% 0.18 95);
-  --q-pear-deep: oklch(76% 0.20 95);
-  --q-cyan: oklch(66% 0.18 235);
-  --q-cyan-deep: oklch(56% 0.20 235);
-  --q-coral: oklch(68% 0.24 18);
-  --q-link: oklch(48% 0.17 240);
-  --q-good: oklch(46% 0.13 150);
-  --q-tint-pear: oklch(86% 0.18 95 / 0.18);
-  --q-tint-cyan: oklch(66% 0.18 235 / 0.14);
-  --q-tint-mint: oklch(80% 0.16 150 / 0.18);
+  --q-paper: #f7f5ec;
+  --q-paper-2: #eeebdf;
+  --q-paper-3: #e5e1d3;
+  --q-ink: #12171b;
+  --q-ink-2: #242a30;
+  --q-neutral: #44433a;
+  --q-muted: #6c6960;
+  --q-rule: #d4d1c7;
+  --q-rule-2: #a49e92;
+  --q-pear: #00B4D8;
+  --q-pear-deep: #0096B8;
+  --q-cyan: #0077A8;
+  --q-cyan-deep: #005E85;
+  --q-coral: #ff3a5d;
+  --q-link: #0077A8;
+  --q-good: #006b2d;
+  --q-tint-pear: rgba(0, 180, 216, 0.13);
+  --q-tint-cyan: rgba(246, 206, 0, 0.16);
+  --q-tint-mint: rgba(102,218,133,0.18);
   --q-font: "Plus Jakarta Sans", "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
   --q-label: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
   --q-radius: 20px;
   --q-radius-input: 14px;
-  --q-shadow: 0 12px 32px -16px oklch(20% 0.012 250 / 0.14), 0 1px 2px oklch(20% 0.012 250 / 0.06);
+  --q-shadow: 0 12px 32px -16px rgba(18,23,27,0.14), 0 1px 2px rgba(18,23,27,0.06);
   --q-press: cubic-bezier(0.2, 0.7, 0.3, 1);
   --q-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --q-snap: cubic-bezier(0.22, 1, 0.36, 1);
@@ -46,7 +46,7 @@ body {
 
 #app h1, #app h2, #app h3 { font-family: var(--q-font); font-weight: 600; font-style: normal; color: var(--q-ink); text-wrap: balance; overflow-wrap: anywhere; }
 #app h1 { font-size: clamp(32px, 7vw, 48px); letter-spacing: -0.025em; line-height: 1.05; margin: 10px 0 14px; }
-#app h1 em { font-style: normal; background-image: linear-gradient(oklch(86% 0.18 95 / 0.6) 0 0); background-repeat: no-repeat; background-size: 100% 0.3em; background-position: 0 85%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+#app h1 em { font-style: normal; background-image: linear-gradient(rgba(0, 180, 216, 0.35) 0 0); background-repeat: no-repeat; background-size: 100% 0.3em; background-position: 0 85%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 #app h2 { font-size: clamp(22px, 4vw, 28px); letter-spacing: -0.018em; line-height: 1.25; margin: 6px 0 20px; }
 #app h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: -0.014em; }
 .eyebrow { font-family: var(--q-label); color: var(--q-neutral); font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; margin: 0; }
@@ -57,7 +57,7 @@ body {
 
 /* Buttons: Hum push system (the press is the feedback) */
 #app .btn {
-  --face: var(--q-paper); --edge: var(--q-rule-2); --cast: oklch(20% 0.012 250 / 0.12);
+  --face: var(--q-paper); --edge: var(--q-rule-2); --cast: rgba(18,23,27,0.12);
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
   font: 600 16px/1.2 var(--q-font); border: 0; border-radius: 999px; padding: 0.85rem 1.45rem; cursor: pointer;
   color: var(--q-ink); background: var(--face); text-decoration: none; white-space: nowrap;
@@ -66,7 +66,7 @@ body {
 }
 #app .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 0 var(--edge), 0 12px 22px -4px var(--cast); }
 #app .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--edge), 0 2px 6px -2px var(--cast); transition-duration: 70ms; }
-#app .btn.primary { --face: var(--q-pear); --edge: var(--q-pear-deep); --cast: oklch(76% 0.20 95 / 0.45); }
+#app .btn.primary { --face: var(--q-pear); --edge: var(--q-pear-deep); --cast: rgba(0, 150, 184, 0.35); }
 #app .btn.ghost { --face: transparent; --edge: transparent; --cast: transparent; color: var(--q-neutral); padding-left: 0.4rem; margin-top: 18px; }
 #app .btn.ghost:hover { color: var(--q-ink); transform: none; }
 #app .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }

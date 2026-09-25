@@ -61,7 +61,7 @@ The uncles aren't your competition. They are your supply chain.
 
 ## How to Find Your District's ODOP Product
 
-[Browse all 787 districts on KidharMilega →](https://kidharmilega.in/products/index.html)
+[Browse all 787 districts on KidharMilega →](https://kidharmilega.in/products/)
 
 Every product page shows you the market size, entry cost, export potential, and a step-by-step guide. A few examples to make it real:
 
@@ -75,7 +75,7 @@ Every product page shows you the market size, entry cost, export potential, and 
 | Golaghat, Assam | [Agarwood](https://kidharmilega.in/products/agarwood-its-derivatives-golaghat/) | ₹250-350 Cr |
 | Morbi, Gujarat | [Ceramic Tiles](https://kidharmilega.in/products/ceramic-tiles-sanitary-ware-morbi/) | Global market USD 248 Bn |
 
-Don't see yours? [Search your district here.](https://kidharmilega.in/products/index.html)
+Don't see yours? [Search your district here.](https://kidharmilega.in/products/)
 
 ---
 
@@ -99,7 +99,7 @@ Most first-timers skip all of this because "sarkari kaam bahut tedha hota hai." 
 
 ## What a Real ₹50,000 ODOP Business Looks Like
 
-Say you're in Jaipur. ODOP product: Blue Pottery or Block Print Textiles. ([Check Rajasthan products here](https://kidharmilega.in/products/index.html))
+Say you're in Jaipur. ODOP product: Blue Pottery or Block Print Textiles. ([Check Rajasthan products here](https://kidharmilega.in/products/))
 
 With ₹50,000, you don't manufacture anything. You curate, brand, and sell.
 
@@ -124,7 +124,7 @@ That's the model. It works because the infrastructure — the artisan, the raw m
 
 **Treating "local" as "low quality."** This is the mindset that keeps people stuck. The world is paying premium prices for Indian handmade products. The supply is here. The buyers are abroad. You're the bridge.
 
-**Not using KidharMilega.** Okay, that's a shameless plug. But seriously — every product page on this site has the market data, artisan contacts, and entry guide you need. [Start here.](https://kidharmilega.in/products/index.html)
+**Not using KidharMilega.** Okay, that's a shameless plug. But seriously — every product page on this site has the market data, artisan contacts, and entry guide you need. [Start here.](https://kidharmilega.in/products/)
 
 ---
 
@@ -147,4 +147,4 @@ Nahi. Export agents, online resellers, logistics providers, packaging businesses
 
 ---
 
-*787 districts. 550+ products. Apna goldmine dhundo → [kidharmilega.in/products](https://kidharmilega.in/products/index.html)*
+*787 districts. 550+ products. Apna goldmine dhundo → [kidharmilega.in/products](https://kidharmilega.in/products/)*
