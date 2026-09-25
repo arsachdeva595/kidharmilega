@@ -253,7 +253,7 @@ export function whyCopy(result, profile, { withIntro = true, district = null } =
   if (shared.length) {
     line += ` ${result.idea.name} leans on exactly that ${shared.map((d) => DIM_LABELS[d]).join(" + ")} side.`;
   } else {
-    line += ` ${result.idea.name} is your closest overall match — it uses a mix of your strengths.`;
+    line += ` ${result.idea.name} draws on a mix of your strengths rather than your top two.`;
   }
 
   // Best-aligned demanding trait.
