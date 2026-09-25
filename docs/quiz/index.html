@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Which Business Fits You? | KidharMilega</title>
+  <meta name="description" content="Answer 33 quick questions and find the business that fits your personality, budget and district in India.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <section id="intro" class="screen">
+      <p id="intro-eyebrow" class="eyebrow">KidharMilega · Business Fit Quiz</p>
+      <h1 id="intro-title">Which business actually fits <em>you</em>?</h1>
+      <p id="intro-lede" class="lede">33 quick taps, about 3 minutes. We match your interests, personality and budget against 1,500+ business ideas for India, backed by 789 Shark Tank India pitches and the ODOP products of 787 districts.</p>
+      <button id="start" class="btn primary">Start the quiz</button>
+      <p class="fine">No login. Your answers stay in your browser.</p>
+    </section>
+
+    <section id="quiz" class="screen" hidden>
+      <div class="progress"><div id="bar"></div></div>
+      <p id="counter" class="eyebrow"></p>
+      <p id="prompt" class="prompt"></p>
+      <h2 id="qtext"></h2>
+      <div id="options" class="options"></div>
+      <button id="back" class="btn ghost">← Back</button>
+    </section>
+
+    <section id="result" class="screen" hidden></section>
+  </main>
+
+  <footer class="site-footer">
+    Interest and work-style data from
+    <a href="https://www.onetcenter.org/" rel="noopener">O*NET</a>
+    (U.S. Department of Labor, CC BY 4.0), adapted for India by KidharMilega.
+    For self-reflection, not a clinical assessment.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
