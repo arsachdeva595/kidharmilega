@@ -737,8 +737,14 @@ def build_row(sheet_row, ai, idx):
     district = sheet_row.get("District", "").strip()
     state    = sheet_row.get("State", "").strip()
     product  = sheet_row.get("Product", "").strip()
-    gi_raw   = sheet_row.get("GI Status", "").strip().lower()
-    gi_tag   = "Yes" if "gi" in gi_raw and gi_raw != "no" else "No"
+    # Audited GI flags live on the enrichment cache (odop_gi_tag / gi_tag_year).
+    # The sheet's GI Status column is incomplete and was writing "No" for every district.
+    audited = str(ai.get("odop_gi_tag", "")).strip().lower()
+    if audited in ("yes", "no"):
+        gi_tag = "Yes" if audited == "yes" else "No"
+    else:
+        gi_raw = sheet_row.get("GI Status", "").strip().lower()
+        gi_tag = "Yes" if "gi" in gi_raw and gi_raw != "no" else "No"
 
     photo = drive_url(sheet_row.get("Photo", "").strip())
 
@@ -1148,6 +1154,13 @@ def main():
             # used by the to_process check to detect stale cache entries
             new_data["_scraped_quality"] = facts.get("page_quality", "none") if facts else "none"
             new_data["_scraped_source"]  = facts.get("_source", "gov") if facts else "none"
+            # Keep an audited GI decision across regeneration. The sheet column
+            # does not record registered GIs, and gi_tag_year is easy for the
+            # model to invent.
+            audited_gi = str(old_data.get("odop_gi_tag", "")).strip().lower()
+            if audited_gi in ("yes", "no"):
+                new_data["odop_gi_tag"] = "Yes" if audited_gi == "yes" else "No"
+                new_data["gi_tag_year"] = old_data.get("gi_tag_year", "")
             cache[key] = new_data
             save_cache(cache)
 
