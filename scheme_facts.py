@@ -23,6 +23,7 @@ SOURCES = {
     "CGTMSE": "https://www.cgtmse.in/Home/VS/96",
     "VISH": "https://csc.gov.in/pmvishwakarma",
     "FSSAI": "https://foscos.fssai.gov.in/fee/CL",
+    "RBI": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=13290&Mode=0",
     "MAKHANA": "https://apeda.gov.in/sites/default/files/2026-01/MIC_November_Monthly_dashboard_Makhana_311225.pdf",
     "MARKET": "",
 }
@@ -33,8 +34,10 @@ PMEGP_DESC = (
     "and 25% in rural areas for the general category, and 25% urban / 35% rural for special categories "
     "(SC, ST, OBC, minorities, women, ex-servicemen, transgender persons, persons with disability, NER, "
     "hill and border areas, and aspirational districts). Own contribution is 10% for general category "
-    "and 5% for special categories. Bank finance up to ₹10 lakh is collateral-free under RBI guidelines, "
-    "with CGTMSE cover. Apply at pmegp.msme.gov.in (PMEGP 2.0). The scheme was approved through 2025-26; "
+    "and 5% for special categories. For MSE loans sanctioned or renewed on or after 1 April 2026, including PMEGP units, "
+    "banks must lend without collateral up to ₹20 lakh under RBI's Lending to MSME Sector (Amendment) Directions, 2026 "
+    "(RBI/2025-26/206, 9 February 2026). Banks may go up to ₹25 lakh without collateral based on the borrower's track "
+    "record and good repayment, with CGTMSE cover. Apply at pmegp.msme.gov.in (PMEGP 2.0). The scheme was approved through 2025-26; "
     "treat any extension as unconfirmed until the Ministry of MSME publishes it."
 )
 
@@ -42,7 +45,10 @@ MUDRA_DESC = (
     "PMMY ceilings: Shishu up to ₹50,000; Kishore above ₹50,000 and up to ₹5 lakh; Tarun above ₹5 lakh "
     "and up to ₹10 lakh; Tarun Plus above ₹10 lakh and up to ₹20 lakh, and only after an earlier Tarun "
     "loan has been repaid. The maximum is ₹20 lakh. The lending bank sets the interest rate; the scheme "
-    "does not fix one rate. Apply through a bank, NBFC or MFI, or at udyamimitra.in."
+    "does not fix one rate. From 1 April 2026, MSE loans are collateral-free up to ₹20 lakh under RBI's Lending to "
+    "MSME Sector (Amendment) Directions, 2026 (RBI/2025-26/206, 9 February 2026); banks may go up to ₹25 lakh based "
+    "on track record. The Tarun ceiling of ₹10 lakh is the product tier, not that collateral-free limit. "
+    "Apply through a bank, NBFC or MFI, or at udyamimitra.in."
 )
 
 PMFME_DESC = (
@@ -63,7 +69,9 @@ CGTMSE_DESC = (
     "A credit guarantee, not a cash subsidy, so a bank can lend without collateral or a third-party "
     "guarantee. From 1 April 2025 the guarantee ceiling is ₹10 crore per borrower. Coverage is generally "
     "75% of the amount in default, and higher for micro enterprises, women, SC/ST, the North East and "
-    "similar categories. Separately, PMEGP bank finance up to ₹10 lakh is collateral-free under RBI guidelines."
+    "similar categories. Separately, for MSE loans sanctioned or renewed on or after 1 April 2026, including PMEGP units, "
+    "banks must lend without collateral up to ₹20 lakh under RBI's Lending to MSME Sector (Amendment) Directions, 2026 "
+    "(RBI/2025-26/206, 9 February 2026). Banks may go up to ₹25 lakh without collateral based on track record."
 )
 
 VISH_DESC = (
@@ -96,12 +104,16 @@ FSSAI_SENTENCE = (
 PMEGP_SHORT = (
     "PMEGP (December 2023 guidelines, approved through 2025-26): maximum project cost ₹50 lakh for manufacturing "
     "and ₹20 lakh for service; margin-money subsidy 15% urban / 25% rural for the general category and 25% urban / 35% rural "
-    "for special categories; own contribution 10% general and 5% special; bank finance up to ₹10 lakh is collateral-free. "
+    "for special categories; own contribution 10% general and 5% special; for MSE loans sanctioned or renewed on or after "
+    "1 April 2026, including PMEGP units, banks must lend without collateral up to ₹20 lakh under RBI's Lending to MSME "
+    "Sector (Amendment) Directions, 2026 (RBI/2025-26/206, 9 February 2026). Banks may go up to ₹25 lakh without collateral "
+    "based on track record. "
     "Apply at pmegp.msme.gov.in."
 )
 MUDRA_SHORT = (
     "PMMY: Shishu up to ₹50,000; Kishore up to ₹5 lakh; Tarun up to ₹10 lakh; Tarun Plus up to ₹20 lakh "
-    "(maximum ₹20 lakh). The bank sets the interest rate."
+    "(maximum ₹20 lakh). The bank sets the interest rate. From 1 April 2026, MSE loans are collateral-free up to ₹20 lakh "
+    "under RBI/2025-26/206; banks may go up to ₹25 lakh based on track record."
 )
 PMFME_SHORT = (
     "PMFME: 35% credit-linked subsidy, capped at ₹10 lakh per individual micro food unit, confirmed only until "
@@ -114,7 +126,9 @@ STANDUP_SHORT = (
 )
 CGTMSE_SHORT = (
     "CGTMSE is a credit guarantee, not a cash subsidy. From 1 April 2025 the ceiling is ₹10 crore per borrower "
-    "(coverage generally 75%). PMEGP bank finance up to ₹10 lakh is separately collateral-free."
+    "(coverage generally 75%). For MSE loans sanctioned or renewed on or after 1 April 2026, including PMEGP units, "
+    "banks must lend without collateral up to ₹20 lakh under RBI/2025-26/206. Banks may go up to ₹25 lakh without "
+    "collateral based on track record."
 )
 VISH_SHORT = (
     "PM Vishwakarma: toolkit incentive up to ₹15,000; collateral-free loans up to ₹1 lakh then ₹2 lakh at 5% interest; "
@@ -313,6 +327,7 @@ def _pmegp_ok(span: str) -> bool:
         and "15%" in span
         and "35%" in span
         and "pmegp.msme.gov.in" in low
+        and "rbi/2025-26/206" in low
     )
 
 
@@ -374,7 +389,9 @@ def _standup_wrong(span: str) -> bool:
 
 def _cgtmse_wrong(span: str) -> bool:
     low = span.lower()
-    if "10 crore" in low and "1 april 2025" in low:
+    if re.search(r"₹\s*10\s*lakh is collateral-free|₹\s*10\s*lakh (?:is |are )?separately collateral-free", span, flags=re.I):
+        return True
+    if "10 crore" in low and "1 april 2025" in low and "rbi/2025-26/206" in low:
         return False
     if re.search(r"₹\s*50\s*lakh|₹\s*50\s*L\b", span, flags=re.I):
         return True

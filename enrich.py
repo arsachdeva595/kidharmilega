@@ -204,7 +204,7 @@ CONTENT RULES (follow strictly):
 5. geo_anchor: 3 sentences, dense with facts. Mention geography, raw material proximity, cluster size, buyer markets. This paragraph will be indexed by AI search engines — make it information-dense.
 6. alert_stat: one fact about this product/district. Do not invent market sizes, unit counts, export shares, or prices. If the number is not in the verified facts above, leave the number out.
 7. Scheme figures must match the official caps. Do not invent subsidy percentages or loan ceilings.
-   PMEGP (December 2023, approved through 2025-26): project cost up to ₹50 lakh manufacturing / ₹20 lakh service; subsidy 15% urban / 25% rural (general) and 25% urban / 35% rural (special categories); own contribution 10% general / 5% special; collateral-free bank finance up to ₹10 lakh. Portal pmegp.msme.gov.in.
+   PMEGP (December 2023, approved through 2025-26): project cost up to ₹50 lakh manufacturing / ₹20 lakh service; subsidy 15% urban / 25% rural (general) and 25% urban / 35% rural (special categories); own contribution 10% general / 5% special; from 1 April 2026 MSE loans including PMEGP are collateral-free up to ₹20 lakh under RBI/2025-26/206 (banks may go to ₹25 lakh on track record). Portal pmegp.msme.gov.in.
    PMMY/Mudra: Shishu up to ₹50,000; Kishore up to ₹5 lakh; Tarun up to ₹10 lakh; Tarun Plus up to ₹20 lakh. Maximum ₹20 lakh. The bank sets the interest rate.
    PMFME: 35% credit-linked subsidy, cap ₹10 lakh per micro unit, confirmed only until 30 September 2026.
    PM Vishwakarma: toolkit up to ₹15,000; loans up to ₹1 lakh then ₹2 lakh at 5%; stipend ₹500 per day.
