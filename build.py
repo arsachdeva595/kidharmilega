@@ -47,6 +47,27 @@ def product_page_slug(d):
     district = d.get('district_name','')
     return slug(product) + "-" + slug(district)
 
+# Old product URLs that must keep resolving after a slug change.
+PRODUCT_REDIRECTS = {
+    "hand-embroidery-buxar": ("sonachur-rice-buxar", "Sonachur Rice — Buxar"),
+    "handloom-garments-gaya": ("sesame-and-jaggery-based-products-gaya", "Sesame and Jaggery Based Products — Gaya"),
+}
+
+def build_redirect_page(new_slug, title):
+    dest_path = f"/products/{new_slug}/"
+    canonical = f"{SITE_URL}{dest_path}"
+    return f'''<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{esc(title)}</title>
+<meta http-equiv="refresh" content="0; url={dest_path}">
+<link rel="canonical" href="{canonical}">
+<meta name="robots" content="noindex, follow">
+</head><body>
+<p>This page has moved to <a href="{dest_path}">{esc(title)}</a>.</p>
+</body></html>
+'''
+
 def nav(active="home"):
     links = [
         ("Home",           p("/"),                  "home"),
@@ -1953,6 +1974,12 @@ def build():
         page_dir.mkdir(parents=True, exist_ok=True)
         (page_dir/"index.html").write_text(build_district_page(d, vendors, districts, odop_urls))
     print(f"✓ {len(live)} district pages")
+
+    for old_slug, (new_slug, label) in PRODUCT_REDIRECTS.items():
+        redir_dir = DIST_DIR / "products" / old_slug
+        redir_dir.mkdir(parents=True, exist_ok=True)
+        (redir_dir / "index.html").write_text(build_redirect_page(new_slug, label))
+    print(f"✓ {len(PRODUCT_REDIRECTS)} product redirects")
 
     for post in exhibition_posts:
         sv = post["post_name"]
