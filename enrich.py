@@ -202,8 +202,16 @@ CONTENT RULES (follow strictly):
 3. Step 1 must be doable at ₹0 — visit a cluster, call a supplier, register on Udyam (free), attend a local haat. No money required in step 1.
 4. suitable_for must name a real person type: "First-gen founder with ₹3-5L savings and 6 months runway" — not "passionate entrepreneurs".
 5. geo_anchor: 3 sentences, dense with facts. Mention geography, raw material proximity, cluster size, buyer markets. This paragraph will be indexed by AI search engines — make it information-dense.
-6. alert_stat: one striking number or fact about this product/district. E.g. "Anantapuram produces 60,000 jeans daily — more than most cities in India."
-7. All scheme names must be real and currently active (PMEGP, SFURTI, PM Vishwakarma, MUDRA, One District One Product scheme, GI registration support, etc.).
+6. alert_stat: one fact about this product/district. Do not invent market sizes, unit counts, export shares, or prices. If the number is not in the verified facts above, leave the number out.
+7. Scheme figures must match the official caps. Do not invent subsidy percentages or loan ceilings.
+   PMEGP (December 2023, approved through 2025-26): project cost up to ₹50 lakh manufacturing / ₹20 lakh service; subsidy 15% urban / 25% rural (general) and 25% urban / 35% rural (special categories); own contribution 10% general / 5% special; collateral-free bank finance up to ₹10 lakh. Portal pmegp.msme.gov.in.
+   PMMY/Mudra: Shishu up to ₹50,000; Kishore up to ₹5 lakh; Tarun up to ₹10 lakh; Tarun Plus up to ₹20 lakh. Maximum ₹20 lakh. The bank sets the interest rate.
+   PMFME: 35% credit-linked subsidy, cap ₹10 lakh per micro unit, confirmed only until 30 September 2026.
+   PM Vishwakarma: toolkit up to ₹15,000; loans up to ₹1 lakh then ₹2 lakh at 5%; stipend ₹500 per day.
+   Stand-Up India: ₹10 lakh to ₹1 crore for SC/ST and women greenfield enterprises, at least 10% own contribution; recorded as operational until 31 March 2025 — do not describe it as open.
+   CGTMSE: credit guarantee, not a cash subsidy; ceiling ₹10 crore per borrower from 1 April 2025.
+   GI authorised user: Form GI-3A at the GI Registry (IP India); official fee ₹10. Not a Ministry of Textiles process.
+   IEC from DGFT: fee ₹500. Udyam registration: free. FSSAI registration ₹100/year; State licence typically ₹2,000–₹5,000; Central ₹7,500.
 8. FAQ answers must be plain answers a local would give — not corporate speak.
 9. opportunity_score: integer 1-10. Base it on: market size (3pts), export potential (2pts), raw material access (2pts), govt support (2pts), founder-friendliness (1pt).
 10. Return ONLY valid JSON. No markdown fences. No prose before or after.
@@ -221,7 +229,7 @@ Return a JSON object with ALL of these string-valued fields:
   "gi_tag_year": "4-digit year if GI awarded, else empty string",
   "why_this_district": "2-3 sentences: geography, raw material access, artisan base, buyer proximity — facts only",
   "odop_raw_materials": "comma-separated list",
-  "production_scale": "e.g. ₹420 Cr annual market, 800 units/day",
+  "production_scale": "only a figure copied from the verified facts above; otherwise leave empty. Do not invent a rupee market size, unit count, or export share",
   "export_potential": "High, Medium, or Low",
   "export_countries": "top countries, comma-separated",
   "min_setup_cost": "digits only — realistic minimum in INR",
@@ -256,8 +264,8 @@ Return a JSON object with ALL of these string-valued fields:
   "marketing_idea_1": "specific tactic: platform + content type + hook",
   "marketing_idea_2": "specific tactic: platform + content type + hook",
   "marketing_idea_3": "specific tactic: platform + content type + hook",
-  "relevant_central_scheme_1": "Scheme name — exact benefit amount or percentage",
-  "relevant_central_scheme_2": "Scheme name — exact benefit amount or percentage",
+  "relevant_central_scheme_1": "Scheme name — official cap only, e.g. PMEGP — up to ₹50 lakh manufacturing / ₹20 lakh service; subsidy 15% urban / 25% rural (general), 25% urban / 35% rural (special)",
+  "relevant_central_scheme_2": "Scheme name — official cap only, from the list in rule 7. Do not invent a percentage or ceiling",
   "relevant_state_scheme_1": "{state} scheme name — exact benefit",
   "relevant_state_scheme_2": "{state} scheme name — exact benefit",
   "success_story_name": "Name of a real business or entrepreneur from this district/product (leave empty if unknown)",
@@ -311,7 +319,7 @@ Use empty string "" for any field not found in any source.
 
 Return JSON with exactly these fields:
 {{
-  "production_scale": "exact annual market or production value from page e.g. '₹450 Cr annual market'",
+  "production_scale": "copy a market or production figure only if it is in the verified facts; otherwise empty string",
   "daily_output": "daily production figure if stated e.g. '60,000 units/day'",
   "artisan_count": "number of artisans or skilled workers explicitly mentioned",
   "unit_count": "number of production units or businesses mentioned",

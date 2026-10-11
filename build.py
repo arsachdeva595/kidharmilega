@@ -2,6 +2,7 @@
 import csv, hashlib, json, os, shutil, re, sys, markdown as md_lib
 from pathlib import Path
 from datetime import datetime
+from scheme_facts import correct_mapping
 
 SITE_URL   = "https://kidharmilega.in"
 IG_HANDLE  = "@startupwalebhaia"
@@ -706,6 +707,8 @@ def build_vendors_page(vendors, districts):
 </div></main>''' + footer() + "</body></html>"
 
 def build_district_page(d, vendors, all_districts=[], odop_urls=None):
+    gi_yes = str(d.get("odop_gi_tag", "")).strip().lower() in {"yes", "y", "true", "1"}
+    d = correct_mapping(d, gi_yes=gi_yes, page="/products/" + product_page_slug(d) + "/")
     pg = product_page_slug(d)
     dv = [v for v in vendors if v.get("district_slug","")==d["url_slug"]]
 
@@ -1411,8 +1414,10 @@ def build_business_ideas_idea_page(idea, cities_data, all_ideas, enrich=None):
     """Build /business-ideas/{idea-slug}/ — enriched idea playbook page."""
     if enrich is None:
         enrich = {}
-
     title     = idea.get("title","")
+    enrich = correct_mapping(
+        enrich, gi_yes=False, page="/business-ideas/" + idea_slug(title) + "/"
+    )
     isl       = idea_slug(title)
     desc      = idea.get("desc","")
     audience  = idea.get("audience","")
