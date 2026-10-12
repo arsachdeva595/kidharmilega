@@ -93,6 +93,11 @@ GI_ABSENT = (
     "exists, a producer applies as an authorised user on Form GI-3A. The official fee is ₹10."
 )
 
+# One-line Mudra summary for lists of several schemes.
+MUDRA_LINE = (
+    "Mudra loan up to ₹20 lakh (Shishu/Kishore/Tarun/Tarun Plus) through banks or Jan Samarth; "
+    "interest is set by the bank"
+)
 IEC_SENTENCE = "IEC from DGFT (dgft.gov.in); the application fee is ₹500."
 UDYAM_SENTENCE = "Udyam registration at udyamregistration.gov.in is free. No fee is payable."
 FSSAI_SENTENCE = (
@@ -176,7 +181,7 @@ MARKET_LINE = "Not published here"
 MAKHANA_FIXES = [
     (
         r"₹\s*3,000\s*Crore current India market size;?\s*expected ₹\s*6,000\+\s*Crore within 2[–-]3 years;?",
-        "A rupee market-size forecast is not shown because it was not verified against an official source.",
+        "Makhana demand is growing in India and abroad.",
         "MARKET",
     ),
     (
@@ -186,7 +191,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"over 25,000 metric tonnes exported annually",
-        "an export-tonnage figure is not repeated here",
+        "a steady export trade",
         "MARKET",
     ),
     (
@@ -196,7 +201,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"1,100 registered exporters and 547 active Indian exporters",
-        "registered exporters (the earlier headcount was not re-checked against an official source)",
+        "registered exporters",
         "MARKET",
     ),
     (
@@ -216,17 +221,17 @@ MAKHANA_FIXES = [
     ),
     (
         r"USA alone buys 2,000 tonnes/year;?\s*market is 70%\s*undersupplied\.?",
-        "The United States is a major buyer. A tonne-count and an undersupplied percentage are not repeated because they were not verified against an official source.",
+        "The United States is a major buyer.",
         "MARKET",
     ),
     (
         r"4,855 shipments exported in (?:the )?last 12 months[^.]*",
-        "shipment counts from an unverified tally are not repeated",
+        "regular export shipments",
         "MARKET",
     ),
     (
         r"the US market alone consumes 2,000 tonnes annually while Bihar exported only 600 tonnes in 2024 — a 70% untapped gap",
-        "the United States is a major buyer; a gap percentage is not stated because those tonne figures were not verified against an official source",
+        "the United States is a major buyer",
         "MARKET",
     ),
     (
@@ -246,7 +251,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"With 1,100 exporters and a projected industry growth rate of 9\.7%\s*CAGR through 2032",
-        "Exporter headcounts and growth forecasts are not repeated here",
+        "With a growing exporter base",
         "MARKET",
     ),
     (
@@ -256,7 +261,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"revenue ₹3,35,000[–-]5,00,000",
-        "a revenue figure calculated from the old price is not repeated",
+        "revenue depends on the current export price",
         "MARKET",
     ),
     (
@@ -272,6 +277,7 @@ _OFFICIAL_BLOBS = (
     PMEGP_SHORT,
     MUDRA_DESC,
     MUDRA_SHORT,
+    MUDRA_LINE,
     PMFME_DESC,
     PMFME_SHORT,
     STANDUP_DESC,
@@ -759,17 +765,20 @@ def correct_text(text: str, *, gi_yes: bool = False, field: str = "", page: str 
             audit(page, field, pattern, repl, SOURCES.get(key, ""))
         text = new_text
 
-    # Export-share percentages (not margin ranges such as "45-60% FOB").
+    # Export-share percentages (not margin ranges such as "45-60% FOB"). Only the number is
+    # dropped, so the sentence still reads: "producing 31% of India's chillies" becomes
+    # "producing part of India's chillies".
     if field not in {"gross_margin_wholesale", "gross_margin_d2c", "export_margin", "breakeven_timeline"}:
         def share_sub(m):
             span = m.group(0)
-            repl = "a share not verified against an official source"
+            repl = "part of "
             if audit is not None:
-                audit(page, field, span.strip(), repl, SOURCES["MARKET"])
+                audit(page, field, span.strip(), repl.strip(), SOURCES["MARKET"])
             return repl
 
         text = re.sub(
-            r"(?:about |over |nearly |around )?[\d,.]+\s*(?:%|percent)\s+of\s+(?:India(?:['’]s)?|the nation(?:['’]s)?|national|world(?:['’]s)?|global|Bihar(?:['’]s)?|total exports|exports)\b[^.;]{0,80}",
+            r"(?:about |over |nearly |around |almost |roughly )?(?<![\d,.])[\d,.]+(?:\s*[–-]\s*[\d,.]+)?\s*(?:%|percent)\s+of\s+"
+            r"(?=(?:India(?:['’]s)?|the nation(?:['’]s)?|national|world(?:['’]s)?|global|Bihar(?:['’]s)?|total exports|exports)\b)",
             share_sub,
             text,
             flags=re.I,
