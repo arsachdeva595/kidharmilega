@@ -24,6 +24,7 @@ SOURCES = {
     "VISH": "https://csc.gov.in/pmvishwakarma",
     "FSSAI": "https://foscos.fssai.gov.in/fee/CL",
     "RBI": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=13290&Mode=0",
+    "SFURTI": "https://sfurti.msme.gov.in/",
     "MAKHANA": "https://apeda.gov.in/sites/default/files/2026-01/MIC_November_Monthly_dashboard_Makhana_311225.pdf",
     "MARKET": "",
 }
@@ -93,6 +94,22 @@ GI_ABSENT = (
     "exists, a producer applies as an authorised user on Form GI-3A. The official fee is ₹10."
 )
 
+SFURTI_DESC = (
+    "A Ministry of MSME grant for artisan clusters, not for an individual unit. Artisans apply as a cluster "
+    "through an implementing agency and a cluster SPV. The grant is per cluster: up to ₹2.5 crore for a regular "
+    "cluster of up to 500 artisans and up to ₹5 crore for a major cluster. Details are on sfurti.msme.gov.in."
+)
+SFURTI_SHORT = (
+    "SFURTI is a per-cluster grant for artisan groups applying through an implementing agency, not a subsidy for "
+    "one unit: up to ₹2.5 crore for a regular cluster (up to 500 artisans) and ₹5 crore for a major cluster "
+    "(sfurti.msme.gov.in)."
+)
+
+# One-line Mudra summary for lists of several schemes.
+MUDRA_LINE = (
+    "Mudra loan up to ₹20 lakh (Shishu/Kishore/Tarun/Tarun Plus) through banks or Jan Samarth; "
+    "interest is set by the bank"
+)
 IEC_SENTENCE = "IEC from DGFT (dgft.gov.in); the application fee is ₹500."
 UDYAM_SENTENCE = "Udyam registration at udyamregistration.gov.in is free. No fee is payable."
 FSSAI_SENTENCE = (
@@ -142,6 +159,7 @@ TITLES = {
     "STANDUP": "Stand-Up India",
     "CGTMSE": "CGTMSE",
     "VISH": "PM Vishwakarma",
+    "SFURTI": "SFURTI (Scheme of Fund for Regeneration of Traditional Industries)",
 }
 
 DESCS = {
@@ -151,6 +169,7 @@ DESCS = {
     "STANDUP": STANDUP_DESC,
     "CGTMSE": CGTMSE_DESC,
     "VISH": VISH_DESC,
+    "SFURTI": SFURTI_DESC,
 }
 
 SCHEME_FIELDS = {
@@ -176,7 +195,7 @@ MARKET_LINE = "Not published here"
 MAKHANA_FIXES = [
     (
         r"₹\s*3,000\s*Crore current India market size;?\s*expected ₹\s*6,000\+\s*Crore within 2[–-]3 years;?",
-        "A rupee market-size forecast is not shown because it was not verified against an official source.",
+        "Makhana demand is growing in India and abroad.",
         "MARKET",
     ),
     (
@@ -186,7 +205,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"over 25,000 metric tonnes exported annually",
-        "an export-tonnage figure is not repeated here",
+        "a steady export trade",
         "MARKET",
     ),
     (
@@ -196,7 +215,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"1,100 registered exporters and 547 active Indian exporters",
-        "registered exporters (the earlier headcount was not re-checked against an official source)",
+        "registered exporters",
         "MARKET",
     ),
     (
@@ -216,17 +235,17 @@ MAKHANA_FIXES = [
     ),
     (
         r"USA alone buys 2,000 tonnes/year;?\s*market is 70%\s*undersupplied\.?",
-        "The United States is a major buyer. A tonne-count and an undersupplied percentage are not repeated because they were not verified against an official source.",
+        "The United States is a major buyer.",
         "MARKET",
     ),
     (
         r"4,855 shipments exported in (?:the )?last 12 months[^.]*",
-        "shipment counts from an unverified tally are not repeated",
+        "regular export shipments",
         "MARKET",
     ),
     (
         r"the US market alone consumes 2,000 tonnes annually while Bihar exported only 600 tonnes in 2024 — a 70% untapped gap",
-        "the United States is a major buyer; a gap percentage is not stated because those tonne figures were not verified against an official source",
+        "the United States is a major buyer",
         "MARKET",
     ),
     (
@@ -246,7 +265,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"With 1,100 exporters and a projected industry growth rate of 9\.7%\s*CAGR through 2032",
-        "Exporter headcounts and growth forecasts are not repeated here",
+        "With a growing exporter base",
         "MARKET",
     ),
     (
@@ -256,7 +275,7 @@ MAKHANA_FIXES = [
     ),
     (
         r"revenue ₹3,35,000[–-]5,00,000",
-        "a revenue figure calculated from the old price is not repeated",
+        "revenue depends on the current export price",
         "MARKET",
     ),
     (
@@ -272,6 +291,9 @@ _OFFICIAL_BLOBS = (
     PMEGP_SHORT,
     MUDRA_DESC,
     MUDRA_SHORT,
+    MUDRA_LINE,
+    SFURTI_DESC,
+    SFURTI_SHORT,
     PMFME_DESC,
     PMFME_SHORT,
     STANDUP_DESC,
@@ -374,6 +396,66 @@ def _vish_wrong(span: str) -> bool:
     return bool(re.search(r"₹|%|lakh|stipend|interest|cashback|toolkit|loan|credit", span, flags=re.I))
 
 
+def _sfurti_wrong(span: str) -> bool:
+    if "2.5 crore" in span and re.search(r"per[- ]cluster", span, flags=re.I):
+        return False
+    return bool(re.search(r"₹|\d+\s*(?:L|lakh|Cr|crore)\b|\d+\s*%", span, flags=re.I))
+
+
+# A clause runs to the next ";", "|" or full stop (a decimal point such as "₹2.5" does not end it).
+_SFURTI_CLAUSE = re.compile(r"(?:[^.;|]|\.(?=\d))*?(?<![A-Za-z])SFURTI(?![A-Za-z])(?:[^.;|]|\.(?=\d))*", flags=re.I)
+
+
+def _sfurti_clauses(text, audit, page, field):
+    """SFURTI figures are usually woven into a longer sentence ("training from SFURTI, grants of ₹10L"),
+    so the whole clause is replaced rather than the words after the scheme name."""
+    def parts(clause):
+        """Split on commas that are outside brackets and not inside a number such as 2,00,000."""
+        out, depth, last = [], 0, 0
+        for i, ch in enumerate(clause):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth = max(0, depth - 1)
+            elif ch == "," and depth == 0 and not (i and clause[i - 1].isdigit() and clause[i + 1:i + 2].isdigit()):
+                out.append(clause[last:i])
+                last = i + 1
+        out.append(clause[last:])
+        return out
+
+    name = re.compile(r"(?<![A-Za-z])SFURTI(?![A-Za-z])(?!-)", flags=re.I)
+    lead_in = re.compile(r"(?:(?:and |then |also )?(?:apply|file|register)(?: for| under| to)? (?:the )?)$", flags=re.I)
+
+    def repl(m):
+        clause = m.group(0)
+        pieces = parts(clause)
+        for n, piece in enumerate(pieces):
+            hit = name.search(piece)
+            if not hit:
+                continue
+            # Only a figure stated after the scheme name is SFURTI's own claim.
+            tail = piece[hit.end():]
+            tail = re.sub(r"^\s*\([^)]*\)", "", tail)  # the scheme's full name in brackets
+            tail = re.split(r"\s(?:or|aur)\s", tail[:90], maxsplit=1)[0]
+            tail = "SFURTI" + tail
+            if not _sfurti_wrong(tail) or _is_official_fragment(piece, SFURTI_SHORT):
+                return clause
+            before = piece[:hit.start()]
+            cut = lead_in.search(before)
+            keep = before[:cut.start()] if cut else before
+            # Keep earlier advice when it ends at a natural break ("hire staff + ", "Parallel: ").
+            if not re.search(r"(?:^|[:+&—–]|\band)\s*$", keep):
+                brk = max(keep.rfind(ch) for ch in ":+&—–")
+                keep = keep[:brk + 1] + " " if brk >= 0 else piece[:len(piece) - len(piece.lstrip())]
+            pieces[n] = keep + SFURTI_SHORT.rstrip(".")
+            if audit is not None:
+                audit(page, field, piece.strip(), SFURTI_SHORT, SOURCES["SFURTI"])
+            return ",".join(pieces)
+        return clause
+
+    return _SFURTI_CLAUSE.sub(repl, text)
+
+
 def _standup_ok(span: str) -> bool:
     low = span.lower()
     return "10 lakh" in low and "1 crore" in low and "31 March 2025" in span
@@ -471,6 +553,8 @@ def _primary_scheme(title: str) -> str | None:
         ("formalisation of micro food", "PMFME"),
         ("formalization of micro food", "PMFME"),
         ("vishwakarma", "VISH"),
+        ("sfurti", "SFURTI"),
+        ("regeneration of traditional", "SFURTI"),
         ("pmegp", "PMEGP"),
         ("employment generation", "PMEGP"),
         ("stand-up", "STANDUP"),
@@ -681,6 +765,8 @@ def correct_text(text: str, *, gi_yes: bool = False, field: str = "", page: str 
         VISH_SHORT,
         audit, page, field, "VISH",
     )
+    if not field.startswith("success_story"):
+        text = _sfurti_clauses(text, audit, page, field)
     text = _replace_spans(
         text,
         r"Stand[- ]?Up India",
@@ -759,17 +845,20 @@ def correct_text(text: str, *, gi_yes: bool = False, field: str = "", page: str 
             audit(page, field, pattern, repl, SOURCES.get(key, ""))
         text = new_text
 
-    # Export-share percentages (not margin ranges such as "45-60% FOB").
+    # Export-share percentages (not margin ranges such as "45-60% FOB"). Only the number is
+    # dropped, so the sentence still reads: "producing 31% of India's chillies" becomes
+    # "producing part of India's chillies".
     if field not in {"gross_margin_wholesale", "gross_margin_d2c", "export_margin", "breakeven_timeline"}:
         def share_sub(m):
             span = m.group(0)
-            repl = "a share not verified against an official source"
+            repl = "part of "
             if audit is not None:
-                audit(page, field, span.strip(), repl, SOURCES["MARKET"])
+                audit(page, field, span.strip(), repl.strip(), SOURCES["MARKET"])
             return repl
 
         text = re.sub(
-            r"(?:about |over |nearly |around )?[\d,.]+\s*(?:%|percent)\s+of\s+(?:India(?:['’]s)?|the nation(?:['’]s)?|national|world(?:['’]s)?|global|Bihar(?:['’]s)?|total exports|exports)\b[^.;]{0,80}",
+            r"(?:about |over |nearly |around |almost |roughly )?(?<![\d,.])[\d,.]+(?:\s*[–-]\s*[\d,.]+)?\s*(?:%|percent)\s+of\s+"
+            r"(?=(?:India(?:['’]s)?|the nation(?:['’]s)?|national|world(?:['’]s)?|global|Bihar(?:['’]s)?|total exports|exports)\b)",
             share_sub,
             text,
             flags=re.I,

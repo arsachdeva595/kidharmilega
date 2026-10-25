@@ -54,8 +54,17 @@ PRODUCT_REDIRECTS = {
     "handloom-garments-gaya": ("sesame-and-jaggery-based-products-gaya", "Sesame and Jaggery Based Products — Gaya"),
 }
 
-def build_redirect_page(new_slug, title):
-    dest_path = f"/products/{new_slug}/"
+# Site paths that were linked from blog drafts but have no page of their own.
+SITE_REDIRECTS = {
+    "start-a-business-india": ("/ideas/", "Business Ideas"),
+    "government-schemes-small-business-india": ("/ideas/", "Business Ideas"),
+    "tools": ("/products/", "ODOP Products"),
+    "tools/export-docs-checklist": ("/products/", "ODOP Products"),
+    "odop-district-list": ("/products/", "ODOP Products"),
+}
+
+def build_redirect_page(new_slug, title, dest_path=None):
+    dest_path = dest_path or f"/products/{new_slug}/"
     canonical = f"{SITE_URL}{dest_path}"
     return f'''<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
@@ -999,7 +1008,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
   </section>
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Logistics &amp; Connectivity</div><h2 class='section-title'>Manufacturer ke liye zaroori info</h2>"+log_html+"</section>" if log_html else ""}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Where to Set Up</div><h2 class='section-title'>Infrastructure ready hai &#8212; plot lo aur shuru karo</h2>"+parks_html+"</section>" if parks_html else ""}
-  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Government Schemes</div><h2 class='section-title'>Woh paisa jo tujhe pata nahi tha</h2><div class='scheme-list' style='margin-bottom:20px'>"+schemes_html+"</div><div class='info-box info-neutral'><strong>Pehla step:</strong> udyamregistration.gov.in &#8212; free, 10 minute. Bina iske koi scheme apply nahi hogi.</div></section>" if schemes_html else ""}
+  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Government Schemes</div><h2 class='section-title'>Woh paisa jo tujhe pata nahi tha</h2><div class='scheme-list' style='margin-bottom:20px'>"+schemes_html+"</div><div class='info-box info-neutral'><strong>Pehla step:</strong> udyamregistration.gov.in &#8212; free, 10 minute. Udyam registration most schemes ke liye zaroori hai.</div></section>" if schemes_html else ""}
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Events &amp; Expos</div>
@@ -1985,6 +1994,12 @@ def build():
         redir_dir.mkdir(parents=True, exist_ok=True)
         (redir_dir / "index.html").write_text(build_redirect_page(new_slug, label))
     print(f"✓ {len(PRODUCT_REDIRECTS)} product redirects")
+
+    for old_path, (dest_path, label) in SITE_REDIRECTS.items():
+        redir_dir = DIST_DIR / old_path
+        redir_dir.mkdir(parents=True, exist_ok=True)
+        (redir_dir / "index.html").write_text(build_redirect_page(None, label, dest_path))
+    print(f"✓ {len(SITE_REDIRECTS)} site redirects")
 
     for post in exhibition_posts:
         sv = post["post_name"]
