@@ -24,6 +24,7 @@ SOURCES = {
     "VISH": "https://csc.gov.in/pmvishwakarma",
     "FSSAI": "https://foscos.fssai.gov.in/fee/CL",
     "RBI": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=13290&Mode=0",
+    "SFURTI": "https://sfurti.msme.gov.in/",
     "MAKHANA": "https://apeda.gov.in/sites/default/files/2026-01/MIC_November_Monthly_dashboard_Makhana_311225.pdf",
     "MARKET": "",
 }
@@ -93,6 +94,17 @@ GI_ABSENT = (
     "exists, a producer applies as an authorised user on Form GI-3A. The official fee is ₹10."
 )
 
+SFURTI_DESC = (
+    "A Ministry of MSME grant for artisan clusters, not for an individual unit. Artisans apply as a cluster "
+    "through an implementing agency and a cluster SPV. The grant is per cluster: up to ₹2.5 crore for a regular "
+    "cluster of up to 500 artisans and up to ₹5 crore for a major cluster. Details are on sfurti.msme.gov.in."
+)
+SFURTI_SHORT = (
+    "SFURTI is a per-cluster grant for artisan groups applying through an implementing agency, not a subsidy for "
+    "one unit: up to ₹2.5 crore for a regular cluster (up to 500 artisans) and ₹5 crore for a major cluster "
+    "(sfurti.msme.gov.in)."
+)
+
 # One-line Mudra summary for lists of several schemes.
 MUDRA_LINE = (
     "Mudra loan up to ₹20 lakh (Shishu/Kishore/Tarun/Tarun Plus) through banks or Jan Samarth; "
@@ -147,6 +159,7 @@ TITLES = {
     "STANDUP": "Stand-Up India",
     "CGTMSE": "CGTMSE",
     "VISH": "PM Vishwakarma",
+    "SFURTI": "SFURTI (Scheme of Fund for Regeneration of Traditional Industries)",
 }
 
 DESCS = {
@@ -156,6 +169,7 @@ DESCS = {
     "STANDUP": STANDUP_DESC,
     "CGTMSE": CGTMSE_DESC,
     "VISH": VISH_DESC,
+    "SFURTI": SFURTI_DESC,
 }
 
 SCHEME_FIELDS = {
@@ -278,6 +292,8 @@ _OFFICIAL_BLOBS = (
     MUDRA_DESC,
     MUDRA_SHORT,
     MUDRA_LINE,
+    SFURTI_DESC,
+    SFURTI_SHORT,
     PMFME_DESC,
     PMFME_SHORT,
     STANDUP_DESC,
@@ -380,6 +396,66 @@ def _vish_wrong(span: str) -> bool:
     return bool(re.search(r"₹|%|lakh|stipend|interest|cashback|toolkit|loan|credit", span, flags=re.I))
 
 
+def _sfurti_wrong(span: str) -> bool:
+    if "2.5 crore" in span and re.search(r"per[- ]cluster", span, flags=re.I):
+        return False
+    return bool(re.search(r"₹|\d+\s*(?:L|lakh|Cr|crore)\b|\d+\s*%", span, flags=re.I))
+
+
+# A clause runs to the next ";", "|" or full stop (a decimal point such as "₹2.5" does not end it).
+_SFURTI_CLAUSE = re.compile(r"(?:[^.;|]|\.(?=\d))*?(?<![A-Za-z])SFURTI(?![A-Za-z])(?:[^.;|]|\.(?=\d))*", flags=re.I)
+
+
+def _sfurti_clauses(text, audit, page, field):
+    """SFURTI figures are usually woven into a longer sentence ("training from SFURTI, grants of ₹10L"),
+    so the whole clause is replaced rather than the words after the scheme name."""
+    def parts(clause):
+        """Split on commas that are outside brackets and not inside a number such as 2,00,000."""
+        out, depth, last = [], 0, 0
+        for i, ch in enumerate(clause):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth = max(0, depth - 1)
+            elif ch == "," and depth == 0 and not (i and clause[i - 1].isdigit() and clause[i + 1:i + 2].isdigit()):
+                out.append(clause[last:i])
+                last = i + 1
+        out.append(clause[last:])
+        return out
+
+    name = re.compile(r"(?<![A-Za-z])SFURTI(?![A-Za-z])(?!-)", flags=re.I)
+    lead_in = re.compile(r"(?:(?:and |then |also )?(?:apply|file|register)(?: for| under| to)? (?:the )?)$", flags=re.I)
+
+    def repl(m):
+        clause = m.group(0)
+        pieces = parts(clause)
+        for n, piece in enumerate(pieces):
+            hit = name.search(piece)
+            if not hit:
+                continue
+            # Only a figure stated after the scheme name is SFURTI's own claim.
+            tail = piece[hit.end():]
+            tail = re.sub(r"^\s*\([^)]*\)", "", tail)  # the scheme's full name in brackets
+            tail = re.split(r"\s(?:or|aur)\s", tail[:90], maxsplit=1)[0]
+            tail = "SFURTI" + tail
+            if not _sfurti_wrong(tail) or _is_official_fragment(piece, SFURTI_SHORT):
+                return clause
+            before = piece[:hit.start()]
+            cut = lead_in.search(before)
+            keep = before[:cut.start()] if cut else before
+            # Keep earlier advice when it ends at a natural break ("hire staff + ", "Parallel: ").
+            if not re.search(r"(?:^|[:+&—–]|\band)\s*$", keep):
+                brk = max(keep.rfind(ch) for ch in ":+&—–")
+                keep = keep[:brk + 1] + " " if brk >= 0 else piece[:len(piece) - len(piece.lstrip())]
+            pieces[n] = keep + SFURTI_SHORT.rstrip(".")
+            if audit is not None:
+                audit(page, field, piece.strip(), SFURTI_SHORT, SOURCES["SFURTI"])
+            return ",".join(pieces)
+        return clause
+
+    return _SFURTI_CLAUSE.sub(repl, text)
+
+
 def _standup_ok(span: str) -> bool:
     low = span.lower()
     return "10 lakh" in low and "1 crore" in low and "31 March 2025" in span
@@ -477,6 +553,8 @@ def _primary_scheme(title: str) -> str | None:
         ("formalisation of micro food", "PMFME"),
         ("formalization of micro food", "PMFME"),
         ("vishwakarma", "VISH"),
+        ("sfurti", "SFURTI"),
+        ("regeneration of traditional", "SFURTI"),
         ("pmegp", "PMEGP"),
         ("employment generation", "PMEGP"),
         ("stand-up", "STANDUP"),
@@ -687,6 +765,8 @@ def correct_text(text: str, *, gi_yes: bool = False, field: str = "", page: str 
         VISH_SHORT,
         audit, page, field, "VISH",
     )
+    if not field.startswith("success_story"):
+        text = _sfurti_clauses(text, audit, page, field)
     text = _replace_spans(
         text,
         r"Stand[- ]?Up India",
