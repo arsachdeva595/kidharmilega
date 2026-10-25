@@ -26,6 +26,11 @@ DATA_DIR = BASE_DIR / "data"
 DIST_DIR = BASE_DIR / "docs"
 GUIDES_DIR = BASE_DIR / "guides"
 
+# Blog posts are written by WriteOut into writeout/blog/ (see writeout/README.md).
+# build() copies them into docs/blog/ and fills in this site's head, nav and footer.
+PUBLISH_BLOG = True
+WRITEOUT_DIR = BASE_DIR / "writeout"
+
 def p(path): return BASE_PATH + path
 
 def load_csv(local_path, remote_url=None):
@@ -87,6 +92,8 @@ def nav(active="home"):
         links.append(("Business Ideas", p("/ideas/"), "ideas"))
     elif PUBLISH_BUSINESS_IDEAS:
         links.append(("Business Ideas", p("/business-ideas/"), "business-ideas"))
+    if PUBLISH_BLOG:
+        links.append(("Blog", p("/blog/"), "blog"))
     links += [
         ("Events",         p("/events/"),            "events"),
         ("Why ODOP?",      p("/what-is-odop/"),      "odop-guide"),
@@ -108,6 +115,7 @@ def footer():
     <a href="{p('/')}">Home</a>
     <a href="{p('/products/')}">Products</a>
     {f'<a href="{p("/ideas/")}">Business Ideas</a>' if PUBLISH_IDEA_GUIDES else f'<a href="{p("/business-ideas/")}">Business Ideas</a>' if PUBLISH_BUSINESS_IDEAS else ''}
+    {f'<a href="{p("/blog/")}">Blog</a>' if PUBLISH_BLOG else ''}
     <a href="{p('/events/')}">Events</a>
     <a href="{p('/what-is-odop/')}">Why ODOP?</a>
     <a href="{p('/about-us/')}">About Us</a>
@@ -217,11 +225,23 @@ CLEAN_URL_JS = "<script>if(/\\/index\\.html$/.test(location.pathname))location.r
 # Set in build() from the stylesheet's content hash, so each deploy gets a fresh stylesheet URL and no browser keeps a stale copy.
 STYLE_VERSION = "dev"
 
+GTAG = """<!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-WP8DXGKB1F');</script>"""
+
+def site_assets():
+    """Analytics, favicon, fonts and the versioned stylesheet: the part of <head> every page shares."""
+    return f'''{GTAG}
+{CLEAN_URL_JS}
+<link rel="icon" type="image/png" href="{p('/assets/logo.png')}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{p('/assets/style.css')}?v={STYLE_VERSION}">'''
+
 def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
     og_image = image if image else f"{SITE_URL}{BASE_PATH}/data/logo.png"
     robots_tag = '<meta name="robots" content="noindex, follow">\n' if noindex else ''
     return f'''<!DOCTYPE html><html lang="en"><head>
-<!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-WP8DXGKB1F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-WP8DXGKB1F');</script>
+{GTAG}
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 {CLEAN_URL_JS}
 <title>{esc(title)}</title>
@@ -1798,8 +1818,8 @@ function toggleFaq(btn){
 def build_sitemap(districts, cities=None, ideas=None):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     today = datetime.now().strftime("%Y-%m-%d")
-    def u(loc, freq, pri):
-        return f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>{freq}</changefreq>\n    <priority>{pri}</priority>\n  </url>'
+    def u(loc, freq, pri, lastmod=None):
+        return f'  <url>\n    <loc>{loc}</loc>\n    <lastmod>{lastmod or today}</lastmod>\n    <changefreq>{freq}</changefreq>\n    <priority>{pri}</priority>\n  </url>'
     entries = [
         u(f"{SITE_URL}/",                    "weekly",  "1.0"),
         u(f"{SITE_URL}/products/",           "weekly",  "0.9"),
@@ -1835,6 +1855,10 @@ def build_sitemap(districts, cities=None, ideas=None):
         for path in guide_urls():
             pri = "0.9" if path == "/ideas/" else "0.8" if path == "/quiz/" else "0.7"
             entries.append(u(f"{SITE_URL}{path}", "monthly", pri))
+    if PUBLISH_BLOG:
+        for path, lastmod in blog_urls():
+            entries.append(u(f"{SITE_URL}{path}", "weekly" if path == "/blog/" else "monthly",
+                             "0.8" if path == "/blog/" else "0.7", lastmod))
     return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(entries) + "\n</urlset>"
 
 def guide_urls():
@@ -1866,6 +1890,73 @@ def publish_guides():
         html = html.replace("<!--KM:HEAD-->", site_head).replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer)
         quiz_index.write_text(html, encoding="utf-8")
     print(f"✓ {len(pages)} idea guide pages + quiz")
+
+def blog_urls():
+    """(path, lastmod) for /blog/ and each post WriteOut has published under writeout/blog/<slug>/.
+    lastmod comes from the post's article:modified_time meta tag, else today. /blog/ is listed once a post exists."""
+    blog_dir = WRITEOUT_DIR / "blog"
+    if not blog_dir.exists():
+        return []
+    today = datetime.now().strftime("%Y-%m-%d")
+    posts = []
+    for f in sorted(blog_dir.glob("*/index.html")):
+        html = f.read_text(encoding="utf-8")
+        if re.search(r'<meta name="robots" content="[^"]*noindex', html):
+            continue
+        m = re.search(r'<meta property="article:modified_time" content="(\d{4}-\d{2}-\d{2})', html)
+        posts.append((f"/blog/{f.parent.name}/", m.group(1) if m else today))
+    if not posts:
+        return []
+    newest = max(d for _, d in posts)
+    return [("/blog/", newest)] + posts
+
+def build_blog_placeholder():
+    return head("KidharMilega Blog — ODOP Business Stories & Guides",
+                "ODOP products, district business ideas aur sarkari schemes par KidharMilega ke articles.",
+                "/blog/", noindex=True) + nav("blog") + f'''
+<main><div class="container">
+  <div class="page-header">
+    <div class="section-label">Blog</div>
+    <h1 class="page-header-title">Pehla post jaldi aa raha hai.</h1>
+    <p class="page-header-sub">Tab tak apne district ka product dekho, ya ek business idea chuno.</p>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 48px">
+    <a href="{p('/products/')}" class="btn btn-primary">ODOP Products &rarr;</a>
+    <a href="{p('/ideas/')}" class="btn btn-ghost">Business Ideas &rarr;</a>
+  </div>
+</div></main>''' + footer() + "</body></html>"
+
+def km_partials():
+    """The shared head assets, nav and footer as WriteOut needs them to fill a post's markers itself
+    when it commits the live copy to docs/blog/. Served at /assets/km-partials.json."""
+    return json.dumps({
+        "head": site_assets(),
+        "nav": nav("blog"),
+        "footer": footer(),
+        "style_version": STYLE_VERSION,
+        "markers": ["<!--KM:HEAD-->", "<!--KM:NAV-->", "<!--KM:FOOTER-->"],
+    }, ensure_ascii=False, indent=1)
+
+def publish_blog():
+    """Copy writeout/blog/ into docs/blog/ and fill the KM markers. Without a WriteOut index, /blog/ gets a placeholder."""
+    src = WRITEOUT_DIR / "blog"
+    out = DIST_DIR / "blog"
+    if src.exists():
+        shutil.copytree(src, out)
+    out.mkdir(parents=True, exist_ok=True)
+    if not (out / "index.html").exists():
+        (out / "index.html").write_text(build_blog_placeholder(), encoding="utf-8")
+    assets, site_nav, site_footer = site_assets(), nav("blog"), footer()
+    pages = list(out.rglob("*.html"))
+    for f in pages:
+        html = f.read_text(encoding="utf-8")
+        missing = [m for m in ("<!--KM:HEAD-->", "<!--KM:NAV-->", "<!--KM:FOOTER-->") if m not in html]
+        if missing and f.parent != out:
+            print(f"! {f.relative_to(DIST_DIR)} has no {', '.join(missing)}")
+        html = html.replace("<!--KM:HEAD-->", assets).replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer)
+        f.write_text(html, encoding="utf-8")
+    (DIST_DIR / "assets" / "km-partials.json").write_text(km_partials(), encoding="utf-8")
+    print(f"✓ blog: {len(pages)} pages + km-partials.json")
 
 def build_robots():
     return f"""User-agent: *
@@ -2010,6 +2101,8 @@ def build():
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()
+    if PUBLISH_BLOG:
+        publish_blog()
 
     (DIST_DIR/".nojekyll").write_text("")
     # CNAME tells GitHub Pages to serve on the custom domain
