@@ -6355,14 +6355,20 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://kidharmilega.in/blog/</loc>
+    <loc>https://kidharmilega.in/blog/business-ideas-women-home-india/</loc>
     <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://kidharmilega.in/blog/</loc>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kidharmilega.in/blog/business-ideas-women-home-india/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <loc>https://kidharmilega.in/blog/transport-business-ideas-india/</loc>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
