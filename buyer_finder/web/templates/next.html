@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block body %}
+<p class="small"><a href="{{ url_for('profile', name=name) }}">‹ Buyers</a></p>
+<h1>Look up next</h1>
+<p class="muted small">Open these companies in your data source, export or copy their shipment rows, import the CSV, then tick them off.</p>
+<h2>Exporters: pull their US customers</h2>
+{% for k, e in exps %}
+<div class="card row"><div class="grow"><b>{{ e.name }}</b><div class="muted small">hop {{ e.hop }} · {{ e.buyers }} known buyers · {{ e.records }} records</div></div>
+<form method="post" action="{{ url_for('mark_done') }}" style="margin:0"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<input type="hidden" name="key" value="{{ k }}"><input type="hidden" name="kind" value="exporter"><input type="hidden" name="back" value="{{ request.path }}">
+<button class="ghost">Done</button></form></div>
+{% else %}<div class="card muted">Nothing left.</div>{% endfor %}
+<h2>Buyers: pull their other Indian suppliers</h2>
+{% for l in buys %}
+<div class="card row"><div class="grow"><b>{{ l.name }}</b><div class="muted small">score {{ l.score }} · {{ l.supplier_count }} suppliers known</div></div>
+<form method="post" action="{{ url_for('mark_done') }}" style="margin:0"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<input type="hidden" name="key" value="{{ l.company_key }}"><input type="hidden" name="kind" value="buyer"><input type="hidden" name="back" value="{{ request.path }}">
+<button class="ghost">Done</button></form></div>
+{% else %}<div class="card muted">Nothing left.</div>{% endfor %}
+{% endblock %}

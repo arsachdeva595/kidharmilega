@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% block title %}{{ l.name }} · Buyer Finder{% endblock %}{% block body %}
+{% set rc = {'Outreach now':'r-now','Nurture':'r-nurture','Watch':'r-watch','Stale':'r-stale'}[l.route] %}
+<p class="small"><a href="{{ url_for('profile', name=name) }}">‹ Buyers</a></p>
+<div class="row"><div class="score {{ rc }}">{{ l.score }}</div><div class="grow"><h1 style="margin:0">{{ l.name }}</h1>
+<div class="muted small">{{ l.buyer_type }} · <span class="{{ rc }}">{{ l.route }}</span> · {{ l.status }}</div></div></div>
+
+<div class="card">
+  <div class="proof">{{ l.proof_line }}</div>
+  <p class="small muted">{{ l.proof_ref }} · {{ 'product named on BOL' if l.proof_level == 'product' else 'HS code match only' }}</p>
+  <dl>
+    <dt>Address</dt><dd>{{ l.address or '—' }}</dd>
+    <dt>Last matching</dt><dd>{{ l.last_date or '—' }} (first {{ l.first_date or '—' }})</dd>
+    <dt>Matching shipments</dt><dd>{{ l.matching_total }} all time, {{ l.matching_12m }} in 12 months</dd>
+    <dt>From India</dt><dd>{{ l.india_total }} all time, {{ l.india_12m }} in 12 months</dd>
+    <dt>Indian suppliers</dt><dd>{{ l.suppliers|join(', ') or '—' }}{% if l.all_suppliers|length > l.suppliers|length %}<br><span class="muted small">all: {{ l.all_suppliers|join(', ') }}</span>{% endif %}</dd>
+    <dt>Styles</dt><dd>{% for t in l.tags %}<span class="chip">{{ t }}</span>{% else %}—{% endfor %}</dd>
+    <dt>Pitch angle</dt><dd>{{ l.pitch }}</dd>
+    {% if l.aliases %}<dt>Also known as</dt><dd>{{ l.aliases|join(', ') }}</dd>{% endif %}
+    <dt>Score</dt><dd class="small">{% for k, v in l.score_parts.items() %}<span class="chip">{{ k }} {{ v }}</span>{% endfor %}</dd>
+  </dl>
+</div>
+
+<h2>Contacts</h2>
+<div class="card">
+  <dl>
+    <dt>Website</dt><dd>{% if l.website %}<a href="{{ l.website }}" rel="noopener noreferrer" target="_blank">{{ l.website }}</a>{% else %}—{% endif %}</dd>
+    <dt>Emails</dt><dd>{% for e in l.emails %}<a href="mailto:{{ e }}">{{ e }}</a><br>{% else %}—{% endfor %}</dd>
+    <dt>Phones</dt><dd>{% for p in l.phones %}<a href="tel:{{ p }}">{{ p }}</a><br>{% else %}—{% endfor %}</dd>
+    <dt>Socials</dt><dd>{% for s in l.socials %}<a href="{{ s }}" rel="noopener noreferrer" target="_blank">{{ s }}</a><br>{% else %}—{% endfor %}</dd>
+    <dt>Decision maker</dt><dd>{{ l.decision_maker or '—' }}</dd>
+  </dl>
+  <form method="post" action="{{ url_for('enrich_one', name=name, key=l.company_key) }}" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="ghost">Find contacts automatically</button>
+  </form>
+</div>
+
+<details class="card"><summary><b>Edit contacts and notes</b></summary>
+<form method="post">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label>Website</label><input type="url" name="website" value="{{ l.website }}" placeholder="https://">
+  <label>Emails</label><input type="text" name="emails" value="{{ l.emails|join(', ') }}" inputmode="email">
+  <label>Phones</label><input type="text" name="phones" value="{{ l.phones|join(', ') }}" inputmode="tel">
+  <label>Decision maker</label><input type="text" name="decision_maker" value="{{ l.decision_maker }}" placeholder="Name, role">
+  <label>Notes</label><textarea name="notes" placeholder="Emailed 3 Nov, sent samples…">{{ notes }}</textarea>
+  <p><button>Save</button></p>
+</form></details>
+{% endblock %}

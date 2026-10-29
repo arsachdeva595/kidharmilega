@@ -7,3 +7,5 @@ dist/
 
 # Buyer Finder: personal lead data, never commit
 data/buyer_finder/
+buyer_finder/web/.env
+buyer_finder/web/backups/

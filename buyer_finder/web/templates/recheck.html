@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block body %}
+<p class="small"><a href="{{ url_for('profile', name=name) }}">‹ Buyers</a></p>
+<h1>Re-check</h1>
+{% if not last %}<div class="card">First snapshot saved. Next re-check will show what changed.</div>
+{% else %}
+<p class="muted">Since {{ last.created_at[:10] }}: {{ new|length }} new buyers, {{ more|length }} with new shipments.</p>
+{% for l in new %}<a class="card lead" href="{{ url_for('lead', name=name, key=l.company_key) }}"><span class="chip">NEW</span><div class="grow"><b>{{ l.name }}</b><div class="muted small">score {{ l.score }} · last {{ l.last_date }}</div></div></a>{% endfor %}
+{% for l in more %}<a class="card lead" href="{{ url_for('lead', name=name, key=l.company_key) }}"><span class="chip">MORE</span><div class="grow"><b>{{ l.name }}</b><div class="muted small">{{ prev[l.company_key].matching_shipments }} → {{ l.matching_total }} shipments · last {{ l.last_date }}</div></div></a>{% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+# Buyer Finder on a VPS: the app plus Caddy for automatic HTTPS.
+# Needs DOMAIN in buyer_finder/web/.env (e.g. DOMAIN=buyers.kidharmilega.in).
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: buyer_finder/web/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - bf-data:/data
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2.8.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  bf-data:
+  caddy-data:
+  caddy-config:

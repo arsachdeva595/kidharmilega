@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block body %}
+<h1>Import shipments</h1>
+<p class="muted small">CSV files you collected (vendor export, licensed download, rows copied by hand). Columns are matched by name: date, shipper, consignee, addresses, description, HS code, BOL.</p>
+<form class="card" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="back" value="{{ back }}">
+  <label>CSV files</label><input type="file" name="files" accept=".csv,text/csv" multiple required>
+  <label>Source (kept as the proof reference)</label><input type="text" name="source" placeholder="importyeti-manual">
+  <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="origin_india"> No shipper country column; every shipper is Indian</label>
+  <label>This file is the customer list of exporter (optional)</label><input type="text" name="exporter">
+  <label>This file is the supplier list of buyer (optional)</label><input type="text" name="buyer">
+  <p><button>Import</button></p>
+</form>
+{% endblock %}

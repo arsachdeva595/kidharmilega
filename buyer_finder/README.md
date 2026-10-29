@@ -46,6 +46,12 @@ python3 -m buyer_finder recheck journals            # new buyers and new shipmen
 Try it on the fictional sample first: `python3 -m buyer_finder import buyer_finder/sample/shipments_sample.csv`.
 Set `BUYER_FINDER_DATA=/some/dir` to keep a test store separate from the real one.
 
+## Web app (phone access)
+
+`buyer_finder/web/` is a private, single-login web version of the same flow: searches, buyer cards with proof
+and contacts, CSV upload, "look up next", contact finding, XLSX/CSV export and re-check. It runs on your VPS
+behind HTTPS; see [`web/DEPLOY.md`](web/DEPLOY.md).
+
 ## How a lead is built
 
 | Step | What happens |
@@ -71,6 +77,7 @@ buyer_finder/
 ├── engine.py     snowball, cleanup, tagging, scoring
 ├── enrich.py     website lookup and contact scraping
 ├── export.py     CSV / XLSX
+├── web/          Flask app, templates, Dockerfile, Caddy, DEPLOY.md
 └── sample/shipments_sample.csv   fictional test data
 data/buyer_finder/  (gitignored) buyer_finder.db, profiles/, exports/
 ```

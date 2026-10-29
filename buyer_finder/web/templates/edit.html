@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block body %}
+<p class="small"><a href="{{ url_for('profile', name=name) }}">‹ Buyers</a></p>
+<h1>Search profile</h1>
+<p class="muted small">Mapped by {{ p.mapped_by }}. Separate items with commas or new lines.</p>
+<form class="card" method="post">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label>Product</label><input type="text" name="product" value="{{ p.product }}">
+  <label>HS code prefixes</label><input type="text" name="hs_prefixes" value="{{ p.hs_prefixes|join(', ') }}" inputmode="numeric">
+  <label>Alternate codes</label><input type="text" name="alternates" value="{{ p.alternates|join(', ') }}" inputmode="numeric">
+  <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="use_alternates" {% if p.use_alternates %}checked{% endif %}> Search alternate codes too</label>
+  <label>Keywords (a line naming one = product proof)</label><textarea name="keywords">{{ p.keywords|join(', ') }}</textarea>
+  <label>Negative keywords (veto a line)</label><textarea name="negative_keywords">{{ p.negative_keywords|join(', ') }}</textarea>
+  <label>Seed exporters, one per line (optional)</label><textarea name="seeds">{{ p.seeds|join('\n') }}</textarea>
+  {% if p.us_hts %}<p class="muted small">Suggested US HTS: {{ p.us_hts|join(', ') }}</p>{% endif %}
+  <p><button>Save and search</button></p>
+</form>
+{% endblock %}

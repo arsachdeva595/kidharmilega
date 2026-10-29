@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}{{ product }} · Buyer Finder{% endblock %}{% block body %}
+<p class="small"><a href="{{ url_for('home') }}">‹ Searches</a></p>
+<div class="row"><h1 class="grow">{{ product }}</h1><a class="small" href="{{ url_for('edit_profile', name=name) }}">Edit profile</a></div>
+<div class="stats">
+  <div class="stat"><b>{{ s.buyers }}</b><span class="muted small">buyers</span></div>
+  <div class="stat"><b>{{ s.proof_product }}</b><span class="muted small">product on BOL</span></div>
+  <div class="stat"><b class="r-now">{{ s.outreach_now }}</b><span class="muted small">outreach now</span></div>
+  <div class="stat"><b>{{ s.verified }}</b><span class="muted small">verified</span></div>
+</div>
+<p class="muted small">{{ s.seed_exporters }} seed exporters → {{ s.exporters_reached }} after snowball ·
+  {{ s.records_in_market }} India→{{ s.market }} records · {{ s.dropped.values()|sum }} forwarders dropped</p>
+
+<div class="row">
+  <a class="btn ghost" href="{{ url_for('import_page', back=name) }}">Import</a>
+  <a class="btn ghost" href="{{ url_for('next_lookups', name=name) }}">Look up next</a>
+  <form method="post" action="{{ url_for('enrich_many', name=name) }}" style="margin:0">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="top" value="20">
+    <button class="ghost" {% if job.running %}disabled{% endif %}>{% if job.running %}Finding contacts {{ job.done }}/{{ job.total }}…{% else %}Find contacts (top 20){% endif %}</button>
+  </form>
+  <form method="post" action="{{ url_for('recheck', name=name) }}" style="margin:0">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="ghost">Re-check</button></form>
+  <a class="btn ghost" href="{{ url_for('export_file', name=name, fmt='xlsx') }}">XLSX</a>
+  <a class="btn ghost" href="{{ url_for('export_file', name=name, fmt='csv') }}">CSV</a>
+</div>
+
+<form class="filters" method="get" style="margin-top:14px">
+  <select name="route">
+    <option value="">All routes</option>
+    {% for r in ['Outreach now','Nurture','Watch','Stale'] %}<option {% if route==r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">Any status</option>
+    {% for st in ['verified','needs contacts','stale (>36 months)'] %}<option {% if status==st %}selected{% endif %}>{{ st }}</option>{% endfor %}
+  </select>
+  <input class="q" type="text" name="q" value="{{ q }}" placeholder="Search name, state, proof">
+  <button class="ghost">Filter</button>
+</form>
+<p class="muted small">{{ leads|length }} of {{ total }}</p>
+
+{% for l in leads %}
+{% set rc = {'Outreach now':'r-now','Nurture':'r-nurture','Watch':'r-watch','Stale':'r-stale'}[l.route] %}
+<a class="card lead" href="{{ url_for('lead', name=name, key=l.company_key) }}">
+  <div class="score {{ rc }}">{{ l.score }}</div>
+  <div class="grow">
+    <b>{{ l.name }}</b>
+    <div class="muted small">{{ l.buyer_type }} · {{ l.city ~ ', ' if l.city }}{{ l.state or '—' }} · <span class="{{ rc }}">{{ l.route }}</span></div>
+    <div class="proof" style="margin-top:6px">{{ l.proof_line }}</div>
+    <div class="small muted" style="margin-top:4px">Last {{ l.last_date or '—' }} · {{ l.matching_total }} matching · {{ l.supplier_count }} Indian supplier{{ 's' if l.supplier_count != 1 }}{% if l.emails %} · ✉ {{ l.emails[0] }}{% endif %}</div>
+  </div>
+</a>
+{% else %}
+<div class="card muted">No buyers yet. Import shipment CSVs, or loosen the keywords in the profile.</div>
+{% endfor %}
+{% endblock %}

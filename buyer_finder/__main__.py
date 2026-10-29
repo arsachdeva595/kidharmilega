@@ -11,7 +11,7 @@ Buyer Finder CLI.
 """
 
 import argparse, json, sys
-from datetime import date, datetime
+from datetime import date
 
 from . import hsn, store, engine, export as exporter
 
@@ -44,12 +44,7 @@ def _print_table(leads, top):
 
 
 def _save_run(db, name, result):
-    cur = db.execute("INSERT INTO runs (profile, created_at, summary) VALUES (?,?,?)",
-                     (name, datetime.now().isoformat(timespec="seconds"), json.dumps(result["summary"])))
-    db.executemany("INSERT INTO run_leads VALUES (?,?,?,?,?,?,?)",
-                   [(cur.lastrowid, l["company_key"], l["name"], l["score"], l["last_date"], l["matching_total"],
-                     json.dumps({k: l[k] for k in ("route", "status", "website")})) for l in result["leads"]])
-    db.commit()
+    store.save_run(db, name, result)
 
 
 def _find_lead(result, company):

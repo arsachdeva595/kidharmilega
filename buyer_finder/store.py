@@ -216,3 +216,13 @@ def save_contact(db, company_key, name, **fields):
          json.dumps(merged.get("sources", [])), merged.get("notes", ""),
          merged.get("enriched_at", date.today().isoformat())))
     db.commit()
+
+
+def save_run(db, profile_name, result):
+    """Snapshot a search so `recheck` can show what changed next month."""
+    cur = db.execute("INSERT INTO runs (profile, created_at, summary) VALUES (?,?,?)",
+                     (profile_name, datetime.now().isoformat(timespec="seconds"), json.dumps(result["summary"])))
+    db.executemany("INSERT INTO run_leads VALUES (?,?,?,?,?,?,?)",
+                   [(cur.lastrowid, l["company_key"], l["name"], l["score"], l["last_date"], l["matching_total"],
+                     json.dumps({k: l[k] for k in ("route", "status", "website")})) for l in result["leads"]])
+    db.commit()
