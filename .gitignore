@@ -4,3 +4,6 @@ __pycache__/
 dist/
 .env
 *.env
+
+# Buyer Finder: personal lead data, never commit
+data/buyer_finder/

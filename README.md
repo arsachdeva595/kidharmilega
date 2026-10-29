@@ -71,6 +71,15 @@ cd docs && python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
+### `buyer_finder/` — Export buyer finder (personal tool)
+
+HSN code → scored US buyers backed by customs records, from shipment CSVs collected by hand. Not part of the site build; its data stays in gitignored `data/buyer_finder/`. See `buyer_finder/README.md`.
+
+```bash
+python3 -m buyer_finder map 48201000 --desc "leather journal" --name journals
+python3 -m buyer_finder import shipments.csv && python3 -m buyer_finder search journals
+```
+
 ---
 
 ## Folder structure
