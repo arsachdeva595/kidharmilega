@@ -73,6 +73,8 @@ SITE_REDIRECTS = {
     "tools": ("/products/", "ODOP Products"),
     "tools/export-docs-checklist": ("/products/", "ODOP Products"),
     "odop-district-list": ("/products/", "ODOP Products"),
+    # WriteOut first published this post under the slug "post".
+    "blog/post": ("/blog/loan-waiver-2026-pmegp-mudra-msme-loans/", "Loan Waiver 2026: Does It Cover PMEGP, Mudra or MSME Business Loans?"),
 }
 
 def build_redirect_page(new_slug, title, dest_path=None):
@@ -1983,7 +1985,7 @@ def publish_blog():
     src = WRITEOUT_DIR / "blog"
     out = DIST_DIR / "blog"
     if src.exists():
-        shutil.copytree(src, out)
+        shutil.copytree(src, out, dirs_exist_ok=True)
     out.mkdir(parents=True, exist_ok=True)
     if not (out / "index.html").exists():
         (out / "index.html").write_text(build_blog_placeholder(), encoding="utf-8")
@@ -1991,6 +1993,8 @@ def publish_blog():
     pages = list(out.rglob("*.html"))
     for f in pages:
         html = f.read_text(encoding="utf-8")
+        if 'http-equiv="refresh"' in html:
+            continue  # a SITE_REDIRECTS page, not a post
         missing = [m for m in ("<!--KM:HEAD-->", "<!--KM:NAV-->", "<!--KM:FOOTER-->") if m not in html]
         if missing and f.parent != out:
             print(f"! {f.relative_to(DIST_DIR)} has no {', '.join(missing)}")
