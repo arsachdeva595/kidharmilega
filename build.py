@@ -31,6 +31,13 @@ GUIDES_DIR = BASE_DIR / "guides"
 PUBLISH_BLOG = True
 WRITEOUT_DIR = BASE_DIR / "writeout"
 
+# Author box shown under every blog post, and the author named in each post's BlogPosting schema.
+BLOG_AUTHOR = {
+    "name": "Startupwalebhaia",
+    "url": "https://instagram.com/startupwalebhaia",
+    "bio": "Startupwalebhaia consults people on exports, starting, and growing a small business from small towns in India.",
+}
+
 def p(path): return BASE_PATH + path
 
 def load_csv(local_path, remote_url=None):
@@ -1926,6 +1933,38 @@ def build_blog_placeholder():
   </div>
 </div></main>''' + footer() + "</body></html>"
 
+def author_box():
+    a = BLOG_AUTHOR
+    handle = a["url"].split("://", 1)[-1]
+    return f'''<aside class="km-author" aria-label="About the author">
+  <div class="km-author-label">Author: {esc(a["name"])}</div>
+  <p class="km-author-bio">{esc(a["bio"])} Follow his advice on Instagram: <a href="{a["url"]}" target="_blank" rel="noopener">{esc(handle)}</a></p>
+</aside>'''
+
+def author_jsonld():
+    a = BLOG_AUTHOR
+    return {"@type": "Person", "name": a["name"], "url": a["url"], "sameAs": [a["url"]], "description": a["bio"]}
+
+def add_post_author(html):
+    """Fill <!--KM:AUTHOR-->, or put the author box straight after the article, and name the author in BlogPosting."""
+    if "<!--KM:AUTHOR-->" in html:
+        html = html.replace("<!--KM:AUTHOR-->", author_box())
+    elif 'class="km-author"' not in html and "</article>" in html:
+        html = html.replace("</article>", "</article>\n" + author_box(), 1)
+
+    def fix_ld(m):
+        try:
+            data = json.loads(m.group(1))
+        except ValueError:
+            return m.group(0)
+        nodes = data.get("@graph", [data]) if isinstance(data, dict) else data
+        for n in nodes:
+            if isinstance(n, dict) and n.get("@type") in ("BlogPosting", "Article"):
+                n["author"] = author_jsonld()
+        return '<script type="application/ld+json">' + json.dumps(data, ensure_ascii=False, indent=1) + "</script>"
+
+    return re.sub(r'<script type="application/ld\+json">(.*?)</script>', fix_ld, html, flags=re.S)
+
 def km_partials():
     """The shared head assets, nav and footer as WriteOut needs them to fill a post's markers itself
     when it commits the live copy to docs/blog/. Served at /assets/km-partials.json."""
@@ -1933,8 +1972,10 @@ def km_partials():
         "head": site_assets(),
         "nav": nav("blog"),
         "footer": footer(),
+        "author": author_box(),
+        "author_jsonld": author_jsonld(),
         "style_version": STYLE_VERSION,
-        "markers": ["<!--KM:HEAD-->", "<!--KM:NAV-->", "<!--KM:FOOTER-->"],
+        "markers": ["<!--KM:HEAD-->", "<!--KM:NAV-->", "<!--KM:AUTHOR-->", "<!--KM:FOOTER-->"],
     }, ensure_ascii=False, indent=1)
 
 def publish_blog():
@@ -1954,6 +1995,8 @@ def publish_blog():
         if missing and f.parent != out:
             print(f"! {f.relative_to(DIST_DIR)} has no {', '.join(missing)}")
         html = html.replace("<!--KM:HEAD-->", assets).replace("<!--KM:NAV-->", site_nav).replace("<!--KM:FOOTER-->", site_footer)
+        if f.parent != out:
+            html = add_post_author(html)
         f.write_text(html, encoding="utf-8")
     (DIST_DIR / "assets" / "km-partials.json").write_text(km_partials(), encoding="utf-8")
     print(f"✓ blog: {len(pages)} pages + km-partials.json")
