@@ -24,7 +24,11 @@ Every page under `writeout/blog/` carries three markers. `build.py` replaces the
 |---|---|---|
 | `<!--KM:HEAD-->` | inside `<head>`, after the page's own title and meta tags | analytics tag, favicon, fonts, versioned `/assets/style.css` |
 | `<!--KM:NAV-->` | first thing in `<body>` | site nav |
+| `<!--KM:AUTHOR-->` | right after `</article>` (optional) | author box for Startupwalebhaia |
 | `<!--KM:FOOTER-->` | last thing before `</body>` | site footer |
+
+If a post has no `<!--KM:AUTHOR-->`, `build.py` puts the author box straight after `</article>`. It also sets the
+`author` of each `BlogPosting` in the post's JSON-LD to the Person in `km-partials.json` (`author_jsonld`).
 
 Don't link `/assets/style.css` yourself; the head block does. Post-specific CSS can go inline.
 
@@ -39,7 +43,7 @@ A post with `<meta name="robots" content="noindex...">` is published but left ou
 
 1. Write `writeout/blog/<slug>/index.html` with the markers.
 2. Write `docs/blog/<slug>/index.html` with the markers already filled in, so the post is live before the next build.
-   Take the fill-ins from `docs/assets/km-partials.json` (`head`, `nav`, `footer`), which `build.py` regenerates on
+   Take the fill-ins from `docs/assets/km-partials.json` (`head`, `nav`, `author`, `footer`, and `author_jsonld` for the schema), which `build.py` regenerates on
    every build.
 3. Do the same for `blog/index.html` and `blog/feed.xml` in both folders.
 4. In `docs/sitemap.xml`, add or update the post's `<url>` entry (and `/blog/`'s `lastmod`) just before `</urlset>`.

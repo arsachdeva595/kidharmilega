@@ -505,3 +505,9 @@ p{color:var(--color-neutral)}
 .district-card,.module-card,.vendor-card,.rd-chip,.news-card{min-width:0;overflow-wrap:anywhere}
 .prose-article table{display:block;overflow-x:auto}
 @media(max-width:360px){.btn{padding:0.75rem 1.1rem;font-size:14px}.btn-lg{font-size:15px}}
+
+/* Blog author box (build.py author_box) */
+.km-author{background:var(--tint-blue);border-radius:var(--radius-card);padding:20px 24px;margin:40px 0 32px}
+.km-author-label{font-size:16px;font-weight:600;color:var(--color-ink);margin-bottom:6px}
+.km-author-bio{font-size:15px;line-height:1.6;color:var(--color-neutral);margin:0}
+.km-author-bio a{color:var(--color-link);font-weight:600}
