@@ -73,6 +73,12 @@ cd docs && python3 -m http.server 8080
 
 ---
 
+## Supplier Finder tool (`/tools/supplier-finder/`)
+
+Free tool: the user picks an 8-digit HSN code and a district, leaves an email, and gets copy-paste AI prompts to find local suppliers (including the Google Maps / GMB step), plus a supplier audit checklist for that product category. `build.py` calls `supplier_finder.py`. Leads go to a Google Sheet through Apps Script. Setup is in `tools_src/supplier-finder/SETUP.md`.
+
+---
+
 ## Folder structure
 
 ```

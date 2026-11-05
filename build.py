@@ -3,6 +3,7 @@ import csv, hashlib, json, os, shutil, re, sys, markdown as md_lib
 from pathlib import Path
 from datetime import datetime
 from scheme_facts import correct_mapping
+import supplier_finder
 
 SITE_URL   = "https://kidharmilega.in"
 IG_HANDLE  = "@startupwalebhaia"
@@ -70,7 +71,6 @@ PRODUCT_REDIRECTS = {
 SITE_REDIRECTS = {
     "start-a-business-india": ("/ideas/", "Business Ideas"),
     "government-schemes-small-business-india": ("/ideas/", "Business Ideas"),
-    "tools": ("/products/", "ODOP Products"),
     "tools/export-docs-checklist": ("/products/", "ODOP Products"),
     "odop-district-list": ("/products/", "ODOP Products"),
     # WriteOut first published this post under the slug "post".
@@ -103,6 +103,7 @@ def nav(active="home"):
         links.append(("Business Ideas", p("/business-ideas/"), "business-ideas"))
     if PUBLISH_BLOG:
         links.append(("Blog", p("/blog/"), "blog"))
+    links.append(("Free Tools", p("/tools/"), "tools"))
     links += [
         ("Events",         p("/events/"),            "events"),
         ("Why ODOP?",      p("/what-is-odop/"),      "odop-guide"),
@@ -125,6 +126,7 @@ def footer():
     <a href="{p('/products/')}">Products</a>
     {f'<a href="{p("/ideas/")}">Business Ideas</a>' if PUBLISH_IDEA_GUIDES else f'<a href="{p("/business-ideas/")}">Business Ideas</a>' if PUBLISH_BUSINESS_IDEAS else ''}
     {f'<a href="{p("/blog/")}">Blog</a>' if PUBLISH_BLOG else ''}
+    <a href="{p('/tools/supplier-finder/')}">Supplier Finder</a>
     <a href="{p('/events/')}">Events</a>
     <a href="{p('/what-is-odop/')}">Why ODOP?</a>
     <a href="{p('/about-us/')}">About Us</a>
@@ -1833,6 +1835,8 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}/",                    "weekly",  "1.0"),
         u(f"{SITE_URL}/products/",           "weekly",  "0.9"),
         u(f"{SITE_URL}/events/",             "daily",   "0.8"),
+        u(f"{SITE_URL}/tools/",              "monthly", "0.7"),
+        u(f"{SITE_URL}{supplier_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2145,6 +2149,10 @@ def build():
         ex_dir.mkdir(parents=True, exist_ok=True)
         (ex_dir / "index.html").write_text(build_exhibition_page(post))
     print(f"✓ {len(exhibition_posts)} exhibition/event city pages")
+
+    n_hsn, n_mapped, n_dist = supplier_finder.write_supplier_finder(
+        DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
+    print(f"✓ Supplier Finder: {n_hsn} HSN lines, {n_mapped}/{n_dist} ODOP districts mapped to HSN")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()
