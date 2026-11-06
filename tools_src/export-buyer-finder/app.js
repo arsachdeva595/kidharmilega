@@ -151,8 +151,8 @@
     var a = firstIdx(r.i), b = latestIdx(r.i);
     if (a < 0 || b <= a) return "";
     var ch = r.i[b] / r.i[a] - 1, sa = r.w[a] ? r.i[a] / r.w[a] : null, sb = r.w[b] ? r.i[b] / r.w[b] : null;
-    return '<p class="ebf-trend">' + (ch >= 0 ? "Up " : "Down ") + pct(Math.abs(ch)) + " since " + YEARS[a] +
-      (sa != null && sb != null ? ". India's share of US imports went from " + pct(sa) + " to " + pct(sb) + "." : ".") + '</p>';
+    return '<p class="ebf-trend">' + (Math.abs(ch) < 0.02 ? "Flat" : (ch > 0 ? "Up " : "Down ") + pct(Math.abs(ch))) + " since " + YEARS[a] +
+      (sa != null && sb != null ? (pct(sa) === pct(sb) ? ". India's share of US imports held at about " + pct(sb) + "." : ". India's share of US imports went from " + pct(sa) + " to " + pct(sb) + ".") : ".") + '</p>';
   }
 
   function insights(r, k) {
@@ -168,7 +168,7 @@
     var a = firstIdx(r.i);
     if (a >= 0 && k > a && r.i[a] && I) {
       var g = I / r.i[a] - 1;
-      out.push("India's sales to the US " + (g >= 0 ? "grew <strong>" + pct(g) + "</strong>" : "fell <strong>" + pct(-g) + "</strong>") + " between " + YEARS[a] + " and " + YEARS[k] + ".");
+      out.push("India's sales to the US " + (Math.abs(g) < 0.02 ? "<strong>stayed flat</strong>" : g > 0 ? "grew <strong>" + pct(g) + "</strong>" : "fell <strong>" + pct(-g) + "</strong>") + " between " + YEARS[a] + " and " + YEARS[k] + ".");
     }
     if (W) {
       var slice = W > 1e9 ? 0.001 : 0.01;

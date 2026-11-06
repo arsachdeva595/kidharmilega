@@ -17,6 +17,23 @@ SRC_DIR = BASE_DIR / "tools_src" / "export-buyer-finder"
 DATA_FILE = BASE_DIR / "data" / "us_imports" / "us_imports_hs6.json"
 TOOL_PATH = "/tools/export-buyer-finder/"
 
+# Comtrade's official names → what readers expect ("Other Asia, nes" is Taiwan in Comtrade).
+NAME_FIX = {
+    "Other Asia, nes": "Taiwan", "Rep. of Korea": "South Korea", "Türkiye": "Turkey", "Viet Nam": "Vietnam",
+    "China, Hong Kong SAR": "Hong Kong", "China, Macao SAR": "Macao", "Russian Federation": "Russia",
+    "Dem. People's Rep. of Korea": "North Korea", "Lao People's Dem. Rep.": "Laos", "Rep. of Moldova": "Moldova",
+    "United Rep. of Tanzania": "Tanzania", "Bolivia (Plurinational State of)": "Bolivia",
+    "Venezuela (Bolivarian Rep. of)": "Venezuela", "Iran (Islamic Rep. of)": "Iran", "Syria": "Syria",
+    "Dominican Rep.": "Dominican Republic", "United Arab Emirates": "UAE", "Bosnia Herzegovina": "Bosnia and Herzegovina",
+    "Brunei Darussalam": "Brunei", "Dem. Rep. of the Congo": "DR Congo", "Central African Rep.": "Central African Republic",
+    "Falkland Isds (Malvinas)": "Falkland Islands", "FS Micronesia": "Micronesia",
+}
+
+
+def _country(name):
+    name = NAME_FIX.get(name, name)
+    return name.replace(" Isds", " Islands")
+
 SEGMENTS = [
     ("first", "Not exporting yet. I have a product, no buyers"),
     ("small", "Exporting to 1–3 buyers, want more"),
@@ -151,7 +168,8 @@ def write_export_buyer_finder(dist_dir, head, nav, footer, esc, p):
     meta, n = {}, 0
     if DATA_FILE.exists():
         data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-        meta = {"years": data["years"], "source": data["source"], "fetched": data["fetched"], "partners": data["partners"]}
+        names = {k: _country(v) for k, v in data["partners"].items()}
+        meta = {"years": data["years"], "source": data["source"], "fetched": data["fetched"], "partners": names}
         by_ch = {}
         for code, row in data["hs6"].items():
             by_ch.setdefault(code[:2], {})[code] = row

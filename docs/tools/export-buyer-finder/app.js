@@ -110,11 +110,12 @@
 
     // India's sales to the US by year (single series → no legend).
     var vals = r.i, max = Math.max.apply(null, vals.map(function (v) { return v || 0; })) || 1;
-    html += '<div class="ebf-card"><h3>India → US, ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '</h3><div class="ebf-cols" role="img" aria-label="US imports from India by year">' +
+    var fi = firstIdx(vals), li = latestIdx(vals);
+    if (fi >= 0 && li > fi) html += '<div class="ebf-card"><h3>India → US, ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '</h3><div class="ebf-cols" role="img" aria-label="US imports from India by year">' +
       YEARS.map(function (y, j) {
         var v = vals[j], h = v ? Math.max(2, Math.round(v / max * 100)) : 0, sh = r.w[j] ? (v || 0) / r.w[j] : null;
         return '<div class="ebf-col" title="' + y + ": " + usd(v) + (sh != null ? " (" + pct(sh) + " of US imports)" : "") + '">' +
-          '<span class="ebf-col__v">' + (j === 0 || j === YEARS.length - 1 ? usd(v) : "") + '</span>' +
+          '<span class="ebf-col__v">' + ((j === fi || j === li) && v ? usd(v) : "") + '</span>' +
           '<span class="ebf-col__bar"><span style="height:' + h + '%"></span></span><span class="ebf-col__y">' + y + '</span></div>';
       }).join("") + '</div>' + trendLine(r) + '</div>';
 
@@ -150,8 +151,8 @@
     var a = firstIdx(r.i), b = latestIdx(r.i);
     if (a < 0 || b <= a) return "";
     var ch = r.i[b] / r.i[a] - 1, sa = r.w[a] ? r.i[a] / r.w[a] : null, sb = r.w[b] ? r.i[b] / r.w[b] : null;
-    return '<p class="ebf-trend">' + (ch >= 0 ? "Up " : "Down ") + pct(Math.abs(ch)) + " since " + YEARS[a] +
-      (sa != null && sb != null ? ". India's share of US imports went from " + pct(sa) + " to " + pct(sb) + "." : ".") + '</p>';
+    return '<p class="ebf-trend">' + (Math.abs(ch) < 0.02 ? "Flat" : (ch > 0 ? "Up " : "Down ") + pct(Math.abs(ch))) + " since " + YEARS[a] +
+      (sa != null && sb != null ? (pct(sa) === pct(sb) ? ". India's share of US imports held at about " + pct(sb) + "." : ". India's share of US imports went from " + pct(sa) + " to " + pct(sb) + ".") : ".") + '</p>';
   }
 
   function insights(r, k) {
@@ -167,7 +168,7 @@
     var a = firstIdx(r.i);
     if (a >= 0 && k > a && r.i[a] && I) {
       var g = I / r.i[a] - 1;
-      out.push("India's sales to the US " + (g >= 0 ? "grew <strong>" + pct(g) + "</strong>" : "fell <strong>" + pct(-g) + "</strong>") + " between " + YEARS[a] + " and " + YEARS[k] + ".");
+      out.push("India's sales to the US " + (Math.abs(g) < 0.02 ? "<strong>stayed flat</strong>" : g > 0 ? "grew <strong>" + pct(g) + "</strong>" : "fell <strong>" + pct(-g) + "</strong>") + " between " + YEARS[a] + " and " + YEARS[k] + ".");
     }
     if (W) {
       var slice = W > 1e9 ? 0.001 : 0.01;
