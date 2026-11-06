@@ -15,7 +15,19 @@ countries. Below that is a locked sample buyer lead and a waitlist form (email, 
 3. **The US market in detail:** US imports, India's share, rank and competitors. `fetch_comtrade.py us_imports`
 4. Waitlist for the paid US buyer list.
 
-Coming next: UK importers from HMRC trader data (launch chapters 42, 48, 63, 71, 68, 44), refreshed monthly.
+## Roadmap (free tool)
+
+| Step | Source | What it adds | Status |
+|---|---|---|---|
+| 1 | UN Comtrade, India exports | Top 10 countries buying the product from India | Data downloading |
+| 2 | Canadian Importers Database | Named Canadian importers from India | Built |
+| 3 | HMRC trader data | Named UK importers (any origin) for chapters 42, 48, 63, 71, 68, 44, refreshed monthly | Data downloading |
+| 4 | France SIRENE (Licence Ouverte) | Named French wholesalers by NACE activity code mapped to HS chapters; labelled "wholesalers in this category", not import proof | Planned |
+| Later | Nordic / Belgian business registers | Same as France, after checking each licence | To research |
+
+No other European or African government publishes named importers by product as open data (checked Nov 2026):
+Eurostat is aggregate only, Ukraine's customs data is anonymised, and African customs data with names is only
+sold by vendors.
 
 ## Canadian importers
 
