@@ -21,6 +21,8 @@ DATASETS = {
 }
 # Named Canadian importers from India (tools_src/export-buyer-finder/fetch_canada.py).
 CANADA = BASE_DIR / "data" / "canada_importers" / "canada_india_hs6.json"
+# Named UK importers (any origin) for the launch chapters (tools_src/export-buyer-finder/fetch_uk.py).
+UK = BASE_DIR / "data" / "uk_importers" / "uk_importers_hs6.json"
 TOOL_PATH = "/tools/export-buyer-finder/"
 
 # Comtrade's official names → what readers expect ("Other Asia, nes" is Taiwan in Comtrade).
@@ -53,7 +55,7 @@ def _version():
     h = hashlib.sha1()
     for f in (SRC_DIR / "app.js", SRC_DIR / "style.css", sf.SHARED_SRC / "hsn-search.js", sf.SRC_DIR / "style.css"):
         h.update(f.read_bytes())
-    for path in list(DATASETS.values()) + [CANADA]:
+    for path in list(DATASETS.values()) + [CANADA, UK]:
         if path.exists():
             h.update(str(path.stat().st_mtime).encode())
     return h.hexdigest()[:10]
@@ -127,7 +129,7 @@ def build_page(head, nav, footer, esc, p, meta):
 
       <div class="ebf-wait" id="ebfWait">
         <h3>Join free: full lists now, 3 US buyer leads at launch</h3>
-        <p>Joining unlocks the full Canadian importer list right away. We'll email you when US buyers for <strong id="ebfWaitCode">your HSN code</strong> are ready.</p>
+        <p>Joining unlocks the full Canadian and UK importer lists right away. We'll email you when US buyers for <strong id="ebfWaitCode">your HSN code</strong> are ready.</p>
         <form id="ebfWaitForm" novalidate>
           <div class="sf-row">
             <div>
@@ -196,6 +198,17 @@ def write_export_buyer_finder(dist_dir, head, nav, footer, esc, p):
             (out / "ca" / f"{ch}.json").write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
         meta["ca"] = {"year": ca["year"], "source": ca["source"], "licence": ca["licence"], "chapters": sorted(by_ch)}
         counts["ca"] = len(ca["hs6"])
+    (out / "uk").mkdir(parents=True, exist_ok=True)
+    if UK.exists():
+        uk = json.loads(UK.read_text(encoding="utf-8"))
+        by_ch = {}
+        for code, rows in uk["hs6"].items():
+            by_ch.setdefault(code[:2], {})[code] = rows
+        for ch, rows in by_ch.items():
+            (out / "uk" / f"{ch}.json").write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+        meta["uk"] = {"months": uk["months"], "source": uk["source"], "licence": uk["licence"],
+                      "covered": uk["chapters"], "chapters": sorted(by_ch)}
+        counts["uk"] = len(uk["hs6"])
     for f in ("app.js", "style.css"):
         shutil.copy(SRC_DIR / f, out / f)
     (out / "index.html").write_text(build_page(head, nav, footer, esc, p, meta), encoding="utf-8")

@@ -2157,7 +2157,7 @@ def build():
         DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
     print(f"✓ Supplier Finder: {n_hsn} HSN lines, {n_mapped}/{n_dist} ODOP districts mapped to HSN")
     n_ebf = export_buyer_finder.write_export_buyer_finder(DIST_DIR, head, nav, footer, esc, p)
-    print(f"✓ Export Buyer Finder: HS6 codes with India export data {n_ebf['in']}, with US import data {n_ebf['us']}, with Canadian importers from India {n_ebf.get('ca', 0)}")
+    print(f"✓ Export Buyer Finder: HS6 codes with India export data {n_ebf['in']}, with US import data {n_ebf['us']}, with Canadian importers from India {n_ebf.get('ca', 0)}, with UK importers {n_ebf.get('uk', 0)}")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()

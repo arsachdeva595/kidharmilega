@@ -6,7 +6,10 @@
 Meant to run monthly (HMRC adds a month and drops traders who ask to be removed, so each run rebuilds the lists
 from scratch; only the per-code raw cache is reused within a run). Writes data/uk_importers/uk_importers_hs6.json:
 
-  {"months": [first, last], "hs6": {"482010": [[name, town, postcode, segment, months_active, last_month, codes], ...]}}
+  {"months": [first, last], "hs6": {"482010": [[name, town, postcode, segment, months_active, last_month, related], ...]}}
+
+related = how many other HS6 codes in the same chapter the company imported (e.g. notebooks plus leather goods),
+a sign of a real buyer of the category rather than a one-off.
 
 HMRC lists who imported a CN8 code in a month, with no source country and no value, so these are importers of the
 product from anywhere, never "buyers from India". Rows are cleaned (couriers, brokers, and addresses shared by many
@@ -52,7 +55,9 @@ def q(path, params):
 
 def cn8_codes(ch):
     d = get(q("Commodity", {"$filter": f"startswith(cast(CommodityId,Edm.String),'{ch}')", "$select": "CommodityId"}))
-    return sorted(str(x["CommodityId"]).zfill(8) for x in d.get("value", []) if len(str(x["CommodityId"]).zfill(8)) == 8)
+    # CommodityId is a number, so "starts with 71" also matches 7-digit ids of chapter 07 (0712xxxx → 712xxxx).
+    codes = (str(x["CommodityId"]).zfill(8) for x in d.get("value", []))
+    return sorted(c for c in codes if len(c) == 8 and c[:2] == ch)
 
 
 def imports(cn8):
@@ -89,6 +94,10 @@ def main():
             if i % 10 == 0:
                 print(f"  {ch}: {i + 1}/{len(codes)} codes, {sum(len(v) for v in per_hs6.values())} importer-product pairs", flush=True)
 
+    hs6_by_trader = defaultdict(set)
+    for hs6, by_trader in per_hs6.items():
+        for tid in by_trader:
+            hs6_by_trader[tid].add(hs6)
     shared = {pc for pc, n in Counter(pc for _, _, pc in traders.values() if pc).items() if n > SHARED_POSTCODE}
     out, dropped = {}, 0
     for hs6, by_trader in per_hs6.items():
@@ -99,9 +108,10 @@ def main():
             if seg is None or pc in shared:
                 dropped += 1
                 continue
-            rows.append([name, town.title(), pc, seg, len(e["months"]), max(e["months"]), len(e["codes"])])
+            related = sum(1 for h in hs6_by_trader[tid] if h[:2] == hs6[:2] and h != hs6)
+            rows.append([name, town.title(), pc, seg, len(e["months"]), max(e["months"]), related])
         recent = last_month - 2
-        rows.sort(key=lambda r: (-SEGMENT_RANK[r[3]], -(r[4] + (6 if r[5] >= recent else 0)), r[0]))
+        rows.sort(key=lambda r: (-SEGMENT_RANK[r[3]], -(r[4] + (6 if r[5] >= recent else 0)), -min(r[6], 15), r[0]))
         if rows:
             out[hs6] = rows[:MAX_PER_CODE] + ([["+", len(rows) - MAX_PER_CODE]] if len(rows) > MAX_PER_CODE else [])
     OUT.parent.mkdir(parents=True, exist_ok=True)
