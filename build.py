@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from scheme_facts import correct_mapping
 import supplier_finder
+import export_buyer_finder
 
 SITE_URL   = "https://kidharmilega.in"
 IG_HANDLE  = "@startupwalebhaia"
@@ -127,6 +128,7 @@ def footer():
     {f'<a href="{p("/ideas/")}">Business Ideas</a>' if PUBLISH_IDEA_GUIDES else f'<a href="{p("/business-ideas/")}">Business Ideas</a>' if PUBLISH_BUSINESS_IDEAS else ''}
     {f'<a href="{p("/blog/")}">Blog</a>' if PUBLISH_BLOG else ''}
     <a href="{p('/tools/supplier-finder/')}">Supplier Finder</a>
+    <a href="{p('/tools/export-buyer-finder/')}">Export Buyer Finder</a>
     <a href="{p('/events/')}">Events</a>
     <a href="{p('/what-is-odop/')}">Why ODOP?</a>
     <a href="{p('/about-us/')}">About Us</a>
@@ -1837,6 +1839,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}/events/",             "daily",   "0.8"),
         u(f"{SITE_URL}/tools/",              "monthly", "0.7"),
         u(f"{SITE_URL}{supplier_finder.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{export_buyer_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2153,6 +2156,8 @@ def build():
     n_hsn, n_mapped, n_dist = supplier_finder.write_supplier_finder(
         DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
     print(f"✓ Supplier Finder: {n_hsn} HSN lines, {n_mapped}/{n_dist} ODOP districts mapped to HSN")
+    n_us = export_buyer_finder.write_export_buyer_finder(DIST_DIR, head, nav, footer, esc, p)
+    print(f"✓ Export Buyer Finder: US import data for {n_us} HS6 codes")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()

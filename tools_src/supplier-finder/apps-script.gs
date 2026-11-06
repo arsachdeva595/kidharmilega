@@ -4,8 +4,9 @@
  * (see tools_src/supplier-finder/SETUP.md). Every email capture and every later search is one row.
  */
 var SHEET_NAME = 'Leads';
+// Events: lead / search (Supplier Finder), export_waitlist / export_search (Export Buyer Finder).
 var HEADERS = ['timestamp', 'event', 'email', 'phone', 'hsn', 'hsn_name', 'product', 'state', 'district',
-               'utm_source', 'utm_medium', 'utm_campaign', 'referrer', 'page'];
+               'utm_source', 'utm_medium', 'utm_campaign', 'referrer', 'page', 'segment'];
 
 function doPost(e) {
   var lock = LockService.getScriptLock();

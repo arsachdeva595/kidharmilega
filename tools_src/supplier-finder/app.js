@@ -15,7 +15,8 @@
     prompts: $("sfPrompts"), checklist: $("sfChecklist"), print: $("sfPrint"), book: $("sfBook")
   };
 
-  var HSN = null, LINES = [], DISTRICTS = [], selected = null, activeIdx = -1, shown = [];
+  var DISTRICTS = [], selected = null, combo = null;
+  var H = window.KMHSN, fmtCode = H.fmtCode, shortName = H.shortName;
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -25,22 +26,12 @@
     catch (e) { return null; }
   }
   function track(name, params) { try { if (window.gtag) window.gtag("event", name, params || {}); } catch (e) {} }
-  function fmtCode(c) { return c.length === 8 ? c.slice(0, 4) + " " + c.slice(4, 6) + " " + c.slice(6) : c.length === 6 ? c.slice(0, 4) + " " + c.slice(4) : c; }
 
   // ── Data ────────────────────────────────────────────────────────────────────
   function loadData() {
-    var a = fetch(C.hsnUrl).then(function (r) { if (!r.ok) throw new Error("hsn"); return r.json(); });
     var b = fetch(C.districtsUrl).then(function (r) { if (!r.ok) throw new Error("districts"); return r.json(); });
-    return Promise.all([a, b]).then(function (res) {
-      HSN = res[0]; DISTRICTS = res[1];
-      LINES = HSN.t.map(function (row) {
-        var code = row[0], h4 = code.slice(0, 4);
-        var title = (code.length >= 6 && HSN.x[code.slice(0, 6)]) || HSN.h[h4] || "";
-        var heading = HSN.h[h4] || "";
-        var ch = HSN.c[code.slice(0, 2)] || ["", ""];
-        return { code: code, title: title, detail: row[1] || "", heading: heading, chapter: ch[0],
-                 hay: norm(title + " " + heading + " " + (row[1] || "")) };
-      });
+    return Promise.all([H.load(C.hsnUrl), b]).then(function (res) {
+      DISTRICTS = res[1];
       els.status.textContent = "Type at least 2 characters. Search by code (e.g. 6302) or by product (e.g. brass diya).";
       fillStates();
     }).catch(function () {
@@ -66,105 +57,8 @@
     }).join("");
   }
 
-  // ── HSN search ──────────────────────────────────────────────────────────────
-  // Words Indian buyers use → words the HSN text uses. Matching is on word starts, so "lamp" also finds "lamps".
-  var SYN = {
-    bedsheet: ["bed linen", "bedsheet"], chadar: ["bed linen", "bedspread"], razai: ["quilt"], rajai: ["quilt"],
-    kurta: ["kurta", "shirt"], kurti: ["kurta", "blouse"], dupatta: ["shawl", "scarves", "stole"], stole: ["shawl", "stole"],
-    chunni: ["shawl", "scarves"], lehenga: ["skirt", "ensemble", "dress"], salwar: ["trouser", "ensemble"],
-    jeans: ["denim", "trouser"], tshirt: ["t shirt", "singlet"], pashmina: ["cashmere", "kashmir", "fine animal hair"],
-    khadi: ["khadi", "handloom"], kalamkari: ["printed"], dari: ["dari", "carpet", "floor covering"], durrie: ["carpet", "floor covering"],
-    diya: ["lamp", "clay articles", "lighting"], dhoop: ["agarbatti", "odoriferous"], agarbatti: ["agarbatti", "odoriferous"], incense: ["agarbatti", "odoriferous"],
-    attar: ["essential oil", "perfume"], ittar: ["essential oil", "perfume"], mehndi: ["henna", "lawsonia"], henna: ["henna", "lawsonia"],
-    kumkum: ["kumkum", "make up", "bindi"], sindoor: ["kumkum", "make up"], ayurvedic: ["ayurvedic", "medicament"],
-    achar: ["preserved by vinegar", "pickle"], pickle: ["preserved by vinegar", "pickle"], namkeen: ["namkeen", "bhujia", "food preparation"], bhujia: ["bhujia", "namkeen"],
-    mithai: ["sweetmeat", "sugar confectionery"], sweets: ["sweetmeat", "sugar confectionery"], gur: ["jaggery"],
-    makhana: ["fox nut", "makhana", "nuts"], atta: ["wheat or meslin flour", "atta"], besan: ["gram flour", "flour"],
-    suji: ["semolina"], sooji: ["semolina"], poha: ["flaked", "rice"], dal: ["leguminous", "pulse", "dal"], daal: ["leguminous", "pulse"],
-    rajma: ["kidney bean"], chana: ["chickpea", "gram"], haldi: ["turmeric"], jeera: ["cumin"], elaichi: ["cardamom"],
-    dalchini: ["cinnamon"], mirchi: ["capsicum", "chilli"], chilli: ["capsicum", "chilli"], chili: ["capsicum", "chilli"],
-    masala: ["spice", "masala"], ghee: ["ghee", "butter"], pottery: ["clay articles", "ceramic"], terracotta: ["clay articles", "terracotta", "ceramic statuettes", "ceramic"],
-    clay: ["clay articles", "clay", "ceramic"], matka: ["clay articles", "ceramic"], murti: ["statuette", "idol"], idol: ["statuette", "idol"],
-    handicraft: ["statuette", "ornament", "handicraft"], chappal: ["footwear", "chappal", "slipper"], slipper: ["footwear", "slipper"],
-    chudi: ["bangle"], jhumka: ["jewellery", "imitation jewellery"], earring: ["jewellery", "imitation jewellery"],
-    tiffin: ["container", "kitchen"], kadai: ["kitchen", "table"], tawa: ["kitchen", "table"], jhadu: ["broom"], broom: ["broom"],
-    rassi: ["twine", "cordage", "rope"], wooden: ["wood"], banarasi: ["silk", "saree"], saree: ["saree", "sari"], sari: ["saree", "sari"],
-    lamp: ["lamp", "lighting"], brass: ["articles of brass", "brass", "copper"], rakhi: ["rakhi", "made up"], notebook: ["exercise book", "notebook"], copy: ["exercise book"]
-  };
-  function norm(t) { return " " + String(t).toLowerCase().replace(/[^a-z0-9%]+/g, " ") + " "; }
-  // 1 if the first (best) alternative is present, less for later ones, 0 if none.
-  function count(hay, alts) { for (var i = 0; i < alts.length; i++) if (hay.indexOf(" " + alts[i]) >= 0) return 1 / (1 + i * 0.5); return 0; }
-
-  function search(q) {
-    q = q.trim().toLowerCase();
-    if (q.length < 2 || !LINES.length) return [];
-    var digits = q.replace(/[\s.]/g, "");
-    if (/^\d+$/.test(digits)) {
-      return LINES.filter(function (l) { return l.code.indexOf(digits) === 0; }).slice(0, 40);
-    }
-    var toks = q.split(/[^a-z0-9%]+/).filter(function (t) { return t.length > 1; });
-    if (!toks.length) return [];
-    var alts = toks.map(function (t) {
-      var stem = t.length > 4 ? t.replace(/(es|s)$/, "") : t;
-      return SYN[t] || SYN[stem] || [stem];
-    });
-    // Lines matching every word come first. If none do (e.g. "banarasi saree"), show lines matching the most words.
-    var out = [], partial = [];
-    for (var i = 0; i < LINES.length; i++) {
-      var l = LINES[i], score = 0, hits = 0;
-      if (!l.nt) { l.nt = norm(l.title); l.nh = norm(l.heading); l.nd = norm(l.detail); }
-      for (var j = 0; j < alts.length; j++) {
-        if (!count(l.hay, alts[j])) continue;
-        hits++;
-        score += 4 * count(l.hay, alts[j]) + 1.5 * count(l.nt, alts[j]) + count(l.nh, alts[j]) + 0.5 * count(l.nd, alts[j]);
-      }
-      if (hits === alts.length) out.push([score, l]);
-      else if (hits && !out.length) partial.push([hits * 10 + score, l]);
-    }
-    if (!out.length) { out = partial; out.partial = true; }
-    out.sort(function (a, b) { return b[0] - a[0] || (a[1].code < b[1].code ? -1 : 1); });
-    var res = out.slice(0, 40).map(function (x) { return x[1]; });
-    res.partial = !!out.partial;
-    return res;
-  }
-
-  function renderList(items) {
-    shown = items; activeIdx = -1;
-    if (!items.length) {
-      els.list.innerHTML = ""; els.list.hidden = true; els.hsn.setAttribute("aria-expanded", "false");
-      if (els.hsn.value.trim().length >= 2 && LINES.length) els.status.textContent = "No match. Try a simpler word (e.g. \"bedsheet\" → \"bed linen\") or the first 4 digits of the code.";
-      return;
-    }
-    els.status.textContent = items.partial ? "No exact match for every word. Showing the closest codes. Try one simple word, like \"lamp\" or \"saree\"." : items.length >= 40 ? "Showing the first 40 matches. Type more to narrow it down." : items.length + " matches";
-    els.list.innerHTML = items.map(function (l, i) {
-      return '<li role="option" id="sfOpt' + i + '" data-i="' + i + '"><span class="sf-code">' + esc(fmtCode(l.code)) + '</span>' +
-        '<span class="sf-otitle">' + esc(l.title || l.heading) + '</span>' +
-        (l.detail ? '<span class="sf-odetail">' + esc(l.detail) + '</span>' : "") + '</li>';
-    }).join("");
-    els.list.hidden = false; els.hsn.setAttribute("aria-expanded", "true");
-  }
-
-  function setActive(i) {
-    var opts = els.list.querySelectorAll("li");
-    if (!opts.length) return;
-    activeIdx = (i + opts.length) % opts.length;
-    opts.forEach(function (o, k) { o.classList.toggle("is-active", k === activeIdx); o.setAttribute("aria-selected", k === activeIdx); });
-    els.hsn.setAttribute("aria-activedescendant", "sfOpt" + activeIdx);
-    opts[activeIdx].scrollIntoView({ block: "nearest" });
-  }
-
-  function shortName(l) {
-    var t = (l.title || l.heading).split(/;|\(/)[0].trim();
-    var rest = (l.title || "").split(";")[1];
-    if (rest && t.length < 40) t += "," + rest.split(/,|\(/)[0];
-    return t.replace(/\s+/g, " ").trim().slice(0, 90);
-  }
-
   function pick(l) {
     selected = l;
-    els.list.hidden = true; els.hsn.setAttribute("aria-expanded", "false");
-    els.hsn.value = l.code;
-    els.status.textContent = "";
     els.picked.innerHTML =
       '<div class="sf-picked__code">HSN ' + esc(fmtCode(l.code)) + (l.code.length < 8 ? ' <span class="sf-opt">(6-digit, check your invoice for the full code)</span>' : "") + '</div>' +
       '<div class="sf-picked__title">' + esc(l.title || l.heading) + '</div>' +
@@ -172,12 +66,14 @@
       '<div class="sf-picked__ch">Chapter ' + esc(l.code.slice(0, 2)) + ' · ' + esc(l.chapter) + '</div>' +
       '<button type="button" class="sf-link" id="sfChange">Change</button>';
     els.picked.hidden = false;
-    $("sfChange").onclick = function () { els.picked.hidden = true; els.hsn.value = ""; selected = null; els.suggest.hidden = true; els.hsn.focus(); };
+    $("sfChange").onclick = function () { unpick(); combo.clear(); };
     els.productWrap.hidden = false;
     if (!els.product.dataset.touched) els.product.value = shortName(l);
     renderSuggestions();
     track("sf_pick_hsn", { hsn: l.code });
   }
+
+  function unpick() { selected = null; els.picked.hidden = true; els.suggest.hidden = true; }
 
   // ── ODOP district suggestions ───────────────────────────────────────────────
   function renderSuggestions() {
@@ -312,23 +208,7 @@
   function closeGate() { els.gate.hidden = true; document.body.classList.remove("sf-noscroll"); }
 
   // ── Wiring ──────────────────────────────────────────────────────────────────
-  var t;
-  els.hsn.addEventListener("input", function () {
-    clearTimeout(t);
-    if (selected && els.hsn.value !== selected.code) { selected = null; els.picked.hidden = true; els.suggest.hidden = true; }
-    t = setTimeout(function () { renderList(search(els.hsn.value)); }, 120);
-  });
-  els.hsn.addEventListener("keydown", function (e) {
-    if (els.list.hidden) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive(activeIdx + 1); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setActive(activeIdx - 1); }
-    else if (e.key === "Enter") { if (activeIdx >= 0 || shown.length === 1) { e.preventDefault(); pick(shown[Math.max(activeIdx, 0)]); } }
-    else if (e.key === "Escape") { els.list.hidden = true; }
-  });
-  els.list.addEventListener("mousedown", function (e) {
-    var li = e.target.closest("li"); if (!li) return; e.preventDefault(); pick(shown[+li.dataset.i]);
-  });
-  document.addEventListener("click", function (e) { if (!e.target.closest(".sf-combo")) els.list.hidden = true; });
+  combo = H.combo({ input: els.hsn, list: els.list, status: els.status, idPrefix: "sfOpt", onPick: pick, onClear: unpick });
   els.product.addEventListener("input", function () { els.product.dataset.touched = "1"; });
   els.state.addEventListener("change", fillDistricts);
   els.chips.addEventListener("click", function (e) {
@@ -377,9 +257,6 @@
     var qs = new URLSearchParams(location.search), code = (qs.get("hsn") || "").replace(/\D/g, "");
     if (qs.get("state")) { els.state.value = qs.get("state"); fillDistricts(); }
     if (qs.get("district")) els.district.value = qs.get("district");
-    if (code) {
-      var hit = LINES.filter(function (l) { return l.code === code; })[0];
-      if (hit) pick(hit); else { els.hsn.value = code; renderList(search(code)); }
-    }
+    if (code) combo.prefill(code);
   });
 })();

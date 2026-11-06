@@ -4,3 +4,4 @@ __pycache__/
 dist/
 .env
 *.env
+data/us_imports/_cache.json

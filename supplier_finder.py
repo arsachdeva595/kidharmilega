@@ -13,6 +13,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "tools_src" / "supplier-finder"
+SHARED_SRC = BASE_DIR / "tools_src" / "shared"
+SHARED_PATH = "/tools/shared/"
 
 # Paste the Apps Script web-app URL here (ends in /exec). Empty = leads are not saved, the tool still works.
 LEAD_ENDPOINT = ""
@@ -658,7 +660,7 @@ def build_page(head, nav, footer, esc, p):
     cfg = {
         "leadEndpoint": LEAD_ENDPOINT,
         "bookCallUrl": BOOK_CALL_URL,
-        "hsnUrl": p(TOOL_PATH + "hsn.json"),
+        "hsnUrl": p(SHARED_PATH + "hsn.json"),
         "districtsUrl": p(TOOL_PATH + "districts.json"),
         "prompts": PROMPTS,
         "checklist": checklist_data(),
@@ -781,13 +783,14 @@ def build_page(head, nav, footer, esc, p):
   <noscript><p class="sf-error">This tool needs JavaScript turned on.</p></noscript>
 </div></main>
 <script>window.SF_CONFIG={json.dumps(cfg, ensure_ascii=False).replace("</", "<\\/")};</script>
+<script src="{p(SHARED_PATH + "hsn-search.js")}?v={_asset_version()}" defer></script>
 <script src="{p(TOOL_PATH + "app.js")}?v={_asset_version()}" defer></script>
 ''' + footer() + "</body></html>"
 
 
 def build_tools_index(head, nav, footer, esc, p):
     return head("Free Tools for Small Business Founders | KidharMilega",
-                "Free tools for first-time founders in India: find local suppliers by HSN code and audit them before you buy.",
+                "Free tools for first-time founders in India: find local suppliers by HSN code, audit them, and size the US export market for your product.",
                 "/tools/") + nav("tools") + f'''
 <main><div class="container">
   <div class="page-header">
@@ -800,6 +803,12 @@ def build_tools_index(head, nav, footer, esc, p):
       <div class="section-label">Sourcing</div>
       <h2 style="font-size:1.4rem;margin-bottom:8px">Supplier Finder by HSN code</h2>
       <p>Copy-paste AI prompts to find local manufacturers in any district, pull their Google Maps profiles, and a checklist to audit each supplier.</p>
+      <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
+    </a>
+    <a class="card" href="{p('/tools/export-buyer-finder/')}" style="display:block">
+      <div class="section-label">Exports · Beta</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">Export Buyer Finder</h2>
+      <p>See how much the US imports of your HSN code, India's share and rank, and the countries you compete with. Verified US buyer lists coming soon.</p>
       <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
     </a>
   </div>
@@ -816,6 +825,7 @@ def _asset_version():
         h = hashlib.sha1()
         for f in ("app.js", "style.css"):
             h.update((SRC_DIR / f).read_bytes())
+        h.update((SHARED_SRC / "hsn-search.js").read_bytes())
         h.update(json.dumps([PROMPTS, checklist_data(), LEAD_ENDPOINT, BOOK_CALL_URL]).encode())
         _VERSION = h.hexdigest()[:10]
     return _VERSION
@@ -828,8 +838,11 @@ def write_supplier_finder(dist_dir, districts, product_page_slug, head, nav, foo
 
     out = Path(dist_dir) / "tools" / "supplier-finder"
     out.mkdir(parents=True, exist_ok=True)
+    shared = Path(dist_dir) / "tools" / "shared"
+    shared.mkdir(parents=True, exist_ok=True)
     hsn = compile_hsn()
-    (out / "hsn.json").write_text(json.dumps(hsn, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    (shared / "hsn.json").write_text(json.dumps(hsn, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    shutil.copy(SHARED_SRC / "hsn-search.js", shared / "hsn-search.js")
     dj = build_districts_json(districts, product_page_slug)
     (out / "districts.json").write_text(json.dumps(dj, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
     for f in ("app.js", "style.css"):
