@@ -65,3 +65,16 @@
 .ebf-done p{font-size:14px;margin-top:2px}
 .ebf-h2{font-size:var(--text-xl);margin:var(--space-xl) 0 var(--space-md);padding-top:var(--space-lg);border-top:1px dashed var(--color-rule-2);scroll-margin-top:80px}
 .ebf-trend a{color:var(--color-link);font-weight:600}
+
+/* Named importer lists */
+.ebf-buyers{list-style:none;counter-reset:b;background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:4px var(--space-lg);margin-bottom:var(--space-md)}
+.ebf-buyers li{counter-increment:b;position:relative;padding:12px 0 12px 32px;border-top:1px solid var(--color-rule)}
+.ebf-buyers li:first-child{border-top:0}
+.ebf-buyers li::before{content:counter(b);position:absolute;left:0;top:13px;font-family:var(--font-label);font-size:12px;color:var(--color-muted)}
+.ebf-buyers__n{font-weight:600;color:var(--color-ink);line-height:1.35}
+.ebf-buyers__m{font-size:14px;color:var(--color-neutral);margin-top:2px}
+.ebf-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ebf-tag{font-size:12px;font-weight:600;padding:2px 9px;border-radius:var(--radius-pill);background:var(--color-paper-3);color:var(--color-neutral)}
+.ebf-tag.is-proof{background:var(--tint-mint);color:var(--color-good)}
+.ebf-more{font-size:15px;margin-bottom:var(--space-md)}
+.ebf-more a{color:var(--color-link);font-weight:600;text-decoration:underline}

@@ -6,14 +6,14 @@
   var $ = function (id) { return document.getElementById(id); };
   var LS_LEAD = "ebf_lead_v1", INDIA = 699;
   var META = C.meta || {}, MUS = META.us || {}, MIN = META["in"] || {}, NAMES = META.partners || {};
-  var YEARS = MUS.years || [], IYEARS = MIN.years || [], US = 842;
+  var YEARS = MUS.years || [], IYEARS = MIN.years || [], US = 842, MCA = META.ca || null;
   var els = {
     form: $("ebfForm"), hsn: $("ebfHsn"), list: $("ebfHsnList"), status: $("ebfHsnStatus"), picked: $("ebfPicked"),
     error: $("ebfError"), results: $("ebfResults"), title: $("ebfTitle"), sub: $("ebfSub"), market: $("ebfMarket"),
     waitCode: $("ebfWaitCode"), waitForm: $("ebfWaitForm"), email: $("ebfEmail"), phone: $("ebfPhone"), seg: $("ebfSeg"),
     waitError: $("ebfWaitError"), done: $("ebfDone"), doneEmail: $("ebfDoneEmail"), sfLink: $("ebfSfLink")
   };
-  var selected = null, combo, chapters = { us: {}, "in": {} };
+  var selected = null, combo, chapters = { us: {}, "in": {}, ca: {} }, caRows = [], caShowAll = false;
 
   function store(key, val) {
     try { if (val === undefined) return JSON.parse(localStorage.getItem(key) || "null"); localStorage.setItem(key, JSON.stringify(val)); }
@@ -87,16 +87,64 @@
     els.sfLink.href = C.supplierFinder + "?hsn=" + encodeURIComponent(l.code);
     els.market.innerHTML = '<p class="sf-hint">Loading trade data…</p>';
     show();
-    Promise.all([loadChapter("in", ch), loadChapter("us", ch)]).then(function (res) {
+    Promise.all([loadChapter("in", ch), loadChapter("us", ch), loadChapter("ca", ch)]).then(function (res) {
       if (selected !== l) return;
       var hin = IYEARS.length ? rowFor(l.code, res[0], IYEARS) : null, hus = YEARS.length ? rowFor(l.code, res[1], YEARS) : null;
       var html = "";
       if (hin) html += indiaHtml(hin);
       else if (IYEARS.length) html += '<p class="ebf-note">No India export records for this code in ' + IYEARS[0] + "–" + IYEARS[IYEARS.length - 1] + '. India may report it under a nearby code. Try a related product.</p>';
+      html += '<div id="ebfCa">' + canadaHtml(l.code, res[2]) + '</div>';
       if (hus) html += '<h2 class="ebf-h2" id="ebfUs">The US market in detail</h2>' + marketHtml(hus);
       else if (YEARS.length) html += '<p class="ebf-note">No US import records for this code in ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '. The US may classify it under a nearby code.</p>';
       els.market.innerHTML = html || '<p class="ebf-note">Trade data is being updated. Join the waitlist below and check back soon.</p>';
     });
+  }
+
+  // ── Canadian importers from India (named) ────────────────────────────────
+  function caFor(code, data) {
+    var h6 = code.slice(0, 6);
+    if (data[h6]) return { level: "hs6", code: h6, rows: data[h6] };
+    var h4 = code.slice(0, 4), seen = {}, rows = [];
+    Object.keys(data).sort().forEach(function (k) {
+      if (k.indexOf(h4) !== 0) return;
+      data[k].forEach(function (r) { if (!seen[r[0]]) { seen[r[0]] = 1; rows.push(r); } });
+    });
+    var RANK = { specialist: 3, other: 2, chain: 1, luxury: 0 };
+    rows.sort(function (a, b) { return (RANK[b[3]] - RANK[a[3]]) || (a[4] - b[4]) || (Math.min(b[5], 10) - Math.min(a[5], 10)) || (a[0] < b[0] ? -1 : 1); });
+    return rows.length ? { level: "hs4", code: h4, rows: rows } : null;
+  }
+  function nice(name) {
+    return name.toLowerCase().replace(/(^|[\s\/(&.-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); })
+      .replace(/\b(Ltd|Inc|Llc|Ulc|Lp|Ltee|Ltée|Corp)\b\.?/g, function (m) { return m.charAt(0) + m.slice(1).toLowerCase(); });
+  }
+  function canadaHtml(code, data) {
+    if (!MCA) return "";
+    var hit = caFor(code, data);
+    var head = '<h2 class="ebf-h2">Canadian companies importing this from India</h2>';
+    if (!hit) return head + '<p class="ebf-note">No Canadian importer of this code from India is listed for ' + MCA.year + '.</p>';
+    caRows = hit.rows;
+    var n = caRows.length, unlocked = !!store(LS_LEAD), show = unlocked && caShowAll ? n : Math.min(10, n);
+    var html = head + '<p class="section-sub" style="margin-bottom:var(--space-md)"><strong>' + n + '</strong> ' + (n === 1 ? "company" : "companies") +
+      ' imported HS ' + esc(hit.code) + ' from India in ' + MCA.year + ', named in Canadian government data.' +
+      (hit.level === "hs4" ? ' No exact list for HS ' + esc(code.slice(0, 6)) + ', so this covers the whole heading.' : "") + '</p>';
+    html += '<ol class="ebf-buyers">' + caRows.slice(0, show).map(function (r) {
+      var tags = '<span class="ebf-tag is-proof">Imports this from India</span>';
+      if (r[3] === "chain") tags += '<span class="ebf-tag">Big retail chain</span>';
+      if (r[3] === "luxury") tags += '<span class="ebf-tag">Luxury brand, sources in-house</span>';
+      if (r[4]) tags += '<span class="ebf-tag">Based outside Canada</span>';
+      return '<li><div class="ebf-buyers__n">' + esc(nice(r[0])) + '</div><div class="ebf-buyers__m">' + esc(r[1]) + ', ' + esc(r[2]) +
+        (r[5] ? ' · also imports ' + r[5] + ' related product' + (r[5] === 1 ? "" : "s") + ' from India' : "") + '</div><div class="ebf-tags">' + tags + '</div></li>';
+    }).join("") + '</ol>';
+    if (n > show) {
+      html += unlocked ? '<button type="button" class="btn btn-ghost btn-sm" id="ebfCaAll">Show all ' + n + ' companies</button>'
+        : '<p class="ebf-more"><strong>+' + (n - show) + ' more companies.</strong> <a href="#ebfWait">Join the free waitlist</a> to see the full list.</p>';
+    }
+    html += '<p class="ebf-source">' + esc(MCA.licence) + ' Source: ' + esc(MCA.source) + ', ' + MCA.year + '. The list shows who imported, not how much. Contacts are not included.</p>';
+    return html;
+  }
+  function refreshCanada() {
+    var box = $("ebfCa"); if (!box || !selected) return;
+    loadChapter("ca", selected.code.slice(0, 2)).then(function (d) { box.innerHTML = canadaHtml(selected.code, d); });
   }
 
   // India → every destination (single series for the trend; destinations ranked, US marked).
@@ -258,7 +306,12 @@
     store(LS_LEAD, lead);
     sendLead("export_waitlist");
     showDone(lead);
+    refreshCanada();
     track("ebf_waitlist", { hsn: selected && selected.code, segment: seg }); track("generate_lead", { method: "export_buyer_finder" });
+  });
+
+  els.market.addEventListener("click", function (e) {
+    if (e.target.id === "ebfCaAll") { caShowAll = true; refreshCanada(); track("ebf_ca_all", { hsn: selected && selected.code }); }
   });
 
   combo = H.combo({ input: els.hsn, list: els.list, status: els.status, idPrefix: "ebfOpt", onPick: pick, onClear: unpick });

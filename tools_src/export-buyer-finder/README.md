@@ -1,4 +1,4 @@
-# Export Buyer Finder (teaser)
+# Export Buyer Finder (free tool)
 
 Live page: `/tools/export-buyer-finder/` (built by `export_buyer_finder.py`, called from `build.py`).
 
@@ -8,9 +8,25 @@ countries. Below that is a locked sample buyer lead and a waitlist form (email, 
 
 **What's coming (see the PRD):** the verified US buyer list from customs records, 3 free leads, then credits.
 
-## Data
+## Page sections (in order)
 
-`fetch_us_imports.py` downloads US-reported imports by HS6 from the UN Comtrade public API (no key needed):
+1. **Where India sells this:** India's exports by destination (top 10), trend, top buyer country. `fetch_comtrade.py india_exports`
+2. **Canadian companies importing this from India:** named importers, top 10 free, full list after joining. `fetch_canada.py`
+3. **The US market in detail:** US imports, India's share, rank and competitors. `fetch_comtrade.py us_imports`
+4. Waitlist for the paid US buyer list.
+
+Coming next: UK importers from HMRC trader data (launch chapters 42, 48, 63, 71, 68, 44), refreshed monthly.
+
+## Canadian importers
+
+`fetch_canada.py` downloads the Canadian Importers Database file "Major Importers by HS6, country" (yearly, latest
+2024), converts it with LibreOffice, keeps rows where the source country is India and writes
+`data/canada_importers/canada_india_hs6.json`. Run it once a year with `--year`. `segments.py` removes couriers and
+brokers and tags big chains and luxury brands (shared with the UK list). The list shows who imported, not how much.
+
+## Trade data
+
+`fetch_comtrade.py` (presets `us_imports`, `india_exports`) downloads US-reported imports by HS6 from the UN Comtrade public API (no key needed):
 - latest year: every supplier country (top 8 kept, plus India's rank and the supplier count)
 - the 4 years before: world total and India only
 

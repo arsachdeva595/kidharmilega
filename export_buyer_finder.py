@@ -19,6 +19,8 @@ DATASETS = {
     "in": BASE_DIR / "data" / "india_exports" / "india_exports_hs6.json",   # India → every destination
     "us": BASE_DIR / "data" / "us_imports" / "us_imports_hs6.json",         # US ← every supplier
 }
+# Named Canadian importers from India (tools_src/export-buyer-finder/fetch_canada.py).
+CANADA = BASE_DIR / "data" / "canada_importers" / "canada_india_hs6.json"
 TOOL_PATH = "/tools/export-buyer-finder/"
 
 # Comtrade's official names → what readers expect ("Other Asia, nes" is Taiwan in Comtrade).
@@ -51,7 +53,7 @@ def _version():
     h = hashlib.sha1()
     for f in (SRC_DIR / "app.js", SRC_DIR / "style.css", sf.SHARED_SRC / "hsn-search.js", sf.SRC_DIR / "style.css"):
         h.update(f.read_bytes())
-    for path in DATASETS.values():
+    for path in list(DATASETS.values()) + [CANADA]:
         if path.exists():
             h.update(str(path.stat().st_mtime).encode())
     return h.hexdigest()[:10]
@@ -124,8 +126,8 @@ def build_page(head, nav, footer, esc, p, meta):
       </div>
 
       <div class="ebf-wait" id="ebfWait">
-        <h3>Get early access, with 3 buyer leads free</h3>
-        <p>Join the waitlist. We'll email you when buyers for <strong id="ebfWaitCode">your HSN code</strong> are ready.</p>
+        <h3>Join free: full lists now, 3 US buyer leads at launch</h3>
+        <p>Joining unlocks the full Canadian importer list right away. We'll email you when US buyers for <strong id="ebfWaitCode">your HSN code</strong> are ready.</p>
         <form id="ebfWaitForm" novalidate>
           <div class="sf-row">
             <div>
@@ -145,7 +147,7 @@ def build_page(head, nav, footer, esc, p, meta):
         </form>
         <div class="ebf-done" id="ebfDone" hidden>
           <strong>You're on the list.</strong>
-          <p>We'll email <span id="ebfDoneEmail"></span> when US buyers for this code are ready. Look up more HSN codes above. We'll note each one you check.</p>
+          <p>Full importer lists are unlocked. We'll email <span id="ebfDoneEmail"></span> when US buyers for this code are ready. Look up more HSN codes above. We'll note each one you check.</p>
         </div>
       </div>
     </div>
@@ -184,6 +186,16 @@ def write_export_buyer_finder(dist_dir, head, nav, footer, esc, p):
         meta[key] = {"years": data["years"], "source": data["source"], "fetched": data["fetched"], "chapters": sorted(by_ch)}
         counts[key] = len(data["hs6"])
     meta["partners"] = names
+    (out / "ca").mkdir(parents=True, exist_ok=True)
+    if CANADA.exists():
+        ca = json.loads(CANADA.read_text(encoding="utf-8"))
+        by_ch = {}
+        for code, rows in ca["hs6"].items():
+            by_ch.setdefault(code[:2], {})[code] = rows
+        for ch, rows in by_ch.items():
+            (out / "ca" / f"{ch}.json").write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+        meta["ca"] = {"year": ca["year"], "source": ca["source"], "licence": ca["licence"], "chapters": sorted(by_ch)}
+        counts["ca"] = len(ca["hs6"])
     for f in ("app.js", "style.css"):
         shutil.copy(SRC_DIR / f, out / f)
     (out / "index.html").write_text(build_page(head, nav, footer, esc, p, meta), encoding="utf-8")
