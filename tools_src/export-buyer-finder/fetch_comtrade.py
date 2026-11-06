@@ -104,19 +104,26 @@ def fetch_latest_all_partners(codes, cache):
 
 def fetch_history(codes, cache):
     partners = [WORLD] + ([PRESET["focus"]] if PRESET["focus"] else [])
-    per_call = 480 // len(partners)
+    # The preview API quietly answers only part of a very long cmdCode list (480 codes gave ~55%), so keep it short.
+    per_call = min(200, 480 // len(partners))
     for y in YEARS[:-1]:
         have = cache["hist"].setdefault(str(y), {})
         todo = [c for c in codes if c not in have]
         print(f"{y} history: {len(todo)} codes", flush=True)
-        for i in range(0, len(todo), per_call):
-            batch = todo[i:i + per_call]
+        def run(batch):
             d = get({"period": y, "cmdCode": ",".join(batch), "partnerCode": ",".join(map(str, partners))})
+            rows = d.get("data") or []
+            if len(rows) >= 500 and len(batch) > 1:  # hit the preview cap: rows were cut off, so split
+                mid = len(batch) // 2
+                run(batch[:mid]); run(batch[mid:]); return
             for c in batch:
                 have.setdefault(c, {})
-            for x in d.get("data") or []:
+            for x in rows:
                 if plain(x):
                     have.setdefault(x["cmdCode"], {})[str(x["partnerCode"])] = x.get("primaryValue")
+
+        for i in range(0, len(todo), per_call):
+            run(todo[i:i + per_call])
             save_cache(cache)
 
 

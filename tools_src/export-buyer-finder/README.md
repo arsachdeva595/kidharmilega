@@ -19,9 +19,9 @@ countries. Below that is a locked sample buyer lead and a waitlist form (email, 
 
 | Step | Source | What it adds | Status |
 |---|---|---|---|
-| 1 | UN Comtrade, India exports | Top 10 countries buying the product from India | Data downloading |
-| 2 | Canadian Importers Database | Named Canadian importers from India | Built |
-| 3 | HMRC trader data | Named UK importers (any origin) for chapters 42, 48, 63, 71, 68, 44, refreshed monthly | Data downloading |
+| 1 | UN Comtrade, India exports | Top 10 countries buying the product from India | Live |
+| 2 | Canadian Importers Database | Named Canadian importers from India | Live |
+| 3 | HMRC trader data | Named UK importers (any origin) for chapters 42, 48, 63, 71, 68, 44, refreshed monthly | Live |
 | 4 | France SIRENE (Licence Ouverte) | Named French wholesalers by NACE activity code mapped to HS chapters; labelled "wholesalers in this category", not import proof | Planned |
 | Later | Nordic / Belgian business registers | Same as France, after checking each licence | To research |
 
@@ -59,3 +59,12 @@ Same Google Sheet and `LEAD_ENDPOINT` as the Supplier Finder (`supplier_finder.p
 `export_waitlist` (joined the waitlist) and `export_search` (later lookups by someone already on the list).
 The `segment` column holds the exporter type. Redeploy the Apps Script after pasting the updated
 `tools_src/supplier-finder/apps-script.gs`, which adds that column.
+
+## UK importers
+
+`fetch_uk.py` pulls HMRC trader data per CN8 code for the launch chapters (about 1 hour with a cold cache) and writes
+`data/uk_importers/uk_importers_hs6.json`. Re-run monthly: delete `data/uk_importers/_raw/` first so the lists pick up
+the new month and drop traders HMRC has removed. Rows say "imports this product" because HMRC gives no source country.
+
+Global source research (which other countries publish usable buyer data):
+https://claude.ai/artifact/UfjnL9Qep6ccTkCgLGKH9Q
