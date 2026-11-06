@@ -39,7 +39,7 @@ def get(url, tries=8):
                 body = r.read().decode()
             time.sleep(2)
             return json.loads(body)
-        except (urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
+        except (OSError, json.JSONDecodeError) as e:  # HTTPError, URLError, timeouts and connection resets
             wait = 15 * (t + 1)
             print(f"  retry in {wait}s ({getattr(e, 'code', e)})", flush=True)
             time.sleep(wait)
