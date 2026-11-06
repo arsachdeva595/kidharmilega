@@ -14,7 +14,11 @@ import supplier_finder as sf
 
 BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "tools_src" / "export-buyer-finder"
-DATA_FILE = BASE_DIR / "data" / "us_imports" / "us_imports_hs6.json"
+# Two Comtrade datasets (see tools_src/export-buyer-finder/fetch_comtrade.py), served as one file per HS chapter.
+DATASETS = {
+    "in": BASE_DIR / "data" / "india_exports" / "india_exports_hs6.json",   # India → every destination
+    "us": BASE_DIR / "data" / "us_imports" / "us_imports_hs6.json",         # US ← every supplier
+}
 TOOL_PATH = "/tools/export-buyer-finder/"
 
 # Comtrade's official names → what readers expect ("Other Asia, nes" is Taiwan in Comtrade).
@@ -47,8 +51,9 @@ def _version():
     h = hashlib.sha1()
     for f in (SRC_DIR / "app.js", SRC_DIR / "style.css", sf.SHARED_SRC / "hsn-search.js", sf.SRC_DIR / "style.css"):
         h.update(f.read_bytes())
-    if DATA_FILE.exists():
-        h.update(str(DATA_FILE.stat().st_mtime).encode())
+    for path in DATASETS.values():
+        if path.exists():
+            h.update(str(path.stat().st_mtime).encode())
     return h.hexdigest()[:10]
 
 
@@ -57,14 +62,13 @@ def build_page(head, nav, footer, esc, p, meta):
     cfg = {
         "leadEndpoint": sf.LEAD_ENDPOINT,
         "hsnUrl": p(sf.SHARED_PATH + "hsn.json"),
-        "dataBase": p(TOOL_PATH + "us/"),
+        "dataBase": p(TOOL_PATH),
         "meta": meta,
         "supplierFinder": p(sf.TOOL_PATH),
     }
-    yr = meta.get("years", [None])[-1] if meta else None
-    title = "Export Buyer Finder: US Imports by HSN Code, India's Share & Top Competitors | KidharMilega"
-    desc = ("Enter your HSN code to see how much the US imports, how much comes from India, India's rank and the "
-            "countries you compete with. Verified US buyer lists from customs records are coming soon.")
+    title = "Export Buyer Finder: Which Countries Buy Your HSN Code from India | KidharMilega"
+    desc = ("Enter your HSN code to see the top countries buying it from India, India's export trend, and the US "
+            "market in detail: India's share, rank and competitors. Free, no signup. Buyer lists coming soon.")
     extra = (f'<link rel="stylesheet" href="{p(sf.TOOL_PATH + "style.css")}?v={v}">'
              f'<link rel="stylesheet" href="{p(TOOL_PATH + "style.css")}?v={v}">')
     seg_opts = "".join(f'<option value="{k}">{esc(label)}</option>' for k, label in SEGMENTS)
@@ -72,8 +76,8 @@ def build_page(head, nav, footer, esc, p, meta):
 <main class="sf ebf"><div class="container">
   <header class="page-header sf-header">
     <div class="section-label">Free tool · Export Buyer Finder <span class="ebf-beta">Beta</span></div>
-    <h1 class="page-header-title">Who buys your product<br><em>in the US?</em></h1>
-    <p class="page-header-sub">Start with the numbers. Enter your HSN code to see how much the US imports, how much comes from India, and which countries you're up against. Free, no signup.</p>
+    <h1 class="page-header-title">Which countries buy<br><em>your product from India?</em></h1>
+    <p class="page-header-sub">Start with the numbers. Enter your HSN code to see the top countries India sells it to, how fast that's growing, and the US market in detail: India's share, rank and competitors. Free, no signup.</p>
   </header>
 
   <form class="sf-form" id="ebfForm" autocomplete="off" novalidate>
@@ -95,7 +99,7 @@ def build_page(head, nav, footer, esc, p, meta):
 
   <section class="ebf-results" id="ebfResults" hidden aria-live="polite">
     <div class="sf-results__head">
-      <div class="section-label">US import market{(" · " + str(yr)) if yr else ""}</div>
+      <div class="section-label">Export market</div>
       <h2 class="section-title" id="ebfTitle"></h2>
       <p class="section-sub" id="ebfSub"></p>
     </div>
@@ -164,20 +168,23 @@ def build_page(head, nav, footer, esc, p, meta):
 
 def write_export_buyer_finder(dist_dir, head, nav, footer, esc, p):
     out = Path(dist_dir) / "tools" / "export-buyer-finder"
-    (out / "us").mkdir(parents=True, exist_ok=True)
-    meta, n = {}, 0
-    if DATA_FILE.exists():
-        data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-        names = {k: _country(v) for k, v in data["partners"].items()}
-        meta = {"years": data["years"], "source": data["source"], "fetched": data["fetched"], "partners": names}
+    meta, counts, names = {}, {}, {}
+    for key, path in DATASETS.items():
+        (out / key).mkdir(parents=True, exist_ok=True)
+        if not path.exists():
+            counts[key] = 0
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        names.update({k: _country(v) for k, v in data["partners"].items()})
         by_ch = {}
         for code, row in data["hs6"].items():
             by_ch.setdefault(code[:2], {})[code] = row
-        meta["chapters"] = sorted(by_ch)
         for ch, rows in by_ch.items():
-            (out / "us" / f"{ch}.json").write_text(json.dumps(rows, separators=(",", ":")), encoding="utf-8")
-        n = len(data["hs6"])
+            (out / key / f"{ch}.json").write_text(json.dumps(rows, separators=(",", ":")), encoding="utf-8")
+        meta[key] = {"years": data["years"], "source": data["source"], "fetched": data["fetched"], "chapters": sorted(by_ch)}
+        counts[key] = len(data["hs6"])
+    meta["partners"] = names
     for f in ("app.js", "style.css"):
         shutil.copy(SRC_DIR / f, out / f)
     (out / "index.html").write_text(build_page(head, nav, footer, esc, p, meta), encoding="utf-8")
-    return n
+    return counts

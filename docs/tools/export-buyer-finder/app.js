@@ -5,14 +5,15 @@
   var C = window.EBF_CONFIG || {}, H = window.KMHSN, esc = H.esc;
   var $ = function (id) { return document.getElementById(id); };
   var LS_LEAD = "ebf_lead_v1", INDIA = 699;
-  var META = C.meta || {}, YEARS = META.years || [], NAMES = META.partners || {};
+  var META = C.meta || {}, MUS = META.us || {}, MIN = META["in"] || {}, NAMES = META.partners || {};
+  var YEARS = MUS.years || [], IYEARS = MIN.years || [], US = 842;
   var els = {
     form: $("ebfForm"), hsn: $("ebfHsn"), list: $("ebfHsnList"), status: $("ebfHsnStatus"), picked: $("ebfPicked"),
     error: $("ebfError"), results: $("ebfResults"), title: $("ebfTitle"), sub: $("ebfSub"), market: $("ebfMarket"),
     waitCode: $("ebfWaitCode"), waitForm: $("ebfWaitForm"), email: $("ebfEmail"), phone: $("ebfPhone"), seg: $("ebfSeg"),
     waitError: $("ebfWaitError"), done: $("ebfDone"), doneEmail: $("ebfDoneEmail"), sfLink: $("ebfSfLink")
   };
-  var selected = null, combo, chapters = {};
+  var selected = null, combo, chapters = { us: {}, "in": {} };
 
   function store(key, val) {
     try { if (val === undefined) return JSON.parse(localStorage.getItem(key) || "null"); localStorage.setItem(key, JSON.stringify(val)); }
@@ -46,52 +47,88 @@
   function unpick() { selected = null; els.picked.hidden = true; }
 
   // ── Data ───────────────────────────────────────────────────────────────────
-  function loadChapter(ch) {
-    if (chapters[ch]) return Promise.resolve(chapters[ch]);
-    if (META.chapters && META.chapters.indexOf(ch) < 0) return Promise.resolve({});
-    return fetch(C.dataBase + ch + ".json").then(function (r) { return r.ok ? r.json() : {}; })
-      .catch(function () { return {}; }).then(function (d) { chapters[ch] = d; return d; });
+  function loadChapter(key, ch) {
+    var m = META[key], cache = chapters[key];
+    if (cache[ch]) return Promise.resolve(cache[ch]);
+    if (!m || (m.chapters && m.chapters.indexOf(ch) < 0)) return Promise.resolve({});
+    return fetch(C.dataBase + key + "/" + ch + ".json").then(function (r) { return r.ok ? r.json() : {}; })
+      .catch(function () { return {}; }).then(function (d) { cache[ch] = d; return d; });
   }
 
   // Exact HS6 row, else the 4-digit heading summed (no supplier ranking then).
-  function rowFor(code, data) {
+  function rowFor(code, data, years) {
     var h6 = code.slice(0, 6);
     if (data[h6]) return { level: "hs6", code: h6, row: data[h6] };
-    var h4 = code.slice(0, 4), w = YEARS.map(function () { return null; }), i = w.slice(), any = false;
+    // Whole heading: add up its HS6 codes. The country ranking adds up each code's top list, so very small
+    // partners can be missing, but the leaders are right.
+    var h4 = code.slice(0, 4), w = years.map(function () { return null; }), i = w.slice(), any = false, sum = {};
     Object.keys(data).forEach(function (k) {
       if (k.indexOf(h4) !== 0) return;
       any = true;
       data[k].w.forEach(function (v, j) { if (v != null) w[j] = (w[j] || 0) + v; });
-      data[k].i.forEach(function (v, j) { if (v != null) i[j] = (i[j] || 0) + v; });
+      (data[k].i || []).forEach(function (v, j) { if (v != null) i[j] = (i[j] || 0) + v; });
+      (data[k].top || []).forEach(function (t) { sum[t[0]] = (sum[t[0]] || 0) + t[1]; });
     });
-    return any ? { level: "hs4", code: h4, row: { w: w, i: i, top: [], n: null, r: null } } : null;
+    if (!any) return null;
+    var top = Object.keys(sum).map(function (p) { return [+p, sum[p]]; }).sort(function (a, b) { return b[1] - a[1]; });
+    var r = null;
+    top.forEach(function (t, j) { if (t[0] === INDIA && r === null) r = j + 1; });
+    return { level: "hs4", code: h4, row: { w: w, i: i, top: top.slice(0, 10), n: null, r: r } };
   }
 
   function latestIdx(arr) { for (var k = arr.length - 1; k >= 0; k--) if (arr[k] != null) return k; return -1; }
 
   // ── Render ─────────────────────────────────────────────────────────────────
   function render() {
-    var l = selected, name = H.shortName(l);
-    els.title.textContent = "US market for " + name;
+    var l = selected, name = H.shortName(l), ch = l.code.slice(0, 2);
+    els.title.textContent = "Export market for " + name;
     els.sub.textContent = "HSN " + H.fmtCode(l.code) + " · " + (l.title || l.heading);
     els.waitCode.textContent = "HSN " + H.fmtCode(l.code);
     els.sfLink.href = C.supplierFinder + "?hsn=" + encodeURIComponent(l.code);
-    if (!YEARS.length) {
-      els.market.innerHTML = '<p class="ebf-note">US import data is being updated. Join the waitlist below and check back soon.</p>';
-      return show();
-    }
-    els.market.innerHTML = '<p class="sf-hint">Loading US import data…</p>';
+    els.market.innerHTML = '<p class="sf-hint">Loading trade data…</p>';
     show();
-    loadChapter(l.code.slice(0, 2)).then(function (data) {
-      var hit = rowFor(l.code, data);
-      if (!hit) {
-        els.market.innerHTML = '<p class="ebf-note">No US import records for this code in ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] +
-          '. The US may classify it under a nearby code. Try a related product, or join the waitlist and we\'ll check it by hand.</p>';
-        return;
-      }
-      els.market.innerHTML = marketHtml(hit);
+    Promise.all([loadChapter("in", ch), loadChapter("us", ch)]).then(function (res) {
+      if (selected !== l) return;
+      var hin = IYEARS.length ? rowFor(l.code, res[0], IYEARS) : null, hus = YEARS.length ? rowFor(l.code, res[1], YEARS) : null;
+      var html = "";
+      if (hin) html += indiaHtml(hin);
+      else if (IYEARS.length) html += '<p class="ebf-note">No India export records for this code in ' + IYEARS[0] + "–" + IYEARS[IYEARS.length - 1] + '. India may report it under a nearby code. Try a related product.</p>';
+      if (hus) html += '<h2 class="ebf-h2" id="ebfUs">The US market in detail</h2>' + marketHtml(hus);
+      else if (YEARS.length) html += '<p class="ebf-note">No US import records for this code in ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '. The US may classify it under a nearby code.</p>';
+      els.market.innerHTML = html || '<p class="ebf-note">Trade data is being updated. Join the waitlist below and check back soon.</p>';
     });
   }
+
+  // India → every destination (single series for the trend; destinations ranked, US marked).
+  function indiaHtml(hit) {
+    var r = hit.row, k = latestIdx(r.w), yr = IYEARS[k], W = r.w[k], top = r.top || [];
+    var html = hit.level === "hs4" ? '<p class="ebf-note">No exact India data for HS ' + esc(selected.code.slice(0, 6)) + ', so this shows the whole heading ' + esc(hit.code) + '.</p>' : "";
+    var lead = top[0];
+    html += '<div class="ebf-tiles">' +
+      tile("India's exports to the world, " + yr, usd(W), "") +
+      tile("Top buyer country", lead ? country(lead[0]) : "–", lead && W ? pct(lead[1] / W) + " of India's exports" : "") +
+      tile("Countries buying it", r.n ? String(r.n) : "–", "from India in " + yr) +
+
+      '</div>';
+    html += columns("India → world, " + IYEARS[0] + "–" + IYEARS[IYEARS.length - 1], r.w, IYEARS, null);
+    if (top.length) {
+      html += '<div class="ebf-card"><h3>Top ' + top.length + ' countries buying this from India, ' + yr + '</h3><ol class="ebf-bars">' +
+        top.map(function (t, j) { return barRow(j + 1, t[0], t[1], top[0][1], W, US); }).join("") + '</ol>' +
+        (top.some(function (t) { return t[0] === US; }) ? '<p class="ebf-trend"><a href="#ebfUs">See the US market in detail ↓</a></p>' : "") + '</div>';
+      var share3 = W ? top.slice(0, 3).reduce(function (a, t) { return a + t[1]; }, 0) / W : null, tips = [];
+      if (share3 != null) tips.push("The top 3 countries take <strong>" + pct(share3) + "</strong> of India's exports of this product." + (share3 > 0.7 ? " Buyers are concentrated, so start with these markets." : " Demand is spread out, so smaller markets are worth a look too."));
+      var a = firstIdx(r.w);
+      if (a >= 0 && k > a && r.w[a]) {
+        var g = W / r.w[a] - 1;
+        tips.push("India's exports of this " + (Math.abs(g) < 0.02 ? "<strong>stayed flat</strong>" : g > 0 ? "grew <strong>" + pct(g) + "</strong>" : "fell <strong>" + pct(-g) + "</strong>") + " between " + IYEARS[a] + " and " + IYEARS[k] + ".");
+      }
+      html += '<div class="ebf-card ebf-insights"><h3>What this means for you</h3><ul>' + tips.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div>';
+    }
+    html += '<p class="ebf-source">Source: ' + esc(MIN.source || "UN Comtrade") + '. India-reported export values (FOB), HS ' + esc(hit.code) +
+      '. Rankings computed by KidharMilega. Data pulled ' + esc(MIN.fetched || "") + '.</p>';
+    return html;
+  }
+
   function show() {
     els.results.hidden = false;
     els.results.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -104,20 +141,12 @@
 
     html += '<div class="ebf-tiles">' +
       tile("US imports from the world, " + yr, usd(W), "") +
-      tile("From India, " + yr, usd(I), share != null ? pct(share) + " of the US market" : "") +
-      tile("India's rank", r.r ? "#" + r.r : (I ? "–" : "Not shipping"), r.n ? "of " + r.n + " supplier countries" : "") +
+      tile("From India, " + yr, usd(I), !I ? "None recorded" : share != null ? pct(share) + " of the US market" : "") +
+      tile("India's rank", r.r ? "#" + r.r : (I ? "–" : "Not shipping"), r.n ? "of " + r.n + " supplier countries" : (hit.level === "hs4" && r.r ? "across the heading" : "")) +
       '</div>';
 
     // India's sales to the US by year (single series → no legend).
-    var vals = r.i, max = Math.max.apply(null, vals.map(function (v) { return v || 0; })) || 1;
-    var fi = firstIdx(vals), li = latestIdx(vals);
-    if (fi >= 0 && li > fi) html += '<div class="ebf-card"><h3>India → US, ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '</h3><div class="ebf-cols" role="img" aria-label="US imports from India by year">' +
-      YEARS.map(function (y, j) {
-        var v = vals[j], h = v ? Math.max(2, Math.round(v / max * 100)) : 0, sh = r.w[j] ? (v || 0) / r.w[j] : null;
-        return '<div class="ebf-col" title="' + y + ": " + usd(v) + (sh != null ? " (" + pct(sh) + " of US imports)" : "") + '">' +
-          '<span class="ebf-col__v">' + ((j === fi || j === li) && v ? usd(v) : "") + '</span>' +
-          '<span class="ebf-col__bar"><span style="height:' + h + '%"></span></span><span class="ebf-col__y">' + y + '</span></div>';
-      }).join("") + '</div>' + trendLine(r) + '</div>';
+    html += columns("India → US, " + YEARS[0] + "–" + YEARS[YEARS.length - 1], r.i, YEARS, r.w, trendLine(r));
 
     // Top supplier countries, India highlighted.
     if (r.top && r.top.length) {
@@ -129,17 +158,32 @@
     }
 
     html += '<div class="ebf-card ebf-insights"><h3>What this means for you</h3><ul>' + insights(r, k).map(function (s) { return "<li>" + s + "</li>"; }).join("") + '</ul></div>';
-    html += '<p class="ebf-source">Source: ' + esc(META.source || "UN Comtrade") + '. US-reported import values (CIF), HS ' + esc(hit.code) +
-      '. Data pulled ' + esc(META.fetched || "") + '. Values for the latest year may still be revised.</p>';
+    html += '<p class="ebf-source">Source: ' + esc(MUS.source || "UN Comtrade") + '. US-reported import values (CIF), HS ' + esc(hit.code) +
+      '. Rankings computed by KidharMilega. Data pulled ' + esc(MUS.fetched || "") + '. Values for the latest year may still be revised.</p>';
     return html;
   }
 
+  // Year columns for one series. shareOf (optional) adds "x% of …" to each tooltip.
+  function columns(title, vals, years, shareOf, foot) {
+    var fi = firstIdx(vals), li = latestIdx(vals);
+    if (fi < 0 || li <= fi) return "";
+    var max = Math.max.apply(null, vals.map(function (v) { return v || 0; })) || 1;
+    return '<div class="ebf-card"><h3>' + esc(title) + '</h3><div class="ebf-cols" role="img" aria-label="' + esc(title) + '">' +
+      years.map(function (y, j) {
+        var v = vals[j], h = v ? Math.max(2, Math.round(v / max * 100)) : 0, sh = shareOf && shareOf[j] ? (v || 0) / shareOf[j] : null;
+        return '<div class="ebf-col" title="' + y + ": " + usd(v) + (sh != null ? " (" + pct(sh) + " of US imports)" : "") + '">' +
+          '<span class="ebf-col__v">' + ((j === fi || j === li) && v ? usd(v) : "") + '</span>' +
+          '<span class="ebf-col__bar"><span style="height:' + h + '%"></span></span><span class="ebf-col__y">' + y + '</span></div>';
+      }).join("") + '</div>' + (foot || "") + '</div>';
+  }
+
   function tile(label, value, sub) {
+    if (value === "–") return "";
     return '<div class="ebf-tile"><div class="ebf-tile__l">' + esc(label) + '</div><div class="ebf-tile__v">' + esc(value) + '</div>' +
       (sub ? '<div class="ebf-tile__s">' + esc(sub) + '</div>' : "") + '</div>';
   }
-  function barRow(rank, code, v, max, W) {
-    var isIn = code === INDIA;
+  function barRow(rank, code, v, max, W, mark) {
+    var isIn = code === (mark || INDIA);
     return '<li class="' + (isIn ? "is-india" : "") + '" title="' + esc(country(code)) + ": " + usd(v) + (W ? " (" + pct(v / W) + ")" : "") + '">' +
       '<span class="ebf-bars__n">' + (rank || "") + '</span><span class="ebf-bars__c">' + esc(country(code)) + '</span>' +
       '<span class="ebf-bars__t"><span style="width:' + Math.max(1, v / max * 100) + '%"></span></span>' +
