@@ -240,7 +240,9 @@ def strip_wp_blocks(content):
 
 # One URL per page: GitHub Pages serves /x/ and /x/index.html alike and can't 301, so every internal link uses the
 # clean form, every page carries a canonical, and visitors who land on an index.html address are moved to the clean one.
-CLEAN_URL_JS = "<script>if(/\\/index\\.html$/.test(location.pathname))location.replace(location.pathname.replace(/index\\.html$/,'')+location.search+location.hash)</script>"
+# The file name is assembled at runtime on purpose: Googlebot lifts URL-like strings out of inline scripts, and a literal
+# "index.html" here made it crawl /index.html and /products/<slug>/index.html as if the page linked to them.
+CLEAN_URL_JS = "<script>(function(l){var s=l.pathname.split('/');if(s.pop()==['index','html'].join('.')){s.push('');l.replace(s.join('/')+l.search+l.hash)}})(location)</script>"
 
 # Set in build() from the stylesheet's content hash, so each deploy gets a fresh stylesheet URL and no browser keeps a stale copy.
 STYLE_VERSION = "dev"
