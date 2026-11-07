@@ -282,6 +282,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 </head><body>'''
 
 BOOK_CALL_URL = "https://topmate.io/arsachdeva"
+IG_FOLLOWERS = "25,000+"   # @startupwalebhaia follower count shown on the homepage
 COMMUNITY_URL = "https://www.facebook.com/groups/startupwalebhaia/"
 
 # The homepage is a hallway, not a pitch: one question ("what are you here for?"), six doors, and behind each door one
@@ -431,12 +432,13 @@ def build_homepage(districts):
     <div class="grid-3" id="hpGuides">{cards}</div>
   </section>'''
 
-    # Filled in the browser from /reels.json, which build() carries over between builds; stays hidden while the list is empty.
+    # Filled in the browser from /reels.json (first 3 links, in list order), which build() carries over between builds;
+    # stays hidden while the list is empty.
     reels = f'''
   <section class="section" id="hpReels" aria-labelledby="reels-title" hidden>
     <div class="home-head">
-      <div><h2 id="reels-title" class="reveal">Taaza reels</h2>
-      <p>Jo baatein 60 second mein samjhayi ja sakti hain, woh yahan. Baaki ke liye upar wale options.</p></div>
+      <div><h2 id="reels-title" class="reveal">Yahin se shuru hua tha</h2>
+      <p>Inhi reels se sabse zyada log {IG_FOLLOWERS} wali family mein jude. 60 second mein samjho, phir upar se apna option chuno.</p></div>
       <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" data-cta="instagram">@startupwalebhaia follow karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
     </div>
     <div class="reels-row" id="hpReelsRow"></div>
@@ -455,7 +457,7 @@ def build_homepage(districts):
     <h1 class="hall-hero__title" id="home-title">Batao, aaj <span class="hl">kis kaam se</span> aaye ho?</h1>
     <p class="hall-hero__sub">Ek option chuno. Ek-do sawaal aur, phir seedha sahi jagah: tool, guide, ya bhaiya se 1:1 call.</p>
     {build_hallway()}
-    <p class="hall-hero__note">15,000+ log @startupwalebhaia ko follow karte hain &#183; {len(live)} districts mapped &#183; 1,500+ business ideas</p>
+    <p class="hall-hero__note">{IG_FOLLOWERS} log @startupwalebhaia ko follow karte hain &#183; {len(live)} districts mapped &#183; 1,500+ business ideas</p>
   </section>
 </div>
 
@@ -576,7 +578,7 @@ HOME_JS = """<script>
     gg.innerHTML = ''; gg.appendChild(frag);
   }).catch(function(){});
 
-  // Reels: the list lives in /reels.json (newest first). Instagram's embed script loads only when the section nears the screen.
+  // Reels: the list lives in /reels.json; the first 3 are shown, in list order. Instagram's embed script loads only when the section nears the screen.
   var rs = document.getElementById('hpReels'), rr = document.getElementById('hpReelsRow');
   if (rs && window.fetch) fetch('/reels.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).then(function(list){
     var urls = (Array.isArray(list) ? list : []).map(function(x){ return typeof x === 'string' ? x : (x && x.url) || ''; })

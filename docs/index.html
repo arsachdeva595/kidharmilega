@@ -175,7 +175,7 @@
 </a></div>
   <p class="hall-escape">Inme se kuch nahi? <a href="https://topmate.io/arsachdeva" target="_blank" rel="noopener" data-opt="escape: book a call">Seedha bhaiya se baat karo &#8594;</a></p>
 </section></div>
-    <p class="hall-hero__note">15,000+ log @startupwalebhaia ko follow karte hain &#183; 787 districts mapped &#183; 1,500+ business ideas</p>
+    <p class="hall-hero__note">25,000+ log @startupwalebhaia ko follow karte hain &#183; 787 districts mapped &#183; 1,500+ business ideas</p>
   </section>
 </div>
 
@@ -199,8 +199,8 @@
 <div class="container">
   <section class="section" id="hpReels" aria-labelledby="reels-title" hidden>
     <div class="home-head">
-      <div><h2 id="reels-title" class="reveal">Taaza reels</h2>
-      <p>Jo baatein 60 second mein samjhayi ja sakti hain, woh yahan. Baaki ke liye upar wale options.</p></div>
+      <div><h2 id="reels-title" class="reveal">Yahin se shuru hua tha</h2>
+      <p>Inhi reels se sabse zyada log 25,000+ wali family mein jude. 60 second mein samjho, phir upar se apna option chuno.</p></div>
       <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" data-cta="instagram">@startupwalebhaia follow karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
     </div>
     <div class="reels-row" id="hpReelsRow"></div>
@@ -316,7 +316,7 @@
     gg.innerHTML = ''; gg.appendChild(frag);
   }).catch(function(){});
 
-  // Reels: the list lives in /reels.json (newest first). Instagram's embed script loads only when the section nears the screen.
+  // Reels: the list lives in /reels.json; the first 3 are shown, in list order. Instagram's embed script loads only when the section nears the screen.
   var rs = document.getElementById('hpReels'), rr = document.getElementById('hpReelsRow');
   if (rs && window.fetch) fetch('/reels.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).then(function(list){
     var urls = (Array.isArray(list) ? list : []).map(function(x){ return typeof x === 'string' ? x : (x && x.url) || ''; })

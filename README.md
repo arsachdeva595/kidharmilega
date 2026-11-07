@@ -78,7 +78,7 @@ cd docs && python3 -m http.server 8080
 The homepage asks one question ("Batao, aaj kis kaam se aaye ho?") with six doors. Each door asks one follow-up and routes to a tool, guide, the community or a 1:1 call. Doors and options live in `HALLWAY` in `build.py`. `kidharmilega.in/#idea` (or `#odop`, `#suppliers`, `#buyers`, `#help`, `#guides`) opens a door directly, for reel and bio links. Clicks are sent to GA4 as `hallway_door`, `hallway_route` and `home_cta`.
 
 - **Taaza guides** reads `/blog/feed.xml` in the browser, so a new WriteOut post shows up on the homepage without a rebuild.
-- **Taaza reels** reads `docs/reels.json`: a list of reel links, newest first, and the first 3 are embedded. Edit it on GitHub and it is live on the next Pages deploy; `build.py` keeps the file when it rebuilds `docs/`. With an empty list (`[]`) the section stays hidden.
+- **Taaza reels** reads `docs/reels.json`: a list of reel or post links; the first 3 are embedded, in list order (put the ones you want shown on top). Edit it on GitHub and it is live on the next Pages deploy; `build.py` keeps the file when it rebuilds `docs/`. With an empty list (`[]`) the section stays hidden.
 
 ```json
 [
