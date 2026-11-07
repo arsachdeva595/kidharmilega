@@ -73,6 +73,21 @@ cd docs && python3 -m http.server 8080
 
 ---
 
+## Homepage (the hallway)
+
+The homepage asks one question ("Batao, aaj kis kaam se aaye ho?") with six doors. Each door asks one follow-up and routes to a tool, guide, the community or a 1:1 call. Doors and options live in `HALLWAY` in `build.py`. `kidharmilega.in/#idea` (or `#odop`, `#suppliers`, `#buyers`, `#help`, `#guides`) opens a door directly, for reel and bio links. Clicks are sent to GA4 as `hallway_door`, `hallway_route` and `home_cta`.
+
+- **Taaza guides** reads `/blog/feed.xml` in the browser, so a new WriteOut post shows up on the homepage without a rebuild.
+- **Taaza reels** reads `docs/reels.json`: a list of reel or post links; the first 3 are embedded, in list order (put the ones you want shown on top). Edit it on GitHub and it is live on the next Pages deploy; `build.py` keeps the file when it rebuilds `docs/`. With an empty list (`[]`) the section stays hidden.
+
+```json
+[
+  "https://www.instagram.com/reel/XXXXXXXXXXX/",
+  "https://www.instagram.com/reel/YYYYYYYYYYY/",
+  "https://www.instagram.com/reel/ZZZZZZZZZZZ/"
+]
+```
+
 ## Supplier Finder tool (`/tools/supplier-finder/`)
 
 Free tool: the user picks an 8-digit HSN code and a district, leaves an email, and gets copy-paste AI prompts to find local suppliers (including the Google Maps / GMB step), plus a supplier audit checklist for that product category. `build.py` calls `supplier_finder.py`. Leads go to a Google Sheet through Apps Script. Setup is in `tools_src/supplier-finder/SETUP.md`.

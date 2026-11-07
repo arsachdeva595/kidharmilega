@@ -281,192 +281,330 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 {extra_head}
 </head><body>'''
 
+BOOK_CALL_URL = "https://topmate.io/arsachdeva"
+IG_FOLLOWERS = "25,000+"   # @startupwalebhaia follower count shown on the homepage
+COMMUNITY_URL = "https://www.facebook.com/groups/startupwalebhaia/"
+
+# The homepage is a hallway, not a pitch: one question ("what are you here for?"), six doors, and behind each door one
+# follow-up question whose answers go straight to the tool, guide or person that fits. Each door's first href is where
+# it goes without JavaScript. Open a door from a reel or bio link with /#<door id>.
+# Option keys: (label, what you get, href). A /blog/ href is dropped if that post isn't published.
+HALLWAY = [
+    {"id": "idea", "title": "Business idea dhoondh raha hoon", "thought": "Kuch apna karna hai, par kya karun?",
+     "href": "/quiz/", "q": "Abhi kis stage pe ho?",
+     "opts": [
+        ("Bilkul blank hoon, kahan se shuru karun?", "33 chhote sawaal, 3 minute. Tumhare nature, budget aur district se match karke ideas.", "/quiz/"),
+        ("Budget fix hai, usi mein kya ho sakta hai?", "Budget daalo, us range ke business aur tumhare district ke products dekho.", "/tools/budget-matcher/"),
+        ("Ghar se ya part-time karna hai", "Ghar se shuru hone wale 18 ideas, rupaye ke kharche ke saath.", "/blog/small-business-ideas-from-home-india/"),
+        ("Saare ideas khud dekhunga", "1,500+ business ideas, har ek ke saath honest fit check.", "/ideas/"),
+     ]},
+    {"id": "odop", "title": "ODOP product samajhna hai", "thought": "Mere district ka kya famous hai, usme kya scope hai?",
+     "href": "/products/", "q": "Tumhe kya pata hai abhi?",
+     "opts": [
+        ("District ya product ka naam pata hai", "Naam likho, seedha uske page pe pahuncho: kharcha, margin, schemes, suppliers.", "#hpSearch"),
+        ("ODOP hota kya hai, pehle yeh samjhao", "One District One Product, 5 minute mein, bina sarkari bhasha ke.", "/what-is-odop/"),
+        ("Saare districts ki list dekhni hai", "787 districts, state aur category ke filter ke saath.", "/products/"),
+        ("GI tag ya handicraft product online bechna hai", "10 ODOP aur GI products jo online achhe bikte hain.", "/blog/ecommerce-business-ideas-odop-gi-products/"),
+     ]},
+    {"id": "suppliers", "title": "Supplier chahiye", "thought": "Sahi maal, sahi daam pe, kahan se milega?",
+     "href": "/tools/supplier-finder/", "q": "Kitna pata hai tumhe?",
+     "opts": [
+        ("Product pata hai, manufacturer chahiye", "Tumhare district ke paas ke suppliers dhoondhne ke ready prompts, plus audit checklist.", "/tools/supplier-finder/"),
+        ("HSN code nahi pata", "Product Hindi ya English mein likho, sahi HSN code pao.", "/tools/hsn-code-finder/"),
+        ("Supplier se aamne-saamne milna hai", "Tumhare sheher aur product ke trade fair aur expo.", "/tools/expo-finder/"),
+     ]},
+    {"id": "buyers", "title": "Buyer chahiye", "thought": "Maal ready hai, ab bechun kisko?",
+     "href": "/tools/export-buyer-finder/", "q": "Kahan bechna hai?",
+     "opts": [
+        ("Videsh mein, export karna hai", "Tumhara product kaun se desh India se kharidte hain, kitna kharidte hain.", "/tools/export-buyer-finder/"),
+        ("Expo ya B2B mele mein stall lagana hai", "Sheher, product aur goal ke hisaab se trade fair report.", "/tools/expo-finder/"),
+        ("Export ke liye IEC code ka kaam hai", "IEC update, reactivate aur verify karne ka tareeka.", "/blog/iec-code-update-activate-verify/"),
+        ("Marketing ya distribution samajh nahi aa raha", "Yeh kaam tool se nahi hota. 1:1 call pe tumhare product ka plan banate hain.", BOOK_CALL_URL),
+     ]},
+    {"id": "help", "title": "Madad chahiye", "thought": "Loan, subsidy, ya bas koi samjha de",
+     "href": "/tools/scheme-finder/", "q": "Kis cheez mein atke ho?",
+     "opts": [
+        ("Loan, subsidy ya sarkari scheme", "Apni detail bharo, tumpe lagu hone wali schemes ki free report pao.", "/tools/scheme-finder/"),
+        ("PMEGP ya Mudra loan ka process", "Naya portal, subsidy, steps. Hindi mein.", "/blog/pmegp-loan-process-hindi/"),
+        ("Seedha bhaiya se baat karni hai", "1:1 call. Tumhara case, tumhara district, seedhi baat.", BOOK_CALL_URL),
+        ("Community mein poochna hai (free)", "1,000+ chhote sheher ke entrepreneurs ka group.", COMMUNITY_URL),
+     ]},
+    {"id": "guides", "title": "Pehle padhna hai", "thought": "Detail mein samajh ke hi kadam uthaunga",
+     "href": "/blog/", "q": "Kis topic pe?",
+     "opts": [
+        ("Idea nahi hai, kahan se shuru karun", "5 steps mein apna idea chuno, ODOP ke saath.", "/blog/want-start-business-no-ideas-odop-guide/"),
+        ("Mudra loan, aasaan bhasha mein", "Byaj dar, aayu seema, kaun le sakta hai. Hindi mein.", "/blog/mudra-loan-yojana-pm-hindi-guide/"),
+        ("MSME / Udyam registration", "Udyam ke 10 fayde aur kab karwana chahiye.", "/blog/msme-udyam-registration-benefits-hindi/"),
+        ("Saari guides dekho", "Business ideas, loans, schemes, GI products. Har hafte nayi.", "/blog/"),
+     ]},
+]
+
+def latest_blog_posts(n=3):
+    """The n newest indexable WriteOut posts as dicts of url, title, desc and date (newest first). Titles stay HTML-escaped."""
+    blog_dir = WRITEOUT_DIR / "blog"
+    if not PUBLISH_BLOG or not blog_dir.exists():
+        return []
+    posts = []
+    for f in blog_dir.glob("*/index.html"):
+        html = f.read_text(encoding="utf-8")
+        if re.search(r'<meta name="robots" content="[^"]*noindex', html):
+            continue
+        meta = lambda prop: (re.search(rf'<meta property="{prop}" content="([^"]*)"', html) or [None, ""])[1]
+        posts.append({"url": f"/blog/{f.parent.name}/", "title": meta("og:title"), "desc": meta("og:description"),
+                      "date": meta("article:published_time")[:10]})
+    return sorted(posts, key=lambda x: (x["date"], x["url"]), reverse=True)[:n]
+
+def short(text, n):
+    """Cut text to at most n characters at a word boundary, with an ellipsis when cut."""
+    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0].rstrip(",.;:") + "&#8230;"
+
+def hallway_href(href):
+    return href if href.startswith(("http", "#")) else p(href)
+
+def hallway_live_opts(door):
+    """A door's options minus any /blog/ post that isn't published (a renamed slug drops out instead of 404ing)."""
+    out = []
+    for label, sub, href in door["opts"]:
+        if href.startswith("/blog/") and href != "/blog/":
+            if not PUBLISH_BLOG or not (WRITEOUT_DIR / "blog" / href.strip("/").split("/", 1)[1] / "index.html").exists():
+                continue
+        elif href == "/blog/" and not PUBLISH_BLOG:
+            continue
+        out.append((label, sub, href))
+    return out
+
+def build_hallway():
+    doors, steps = "", ""
+    for i, d in enumerate(HALLWAY, 1):
+        if d["id"] == "guides" and not PUBLISH_BLOG:
+            continue
+        doors += f'''<a class="door" href="{hallway_href(d['href'])}" data-door="{d['id']}">
+  <span class="door__num" aria-hidden="true">{i:02d}</span>
+  <span class="door__title">{esc(d['title'])}</span>
+  <span class="door__thought">&#x201C;{esc(d['thought'])}&#x201D;</span>
+  <span class="door__arrow" aria-hidden="true">&#8594;</span>
+</a>'''
+        opts = ""
+        for label, sub, href in hallway_live_opts(d):
+            ext = ' target="_blank" rel="noopener"' if href.startswith("http") else ""
+            opts += f'''<a class="hall-opt" href="{hallway_href(href)}"{ext} data-opt="{esc(label)}">
+  <span class="hall-opt__label">{esc(label)}</span><span class="hall-opt__sub">{esc(sub)}</span>
+  <span class="hall-opt__arrow" aria-hidden="true">&#8594;</span>
+</a>'''
+        steps += f'''<section class="hall-step" id="step-{d['id']}" data-step="{d['id']}" hidden aria-labelledby="q-{d['id']}">
+  <div class="hall-step__top">
+    <button type="button" class="hall-back" data-back>&#8592; Wapas</button>
+    <span class="hall-step__picked">Tumne chuna: <strong>{esc(d['title'])}</strong></span>
+  </div>
+  <h2 class="hall-step__q" id="q-{d['id']}" tabindex="-1">{esc(d['q'])}</h2>
+  <div class="hall-opts">{opts}</div>
+  <p class="hall-escape">Inme se kuch nahi? <a href="{BOOK_CALL_URL}" target="_blank" rel="noopener" data-opt="escape: book a call">Seedha bhaiya se baat karo &#8594;</a></p>
+</section>'''
+    return f'<div class="hallway" id="hallway"><div class="doors" data-doors>{doors}</div>{steps}</div>'
+
 def build_homepage(districts):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
-    enriched = [d for d in live if d.get("step_1_learn","").strip()]
-    featured = (enriched + [d for d in live if d not in enriched])[:6]
-    feat_cards = ""
-    for d in featured:
-        pg = product_page_slug(d)
-        gi = '<span class="tag tag-green">GI Tag</span>' if d.get("odop_gi_tag","").lower()=="yes" else ""
-        feat_cards += f'''<a href="{p('/products/')}{pg}/" class="district-card">
-  <div class="district-card-head"><div>
-    <div class="district-name">{esc(d.get('odop_product_name',''))}</div>
-    <div class="district-name-hin">{esc(d['district_name'])} &middot; {esc(d['state'])}</div>
-  </div><span class="district-arrow">&#8594;</span></div>
-  <div class="district-desc">{esc((d.get('famous_for_1_line','') or '')[:110])}</div>
-  <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}</div>
-</a>'''
     search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/'} for d in live])
     hp_schema = json.dumps([
         {"@context":"https://schema.org","@type":"WebSite","name":"KidharMilega","url":f"{SITE_URL}/",
-         "description":"Find business opportunities near you — ODOP products, market data, and step-by-step guides for every district in India.",
+         "description":"Find a business idea, research your district's ODOP product, and find suppliers, buyers and government schemes. Free, for every district in India.",
          "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":f"{SITE_URL}/products/?q={{search_term_string}}"},"query-input":"required name=search_term_string"}},
         {"@context":"https://schema.org","@type":"Organization","name":"KidharMilega","url":f"{SITE_URL}/",
          "logo":f"{SITE_URL}/assets/logo.png",
-         "sameAs":["https://instagram.com/startupwalebhaia","https://www.facebook.com/groups/startupwalebhaia/"]},
+         "sameAs":["https://instagram.com/startupwalebhaia", COMMUNITY_URL]},
     ], ensure_ascii=False)
     hp_extra_head = f'<script type="application/ld+json">{hp_schema}</script>'
+
+    posts = latest_blog_posts(3)
+    guides = ""
+    if posts:
+        cards = "".join(f'''<a href="{p(x['url'])}" class="district-card">
+  <div class="district-card-head"><div class="district-name">{x['title']}</div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">{short(x['desc'], 140)}</div>
+</a>''' for x in posts)
+        guides = f'''
+  <section class="section" aria-labelledby="guides-title">
+    <div class="home-head">
+      <div><h2 id="guides-title" class="reveal">Taaza guides</h2>
+      <p>Loan, scheme, idea ya product: jo sawaal DMs mein sabse zyada aate hain, unke poore jawab.</p></div>
+      <a href="{p('/blog/')}" class="btn btn-ghost btn-sm">Saari guides <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+    </div>
+    <div class="grid-3" id="hpGuides">{cards}</div>
+  </section>'''
+
+    # Filled in the browser from /reels.json (first 3 links, in list order), which build() carries over between builds;
+    # stays hidden while the list is empty.
+    reels = f'''
+  <section class="section" id="hpReels" aria-labelledby="reels-title" hidden>
+    <div class="home-head">
+      <div><h2 id="reels-title" class="reveal">Yahin se shuru hua tha</h2>
+      <p>Inhi reels se sabse zyada log {IG_FOLLOWERS} wali family mein jude. 60 second mein samjho, phir upar se apna option chuno.</p></div>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" data-cta="instagram">@startupwalebhaia follow karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+    </div>
+    <div class="reels-row" id="hpReelsRow"></div>
+  </section>'''
+
     return (
-        head("KidharMilega — Find What You Want to Do",
-             "Take a 3-minute quiz to find the business that fits you, browse 1,500+ business ideas for India, or find the ODOP product of your own district. 787 districts mapped.", "/",
+        head("KidharMilega: Business Idea, ODOP Product, Supplier ya Buyer? Yahan Se Shuru Karo",
+             "Batao kis kaam se aaye ho: business idea, apne district ka ODOP product, supplier, buyer, loan ya scheme. Do sawaal, phir seedha sahi tool, guide ya 1:1 call. Free, koi login nahi.", "/",
              extra_head=hp_extra_head) +
-        '<div class="alert-strip">Stop migrating. <strong>Your district has a goldmine business</strong>. Real data, zero cost to browse.</div>' +
+        '<div class="alert-strip">@startupwalebhaia se aaye ho? <strong>Sahi jagah aaye ho.</strong> Sab free, koi login nahi.</div>' +
         nav("home") + f"""
 <main>
 <div class="container">
-  <section class="home-hero" aria-labelledby="home-title">
-    <div>
-      <h1 class="home-hero__title" id="home-title">Find what you <span class="hl">want to do.</span></h1>
-      <p class="home-hero__sub">Answer 33 quick questions about what you enjoy, how you work, your budget and your district. We match you against 1,500+ business ideas for India and show the ones that fit you.</p>
-      <div class="home-hero__actions">
-        <a href="{p('/quiz/')}" class="btn btn-primary btn-lg" data-burst>Take the 3-minute quiz <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
-        <a href="{p('/ideas/')}" class="btn btn-ghost btn-lg">Browse all business ideas</a>
-      </div>
-      <p class="home-hero__note">No login. Built on O*NET career data, 789 Shark Tank India pitches and the ODOP products of {len(live)} districts.</p>
-    </div>
-    <a class="fit-card" href="{p('/quiz/')}" aria-label="Start the quiz">
-      <span class="mark" aria-hidden="true"></span>
-      <div class="fit-card__top"><span class="fit-card__label">Question 1 of 33</span><span class="fit-card__label">Fit quiz</span></div>
-      <div class="fit-card__bar"><span style="width:3%"></span></div>
-      <p class="fit-card__q">How much could you invest to get started?</p>
-      <ul class="fit-card__opts">
-        <li>Under &#8377;50,000</li>
-        <li class="is-picked">&#8377;50,000 &#8211; &#8377;2 lakh</li>
-        <li>&#8377;2 &#8211; 10 lakh</li>
-        <li>More than &#8377;10 lakh</li>
-      </ul>
-    </a>
+  <section class="hall-hero" aria-labelledby="home-title">
+    <p class="hall-hero__eyebrow">Namaste. Pehle ek sawaal.</p>
+    <h1 class="hall-hero__title" id="home-title">Batao, aaj <span class="hl">kis kaam se</span> aaye ho?</h1>
+    <p class="hall-hero__sub">Ek option chuno. Ek-do sawaal aur, phir seedha sahi jagah: tool, guide, ya bhaiya se 1:1 call.</p>
+    {build_hallway()}
+    <p class="hall-hero__note">{IG_FOLLOWERS} log @startupwalebhaia ko follow karte hain &#183; {len(live)} districts mapped &#183; 1,500+ business ideas</p>
   </section>
 </div>
 
 <section class="band" aria-labelledby="odop-title">
   <div class="container">
     <div class="odop-pitch">
-      <h2 class="odop-pitch__title reveal" id="odop-title">Stop chasing &#8377;50k jobs in metro cities. <span>Start a business in your own district.</span></h2>
-      <p class="odop-pitch__sub">You don&#x2019;t need to migrate to build a future. India&#x2019;s next big manufacturing revolution is happening in your backyard. Find high-demand ODOP products, verified manufacturers and profitable ideas, all within 50&nbsp;km of your home.</p>
+      <h2 class="odop-pitch__title reveal" id="odop-title">Apna district pata hai? <span>Seedha search karo.</span></h2>
+      <p class="odop-pitch__sub">Har district ka ek product hai jisme woh sabse aage hai. Bareilly ka zardozi, Moradabad ka brass, Bikaner ki bhujia. Naam likho, uska kharcha, margin, schemes aur suppliers dekho.</p>
       <div class="hero-search-row">
         <div class="home-search">
           <span class="search-icon" aria-hidden="true"></span>
-          <input class="search-input" type="search" id="hpSearch" placeholder="Search a district or product" autocomplete="off" aria-label="Search districts and ODOP products">
+          <input class="search-input" type="search" id="hpSearch" placeholder="District ya product likho, jaise Moradabad" autocomplete="off" aria-label="Search districts and ODOP products">
           <div class="home-search__results" id="hpResults"></div>
         </div>
-        <a href="{p('/products/')}" class="btn btn-cyan">Open the ODOP directory <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+        <a href="{p('/products/')}" class="btn btn-cyan">Saare {len(live)} districts <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
       </div>
-    </div>
-    <div class="counters">
-      <div><div class="counter__num" data-count="10" data-suffix="+">10+</div><div class="counter__label">Years of ground-level experience</div></div>
-      <div><div class="counter__num" data-count="15" data-suffix="K+">15K+</div><div class="counter__label">Entrepreneurs following</div></div>
-      <div><div class="counter__num" data-count="{len(live)}">{len(live)}</div><div class="counter__label">Districts mapped, and counting</div></div>
-      <div><div class="counter__num" data-count="550" data-suffix="+">550+</div><div class="counter__label">ODOP products identified</div></div>
     </div>
   </div>
 </section>
 
-<div class="container">
-  <section class="section" aria-labelledby="map-title">
-    <div class="home-head">
-      <div><h2 id="map-title" class="reveal">Explore India&#x2019;s manufacturing map</h2>
-      <p>From the Zardozi of Bareilly to the Blue Pottery of Jaipur, your next venture starts here.</p></div>
-      <a href="{p('/products/')}" class="btn btn-ghost btn-sm">View all {len(live)} districts <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
-    </div>
-    <div class="grid-3">{feat_cards}</div>
-  </section>
-
-  <section class="section" aria-labelledby="math-title">
-    <div class="home-head">
-      <div><h2 id="math-title" class="reveal">&#x201C;The math doesn&#x2019;t add up.&#x201D;</h2>
-      <p>A quick, honest comparison before you book that train ticket to Bangalore.</p></div>
-    </div>
-    <div class="math-compare">
-      <div class="math-card math-card--city">
-        <div class="math-card__title">&#8377;80,000 salary in Bangalore</div>
-        <div class="math-row"><span>Rent (PG/flat)</span><span>&#8722;&#8377;25,000</span></div>
-        <div class="math-row"><span>Commute</span><span>&#8722;&#8377;8,000</span></div>
-        <div class="math-row"><span>Food</span><span>&#8722;&#8377;15,000</span></div>
-        <div class="math-row"><span>Misc/lifestyle</span><span>&#8722;&#8377;15,000</span></div>
-        <div class="math-row math-row--total"><span>Left over</span><span>&#8377;17k, no growth</span></div>
-      </div>
-      <div class="math-card math-card--home">
-        <div class="math-card__title">&#8377;30k+ profit at home</div>
-        <div class="math-row"><span>Rent</span><span>Zero</span></div>
-        <div class="math-row"><span>Commute</span><span>Zero</span></div>
-        <div class="math-row"><span>Growth potential</span><span>Unlimited</span></div>
-        <div class="math-row math-row--total"><span>Actual wealth</span><span>Building &#8593;</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" aria-labelledby="ig-title">
-    <div class="home-head">
-      <div><h2 id="ig-title" class="reveal">Catch the latest on Instagram</h2>
-      <p>Manufacturing hacks, credit card optimisations for business and startup reality checks. No fluff.</p></div>
-    </div>
-    <a class="ig-link" href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener">
-      <div><strong>@startupwalebhaia</strong><span>15,000+ entrepreneurs following &#183; real updates daily</span></div>
-      <span class="btn__arrow" aria-hidden="true">&#8594;</span>
-    </a>
-  </section>
-
+<div class="container">{reels}{guides}
   <div class="cta-block">
     <div>
-      <div class="cta-title">Don&#x2019;t build alone. Build with the tribe.</div>
-      <div class="cta-sub">Join the KidharMilega community for direct manufacturer contacts, subsidy guides and a network of 1,000+ local entrepreneurs who are tired of the rat race. It&#x2019;s free to join.</div>
+      <div class="cta-title">Kahin atke ho? Akele mat jhoojho.</div>
+      <div class="cta-sub">Idea clear hai par bechna, banwana ya loan samajh nahi aa raha? 1:1 call book karo, ya community mein poochho. 1,000+ chhote sheher ke entrepreneurs wahan pehle se hain.</div>
     </div>
     <div class="cta-actions">
-      <a href="https://www.facebook.com/groups/startupwalebhaia/" target="_blank" rel="noopener" class="btn btn-primary">Join the community <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
-      <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn">Follow @startupwalebhaia</a>
+      <a href="{BOOK_CALL_URL}" target="_blank" rel="noopener" class="btn btn-primary" data-cta="book a call">Bhaiya se call book karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+      <a href="{COMMUNITY_URL}" target="_blank" rel="noopener" class="btn" data-cta="community">Community join karo (free)</a>
     </div>
   </div>
 </div>
 </main>""" + f'<script>var HP_DS={search_data};</script>' + HOME_JS + footer() + "</body></html>"
     )
 
-# Homepage behaviour: district search, counter tick-up, heading reveal, star-burst on the quiz CTA.
+# Homepage behaviour: the hallway (door -> follow-up question -> destination, with GA events at each step), district
+# search, and heading reveal. Doors are plain links, so without JavaScript they still land somewhere useful.
 HOME_JS = """<script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function track(name, params){ try { if (window.gtag) gtag('event', name, params); } catch(e){} }
+
+  // Hallway
+  var hall = document.getElementById('hallway'), doorsEl = hall.querySelector('[data-doors]');
+  var steps = {}; hall.querySelectorAll('[data-step]').forEach(function(s){ steps[s.dataset.step] = s; });
+  var current = null;
+  function show(id, focus){
+    current = steps[id] ? id : null;
+    doorsEl.hidden = !!current;
+    Object.keys(steps).forEach(function(k){ steps[k].hidden = k !== current; });
+    if (current && focus) { var q = steps[current].querySelector('.hall-step__q'); q.focus({preventScroll:true});
+      hall.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'}); }
+    if (!current && focus) { var d = doorsEl.querySelector('[data-door]'); d && d.focus({preventScroll:true}); }
+  }
+  hall.addEventListener('click', function(e){
+    var door = e.target.closest('[data-door]');
+    if (door && !(e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)) {
+      e.preventDefault();
+      track('hallway_door', {door: door.dataset.door});
+      history.pushState({door: door.dataset.door}, '', '#' + door.dataset.door);
+      show(door.dataset.door, true); return;
+    }
+    if (e.target.closest('[data-back]')) {
+      if (history.state && history.state.door) history.back();
+      else { history.replaceState(null, '', location.pathname + location.search); show(null, true); }
+      return;
+    }
+    var opt = e.target.closest('[data-opt]');
+    if (opt) {
+      track('hallway_route', {door: current || '', option: opt.dataset.opt, destination: opt.getAttribute('href')});
+      if (opt.getAttribute('href') === '#hpSearch') {
+        e.preventDefault();
+        var si = document.getElementById('hpSearch');
+        si.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+        si.focus({preventScroll:true});
+      }
+    }
+  });
+  function fromHash(focus){ var h = location.hash.slice(1); show(steps[h] ? h : null, focus && !!steps[h]); }
+  window.addEventListener('popstate', function(){ fromHash(true); });
+  if (steps[location.hash.slice(1)]) { track('hallway_door', {door: location.hash.slice(1), via: 'link'}); fromHash(true); }
+
+  document.querySelectorAll('[data-cta]').forEach(function(a){
+    a.addEventListener('click', function(){ track('home_cta', {cta: a.dataset.cta}); });
+  });
+
+  // District search
   var si = document.getElementById('hpSearch'), sr = document.getElementById('hpResults');
   function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   si.addEventListener('input', function(){
     var v = this.value.toLowerCase().trim();
     if (v.length < 2) { sr.style.display = 'none'; return; }
     var m = HP_DS.filter(function(x){ return x.n.toLowerCase().includes(v) || x.d.toLowerCase().includes(v) || x.s.toLowerCase().includes(v); }).slice(0, 6);
-    if (!m.length) { sr.innerHTML = '<a href="/products/"><strong>No match yet</strong><span>Browse the full ODOP directory</span></a>'; sr.style.display = 'block'; return; }
+    if (!m.length) { sr.innerHTML = '<a href="/products/"><strong>Abhi match nahi mila</strong><span>Poori ODOP directory dekho</span></a>'; sr.style.display = 'block'; return; }
     sr.innerHTML = m.map(function(x){ return '<a href="' + x.u + '"><strong>' + esc(x.n) + '</strong><span>' + esc(x.d) + ' \\u00b7 ' + esc(x.s) + '</span></a>'; }).join('');
     sr.style.display = 'block';
   });
   document.addEventListener('click', function(e){ if (!si.contains(e.target) && !sr.contains(e.target)) sr.style.display = 'none'; });
 
-  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if (!en.isIntersecting) return;
-      io.unobserve(en.target);
-      if (en.target.classList.contains('reveal')) { en.target.classList.add('is-in'); return; }
-      var el = en.target, to = +el.dataset.count, suf = el.dataset.suffix || '';
-      if (reduce) return;
-      var t0 = null;
-      function tick(t){ if (!t0) t0 = t; var k = Math.min(1, (t - t0) / 1200), e = 1 - Math.pow(1 - k, 4);
-        el.textContent = Math.round(to * e).toLocaleString('en-IN') + suf; if (k < 1) requestAnimationFrame(tick); }
-      requestAnimationFrame(tick);
-    });
-  }, { threshold: 0.4 }) : null;
-  document.querySelectorAll('.reveal, .counter__num').forEach(function(el){
-    if (!io) { el.classList.add('is-in'); return; }
-    if (el.dataset.count && !reduce) el.textContent = '0' + (el.dataset.suffix || '');
-    io.observe(el);
-  });
+  // Newest guides straight from the blog feed, so new WriteOut posts show up without a site rebuild.
+  // The build-time cards stay if the feed can't be read.
+  var gg = document.getElementById('hpGuides');
+  if (gg && window.fetch && window.DOMParser) fetch('/blog/feed.xml', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.text() : ''; }).then(function(xml){
+    var items = new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('item');
+    if (items.length < 3) return;
+    function cut(t, n){ return t.length <= n ? t : t.slice(0, n).replace(/\s+\S*$/, '').replace(/[,.;:]$/, '') + '…'; }
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 3; i++) {
+      var it = items[i], get = function(tag){ var el = it.querySelector(tag); return el ? el.textContent.trim() : ''; };
+      var link = get('link').replace(/^https?:\/\/[^\/]+/, '');
+      if (!/^\/blog\/[\w-]+\/$/.test(link)) return;
+      var a = document.createElement('a'); a.className = 'district-card'; a.href = link;
+      a.innerHTML = '<div class="district-card-head"><div class="district-name"></div><span class="district-arrow">→</span></div><div class="district-desc"></div>';
+      a.querySelector('.district-name').textContent = cut(get('title'), 90);
+      a.querySelector('.district-desc').textContent = cut(get('description'), 140);
+      frag.appendChild(a);
+    }
+    gg.innerHTML = ''; gg.appendChild(frag);
+  }).catch(function(){});
 
-  if (!reduce) document.querySelectorAll('[data-burst]').forEach(function(a){
-    a.addEventListener('click', function(e){
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-      e.preventDefault();
-      var s = document.createElement('span'); s.className = 'star-burst';
-      s.style.left = e.clientX + 'px'; s.style.top = e.clientY + 'px';
-      document.body.appendChild(s);
-      setTimeout(function(){ location.href = a.href; }, 280);
+  // Reels: the list lives in /reels.json; the first 3 are shown, in list order. Instagram's embed script loads only when the section nears the screen.
+  var rs = document.getElementById('hpReels'), rr = document.getElementById('hpReelsRow');
+  if (rs && window.fetch) fetch('/reels.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).then(function(list){
+    var urls = (Array.isArray(list) ? list : []).map(function(x){ return typeof x === 'string' ? x : (x && x.url) || ''; })
+      .filter(function(u){ return /^https:\/\/(www\.)?instagram\.com\/(reel|reels|p)\/[\w-]+\/?(\?.*)?$/.test(u); }).slice(0, 3);
+    if (!urls.length) return;
+    urls.forEach(function(u){
+      var clean = u.split('?')[0].replace('/reels/', '/reel/').replace(/\/?$/, '/');
+      var q = document.createElement('blockquote');
+      q.className = 'instagram-media'; q.setAttribute('data-instgrm-permalink', clean + '?utm_source=ig_embed'); q.setAttribute('data-instgrm-version', '14');
+      var a = document.createElement('a'); a.href = clean; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Instagram par dekho';
+      q.appendChild(a); var cell = document.createElement('div'); cell.className = 'reel-cell'; cell.appendChild(q); rr.appendChild(cell);
     });
-  });
+    rs.hidden = false;
+    var loaded = false;
+    function load(){ if (loaded) return; loaded = true;
+      var sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.instagram.com/embed.js'; document.body.appendChild(sc); }
+    if ('IntersectionObserver' in window) { var ro = new IntersectionObserver(function(en){ if (en[0].isIntersecting) { ro.disconnect(); load(); } }, {rootMargin: '600px'}); ro.observe(rs); }
+    else load();
+    var hd = rs.querySelector('.reveal'); if (hd) hd.classList.add('is-in');
+  }).catch(function(){});
+
+  // Heading reveal
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if (en.isIntersecting) { io.unobserve(en.target); en.target.classList.add('is-in'); } });
+  }, { threshold: 0.4 }) : null;
+  document.querySelectorAll('.reveal').forEach(function(el){ io ? io.observe(el) : el.classList.add('is-in'); });
 })();
 </script>"""
 
@@ -2038,8 +2176,12 @@ Sitemap: {SITE_URL}/sitemap.xml
 def build():
     print(f"\n KidharMilega Builder  [BASE_PATH='{BASE_PATH}']")
     print("="*50)
+    # docs/reels.json is edited by hand (or on GitHub) and read by the homepage at runtime, so it survives the rebuild.
+    reels_file = DIST_DIR / "reels.json"
+    reels_json = reels_file.read_text(encoding="utf-8") if reels_file.exists() else "[]\n"
     if DIST_DIR.exists(): shutil.rmtree(DIST_DIR)
     DIST_DIR.mkdir(parents=True)
+    reels_file.write_text(reels_json, encoding="utf-8")
     dist_subdirs = ["assets","products","events","vendors"]
     if PUBLISH_BUSINESS_IDEAS: dist_subdirs.append("business-ideas")
     for d in dist_subdirs: (DIST_DIR/d).mkdir()
