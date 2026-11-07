@@ -6,6 +6,7 @@ from scheme_facts import correct_mapping
 import supplier_finder
 import export_buyer_finder
 import scheme_finder
+import budget_matcher
 import urllib.parse
 
 SITE_URL   = "https://kidharmilega.in"
@@ -131,6 +132,7 @@ def footer():
     {f'<a href="{p("/blog/")}">Blog</a>' if PUBLISH_BLOG else ''}
     <a href="{p('/tools/supplier-finder/')}">Supplier Finder</a>
     <a href="{p('/tools/export-buyer-finder/')}">Export Buyer Finder</a>
+    <a href="{p('/tools/budget-matcher/')}">Budget Matcher</a>
     <a href="{p('/events/')}">Events</a>
     <a href="{p('/what-is-odop/')}">Why ODOP?</a>
     <a href="{p('/about-us/')}">About Us</a>
@@ -1843,6 +1845,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}{supplier_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{export_buyer_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{scheme_finder.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{budget_matcher.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2163,6 +2166,8 @@ def build():
     print(f"✓ Export Buyer Finder: HS6 codes with India export data {n_ebf['in']}, with US import data {n_ebf['us']}, with Canadian importers from India {n_ebf.get('ca', 0)}, with UK importers {n_ebf.get('uk', 0)}")
     n_c, n_s = scheme_finder.write_scheme_finder(DIST_DIR, head, nav, footer, esc, p)
     print(f"✓ Scheme Finder: {n_c} central + {n_s} state schemes")
+    n_bm = budget_matcher.write_budget_matcher(DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
+    print(f"✓ Budget Matcher: {n_bm} district businesses with a setup cost")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()

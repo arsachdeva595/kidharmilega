@@ -81,6 +81,10 @@ Free tool: the user picks an 8-digit HSN code and a district, leaves an email, a
 
 Free tool: the user describes their business and themselves, leaves an email, and gets a detailed report of the central and state subsidies, loans and support they qualify for, with estimated subsidy, documents, how to apply and an action plan. `build.py` calls `scheme_finder.py`. Details in `tools_src/scheme-finder/README.md`.
 
+## Budget Matcher tool (`/tools/budget-matcher/`)
+
+Free tool: "₹50,000 mein kaunsa business?" The user enters their own money, state, loan preference and the kind of work they like, leaves an email, and gets ranked district businesses split into "start with your own money" and "with a PMEGP loan" (own money covers the 10% / 5% own contribution, project capped at ₹50 lakh), with setup cost, margins, break-even, rough EMI and links to the product page, Supplier Finder and Scheme Finder. Data comes from `data/districts.csv`; `build.py` calls `budget_matcher.py`, which writes `data.json` next to the page. Link to it with `?budget=50000&state=Uttar%20Pradesh` to prefill the form (handy for reel captions).
+
 ---
 
 ## Folder structure
