@@ -790,7 +790,7 @@ def build_page(head, nav, footer, esc, p):
 
 def build_tools_index(head, nav, footer, esc, p):
     return head("Free Tools for Small Business Founders | KidharMilega",
-                "Free tools for first-time founders in India: find government schemes and subsidies you qualify for, find local suppliers by HSN code, find trade fairs worth a stall, and size the export market for your product.",
+                "Free tools for first-time founders in India: match your budget to a real district business, look up any HSN code, find government schemes and subsidies you qualify for, find local suppliers by HSN code, find trade fairs worth a stall, and size the export market for your product.",
                 "/tools/") + nav("tools") + f'''
 <main><div class="container">
   <div class="page-header">
@@ -799,6 +799,18 @@ def build_tools_index(head, nav, footer, esc, p):
     <p class="page-header-sub">Built for first-time founders sourcing and selling from small-town India.</p>
   </div>
   <div class="grid-2">
+    <a class="card" href="{p('/tools/budget-matcher/')}" style="display:block">
+      <div class="section-label">Start here</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">Budget Matcher: itne paise mein kaunsa business?</h2>
+      <p>Enter your budget and state. Get real district businesses that fit your money, with setup cost, margins, break-even, and how far a PMEGP loan can stretch it.</p>
+      <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
+    </a>
+    <a class="card" href="{p('/tools/hsn-code-finder/')}" style="display:block">
+      <div class="section-label">Basics</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">HSN Code Finder</h2>
+      <p>Type your product in simple words (achar, haldi, bedsheet) and get its HSN code for GST and export, which districts make it, and where India sells it. No signup.</p>
+      <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
+    </a>
     <a class="card" href="{p(TOOL_PATH)}" style="display:block">
       <div class="section-label">Sourcing</div>
       <h2 style="font-size:1.4rem;margin-bottom:8px">Supplier Finder by HSN code</h2>

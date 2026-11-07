@@ -1,0 +1,46 @@
+/* HSN Code Finder: builds on /tools/supplier-finder/style.css (.sf-* search box and listbox) and site tokens. */
+.hf-search{max-width:46rem}
+.hf-result{max-width:56rem;margin-top:var(--space-xl);scroll-margin-top:80px}
+.hf-card{background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:var(--space-lg);box-shadow:var(--shadow-card);margin-bottom:var(--space-md)}
+.hf-card h3{font-size:var(--text-lg);margin-bottom:var(--space-sm, 8px)}
+.hf-card > .btn{margin-top:var(--space-md)}
+.hf-main{border:2px solid var(--color-accent);box-shadow:0 0 0 4px var(--tint-blue),var(--shadow-card)}
+.hf-code{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 8px}
+.hf-code span{font-family:var(--font-label);font-size:clamp(1.8rem,7vw,2.6rem);font-weight:600;letter-spacing:.04em;color:var(--color-ink)}
+.hf-title{font-size:var(--text-xl);line-height:1.3}
+.hf-detail{font-size:14px;color:var(--color-neutral);margin-top:4px}
+.hf-levels{display:grid;grid-template-columns:1fr;gap:10px;margin:var(--space-md) 0 0}
+@media (min-width:640px){.hf-levels{grid-template-columns:1fr 1fr}}
+.hf-levels > div{background:var(--color-paper-2);border-radius:var(--radius-input);padding:10px 12px}
+.hf-levels dt{font-family:var(--font-label);font-size:11px;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--color-muted)}
+.hf-levels dd{margin:2px 0 0;font-family:var(--font-label);font-size:1.15rem;font-weight:600;color:var(--color-ink)}
+.hf-levels dd.hf-ch{font-family:inherit;font-size:14px;line-height:1.4}
+.hf-levels p{font-size:13px;color:var(--color-neutral);line-height:1.4;margin-top:2px}
+.hf-gst{margin-top:var(--space-md);padding:10px 12px;border-left:3px solid var(--color-accent-2);background:var(--tint-blue);font-size:14px;line-height:1.55;color:var(--color-ink-2)}
+.hf-gst a,.hf-next a,.hf-table a,.hf-faq a{color:var(--color-link);text-decoration:underline;font-weight:600}
+.hf-actions{margin-top:var(--space-md)}
+.hf-grid{display:grid;grid-template-columns:1fr;gap:0 var(--space-md)}
+@media (min-width:760px){.hf-grid{grid-template-columns:1fr 1fr}}
+.hf-grid p{font-size:14px;line-height:1.55;color:var(--color-ink-2);margin-bottom:6px}
+.hf-big b{font-family:var(--font-label);font-size:1.8rem;color:var(--color-ink)}
+.hf-big span{display:block;font-size:13px;color:var(--color-neutral);margin-bottom:6px}
+.hf-muted{color:var(--color-muted)!important;font-size:13.5px!important}
+.hf-src{font-size:12px!important;color:var(--color-muted)!important}
+.hf-dists{display:grid;gap:6px;margin-top:6px}
+.hf-dists a{display:block;padding:8px 10px;border:1px solid var(--color-rule);border-radius:var(--radius-input);text-decoration:none;color:var(--color-ink)}
+.hf-dists a:hover{background:var(--tint-blue)}
+.hf-dists span{display:block;font-size:12.5px;color:var(--color-muted)}
+.hf-next ol{padding-left:1.2rem;display:grid;gap:8px;font-size:14.5px;line-height:1.5;color:var(--color-ink-2)}
+
+.hf-sec{max-width:56rem;margin-top:var(--space-2xl)}
+.hf-h2{font-size:var(--text-xl);margin-bottom:6px}
+.hf-tablewrap{max-height:520px;overflow:auto;border:1px solid var(--color-rule);border-radius:var(--radius-card);margin-top:var(--space-md);background:var(--color-paper)}
+.hf-table{width:100%;border-collapse:collapse;font-size:14px}
+.hf-table th,.hf-table td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--color-rule)}
+.hf-table thead th{position:sticky;top:0;background:var(--color-paper-2);font-family:var(--font-label);font-size:11px;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--color-muted)}
+.hf-table tbody th{font-weight:600;color:var(--color-ink);min-width:9rem}
+.hf-tcodes span{display:block;font-size:12.5px;color:var(--color-muted);margin-bottom:4px}
+.hf-faq{border-bottom:1px solid var(--color-rule);padding:12px 0}
+.hf-faq summary{cursor:pointer;font-weight:600;color:var(--color-ink)}
+.hf-faq p{margin-top:8px;font-size:14.5px;line-height:1.6;color:var(--color-ink-2)}
+@media (max-width:639px){.hf-table thead th:nth-child(3),.hf-table td:nth-child(3){display:none}}
