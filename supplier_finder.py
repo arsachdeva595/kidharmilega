@@ -790,7 +790,7 @@ def build_page(head, nav, footer, esc, p):
 
 def build_tools_index(head, nav, footer, esc, p):
     return head("Free Tools for Small Business Founders | KidharMilega",
-                "Free tools for first-time founders in India: find local suppliers by HSN code, audit them, and size the US export market for your product.",
+                "Free tools for first-time founders in India: find government schemes and subsidies you qualify for, find local suppliers by HSN code, and size the export market for your product.",
                 "/tools/") + nav("tools") + f'''
 <main><div class="container">
   <div class="page-header">
@@ -809,6 +809,12 @@ def build_tools_index(head, nav, footer, esc, p):
       <div class="section-label">Exports · Beta</div>
       <h2 style="font-size:1.4rem;margin-bottom:8px">Export Buyer Finder</h2>
       <p>See how much the US imports of your HSN code, India's share and rank, and the countries you compete with. Verified US buyer lists coming soon.</p>
+      <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
+    </a>
+    <a class="card" href="{p('/tools/scheme-finder/')}" style="display:block">
+      <div class="section-label">Funding</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">Scheme &amp; Subsidy Finder</h2>
+      <p>Answer a few questions and get a free report of the central and state subsidies, loans and support your business qualifies for, with estimated amounts, documents and how to apply.</p>
       <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
     </a>
   </div>

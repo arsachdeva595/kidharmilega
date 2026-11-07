@@ -77,6 +77,10 @@ cd docs && python3 -m http.server 8080
 
 Free tool: the user picks an 8-digit HSN code and a district, leaves an email, and gets copy-paste AI prompts to find local suppliers (including the Google Maps / GMB step), plus a supplier audit checklist for that product category. `build.py` calls `supplier_finder.py`. Leads go to a Google Sheet through Apps Script. Setup is in `tools_src/supplier-finder/SETUP.md`.
 
+## Scheme Finder tool (`/tools/scheme-finder/`)
+
+Free tool: the user describes their business and themselves, leaves an email, and gets a detailed report of the central and state subsidies, loans and support they qualify for, with estimated subsidy, documents, how to apply and an action plan. `build.py` calls `scheme_finder.py`. Details in `tools_src/scheme-finder/README.md`.
+
 ---
 
 ## Folder structure
