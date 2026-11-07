@@ -790,7 +790,7 @@ def build_page(head, nav, footer, esc, p):
 
 def build_tools_index(head, nav, footer, esc, p):
     return head("Free Tools for Small Business Founders | KidharMilega",
-                "Free tools for first-time founders in India: find government schemes and subsidies you qualify for, find local suppliers by HSN code, and size the export market for your product.",
+                "Free tools for first-time founders in India: find government schemes and subsidies you qualify for, find local suppliers by HSN code, find trade fairs worth a stall, and size the export market for your product.",
                 "/tools/") + nav("tools") + f'''
 <main><div class="container">
   <div class="page-header">
@@ -815,6 +815,12 @@ def build_tools_index(head, nav, footer, esc, p):
       <div class="section-label">Funding</div>
       <h2 style="font-size:1.4rem;margin-bottom:8px">Scheme &amp; Subsidy Finder</h2>
       <p>Answer a few questions and get a free report of the central and state subsidies, loans and support your business qualifies for, with estimated amounts, documents and how to apply.</p>
+      <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
+    </a>
+    <a class="card" href="{p('/tools/expo-finder/')}" style="display:block">
+      <div class="section-label">Selling</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">Trade Fair &amp; Expo Finder</h2>
+      <p>Pick your city and product and get the trade fairs, expos and melas worth a stall, with venue, month and who visits, stall subsidies and a budget calculator.</p>
       <p style="margin-top:14px;font-weight:600;color:var(--color-link)">Open the tool &rarr;</p>
     </a>
   </div>

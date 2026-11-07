@@ -81,6 +81,10 @@ Free tool: the user picks an 8-digit HSN code and a district, leaves an email, a
 
 Free tool: the user describes their business and themselves, leaves an email, and gets a detailed report of the central and state subsidies, loans and support they qualify for, with estimated subsidy, documents, how to apply and an action plan. `build.py` calls `scheme_finder.py`. Details in `tools_src/scheme-finder/README.md`.
 
+## Expo Finder tool (`/tools/expo-finder/`)
+
+Free tool: the user picks their city, product and goal (sell to visitors, find dealers, meet export buyers, find suppliers), leaves an email, and gets a report of the trade fairs and expos worth a stall: live events in their city, the big recurring fairs that fit with venue, usual month and who visits, nearby venues, stall subsidies, a budget and break-even calculator, AI prompts and a checklist. `build.py` calls `expo_finder.py`. Details in `tools_src/expo-finder/README.md`.
+
 ---
 
 ## Folder structure

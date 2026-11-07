@@ -6,6 +6,7 @@ from scheme_facts import correct_mapping
 import supplier_finder
 import export_buyer_finder
 import scheme_finder
+import expo_finder
 import urllib.parse
 
 SITE_URL   = "https://kidharmilega.in"
@@ -664,6 +665,7 @@ def build_events_page(exhibition_posts=None):
     <div class="section-label">Events &amp; Expos</div>
     <h1 class="page-header-title">Trade shows across<br><em>100 Indian cities</em></h1>
     <p class="page-header-sub">Real-time event listings &#8212; trade fairs, B2B summits, craft expos and local haats.</p>
+    <p style="margin-top:16px"><a class="btn btn-primary" href="{p(expo_finder.TOOL_PATH)}">Find the fairs worth a stall for your product (free) &#8594;</a></p>
   </div>
   {city_section}
 </div></main>''' + footer() + AE_SCRIPT + "</body></html>"
@@ -702,6 +704,7 @@ def build_exhibition_page(post):
     <div class="section-label">Upcoming Events</div>
     <h2 class="section-title">Events in {esc(ae_city)}</h2>
     <div style="margin-top:16px">{ae_widget(ae_city, ae_cat)}</div>
+    <div class="info-box info-neutral" style="margin-top:20px"><strong>Planning to take a stall?</strong> Get a free report of the big trade fairs near {esc(ae_city)} that fit your product, stall subsidies and a budget calculator. <a href="{p(expo_finder.TOOL_PATH)}?city={urllib.parse.quote(ae_city)}" style="color:var(--color-link);font-weight:600">Open the Expo Finder &#8594;</a></div>
   </section>
   {content_section}
   <div class="cta-block" style="margin-top:60px">
@@ -1843,6 +1846,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}{supplier_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{export_buyer_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{scheme_finder.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{expo_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2163,6 +2167,9 @@ def build():
     print(f"✓ Export Buyer Finder: HS6 codes with India export data {n_ebf['in']}, with US import data {n_ebf['us']}, with Canadian importers from India {n_ebf.get('ca', 0)}, with UK importers {n_ebf.get('uk', 0)}")
     n_c, n_s = scheme_finder.write_scheme_finder(DIST_DIR, head, nav, footer, esc, p)
     print(f"✓ Scheme Finder: {n_c} central + {n_s} state schemes")
+    n_fairs, n_cities = expo_finder.write_expo_finder(DIST_DIR, head, nav, footer, esc, p,
+        expo_finder.city_pages_from_posts(exhibition_posts, parse_wp_shortcode))
+    print(f"✓ Expo Finder: {n_fairs} fairs, {n_cities} cities")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()
