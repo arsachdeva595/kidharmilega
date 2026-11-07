@@ -188,6 +188,8 @@ SKIP_FIELDS = {
     "success_story_cost", "success_story_employees",
 }
 
+# An unverified market-size figure is removed, so pages leave out the Market row instead of
+# showing a placeholder. MARKET_LINE is the placeholder older data may still carry.
 MARKET_LINE = "Not published here"
 
 # Phrases that cite a rupee market, a unit count, or an export share we could not
@@ -700,17 +702,11 @@ def correct_text(text: str, *, gi_yes: bool = False, field: str = "", page: str 
 
     if field == "production_scale":
         if text.strip() == MARKET_LINE:
-            return text
+            return ""
         if re.search(r"\d", text):
             if audit is not None:
-                audit(
-                    page,
-                    field,
-                    text.strip(),
-                    MARKET_LINE,
-                    SOURCES["MARKET"],
-                )
-            return MARKET_LINE
+                audit(page, field, text.strip(), "", SOURCES["MARKET"])
+            return ""
         return text
 
     if field in SCHEME_FIELDS:
