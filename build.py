@@ -273,6 +273,7 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:image" content="{og_image}">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="KidharMilega">
 <link rel="icon" type="image/png" href="{p('/assets/logo.png')}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -282,6 +283,9 @@ def head(title, desc, canonical="", image=None, extra_head="", noindex=False):
 </head><body>'''
 
 BOOK_CALL_URL = "https://topmate.io/arsachdeva"
+# How people type the brand in Google ("kidhar milega", "kidhar milega.in"). Used as the site's alternate names in the
+# homepage WebSite/Organization schema and og:site_name, so brand searches resolve to the site and the homepage.
+SITE_ALT_NAMES = ["Kidhar Milega", "kidharmilega.in", "Kidhar Milega.in"]
 IG_FOLLOWERS = "25,000+"   # @startupwalebhaia follower count shown on the homepage
 COMMUNITY_URL = "https://www.facebook.com/groups/startupwalebhaia/"
 
@@ -406,10 +410,10 @@ def build_homepage(districts):
     live = [d for d in districts if d.get("page_status","").lower()=="live"]
     search_data = json.dumps([{"n": d.get('odop_product_name','') or d['district_name'], "d": d['district_name'], "s": d['state'], "u": p('/products/') + product_page_slug(d) + '/'} for d in live])
     hp_schema = json.dumps([
-        {"@context":"https://schema.org","@type":"WebSite","name":"KidharMilega","url":f"{SITE_URL}/",
+        {"@context":"https://schema.org","@type":"WebSite","name":"KidharMilega","alternateName":SITE_ALT_NAMES,"url":f"{SITE_URL}/",
          "description":"Find a business idea, research your district's ODOP product, and find suppliers, buyers and government schemes. Free, for every district in India.",
          "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":f"{SITE_URL}/products/?q={{search_term_string}}"},"query-input":"required name=search_term_string"}},
-        {"@context":"https://schema.org","@type":"Organization","name":"KidharMilega","url":f"{SITE_URL}/",
+        {"@context":"https://schema.org","@type":"Organization","name":"KidharMilega","alternateName":SITE_ALT_NAMES,"url":f"{SITE_URL}/",
          "logo":f"{SITE_URL}/assets/logo.png",
          "sameAs":["https://instagram.com/startupwalebhaia", COMMUNITY_URL]},
     ], ensure_ascii=False)
@@ -445,7 +449,7 @@ def build_homepage(districts):
   </section>'''
 
     return (
-        head("KidharMilega: Business Idea, ODOP Product, Supplier ya Buyer? Yahan Se Shuru Karo",
+        head("Kidhar Milega: Business Idea, ODOP Product, Supplier ya Buyer? Yahan Se Shuru Karo",
              "Batao kis kaam se aaye ho: business idea, apne district ka ODOP product, supplier, buyer, loan ya scheme. Do sawaal, phir seedha sahi tool, guide ya 1:1 call. Free, koi login nahi.", "/",
              extra_head=hp_extra_head) +
         '<div class="alert-strip">@startupwalebhaia se aaye ho? <strong>Sahi jagah aaye ho.</strong> Sab free, koi login nahi.</div>' +
