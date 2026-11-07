@@ -1,4 +1,5 @@
-/* KidharMilega Export Buyer Finder (teaser): HSN → US import snapshot (UN Comtrade) → buyer-list waitlist.
+/* KidharMilega Export Buyer Finder: HSN → India's export markets, market details (UN Comtrade) → masked buyer
+ * companies (Canada, UK) behind "Show more" → "unlock full details" waitlist.
  * Config from window.EBF_CONFIG (export_buyer_finder.py). HSN search from /tools/shared/hsn-search.js. */
 (function () {
   "use strict";
@@ -6,12 +7,13 @@
   var $ = function (id) { return document.getElementById(id); };
   var LS_LEAD = "ebf_lead_v1", INDIA = 699;
   var META = C.meta || {}, MUS = META.us || {}, MIN = META["in"] || {}, NAMES = META.partners || {};
-  var YEARS = MUS.years || [], IYEARS = MIN.years || [], US = 842, MCA = META.ca || null;
+  var YEARS = MUS.years || [], IYEARS = MIN.years || [], US = 842, hasBuyers = false;
   var els = {
     form: $("ebfForm"), hsn: $("ebfHsn"), list: $("ebfHsnList"), status: $("ebfHsnStatus"), picked: $("ebfPicked"),
     error: $("ebfError"), results: $("ebfResults"), title: $("ebfTitle"), sub: $("ebfSub"), market: $("ebfMarket"),
     waitCode: $("ebfWaitCode"), waitForm: $("ebfWaitForm"), email: $("ebfEmail"), phone: $("ebfPhone"), seg: $("ebfSeg"),
-    waitError: $("ebfWaitError"), done: $("ebfDone"), doneEmail: $("ebfDoneEmail"), sfLink: $("ebfSfLink")
+    waitError: $("ebfWaitError"), done: $("ebfDone"), doneEmail: $("ebfDoneEmail"), sfLink: $("ebfSfLink"),
+    sample: $("ebfSample")
   };
   var selected = null, combo, chapters = { us: {}, "in": {}, ca: {}, uk: {} };
 
@@ -36,7 +38,7 @@
   function pick(l) {
     selected = l;
     els.picked.innerHTML =
-      '<div class="sf-picked__code">HSN ' + esc(H.fmtCode(l.code)) + ' <span class="sf-opt">→ US data for HS ' + esc(l.code.slice(0, 6)) + '</span></div>' +
+      '<div class="sf-picked__code">HSN ' + esc(H.fmtCode(l.code)) + ' <span class="sf-opt">→ trade data for HS ' + esc(l.code.slice(0, 6)) + '</span></div>' +
       '<div class="sf-picked__title">' + esc(l.title || l.heading) + '</div>' +
       (l.detail ? '<div class="sf-picked__detail">Tariff line: ' + esc(l.detail) + '</div>' : "") +
       '<button type="button" class="sf-link" id="ebfChange">Change</button>';
@@ -87,110 +89,107 @@
     els.sfLink.href = C.supplierFinder + "?hsn=" + encodeURIComponent(l.code);
     els.market.innerHTML = '<p class="sf-hint">Loading trade data…</p>';
     show();
-    listState.ca.all = listState.uk.all = false;
     Promise.all([loadChapter("in", ch), loadChapter("us", ch), loadChapter("ca", ch), loadChapter("uk", ch)]).then(function (res) {
       if (selected !== l) return;
       var hin = IYEARS.length ? rowFor(l.code, res[0], IYEARS) : null, hus = YEARS.length ? rowFor(l.code, res[1], YEARS) : null;
+      var groups = [listFor("ca", l.code, res[2]), listFor("uk", l.code, res[3])].filter(Boolean);
+      hasBuyers = groups.length > 0;
       var html = "";
+      // 1–2. Where India sells it: tiles, trend, top 10 countries, takeaways.
       if (hin) html += indiaHtml(hin);
       else if (IYEARS.length) html += '<p class="ebf-note">No India export records for this code in ' + IYEARS[0] + "–" + IYEARS[IYEARS.length - 1] + '. India may report it under a nearby code. Try a related product.</p>';
-      html += '<div id="ebfCa">' + listHtml("ca", l.code, res[2]) + '</div><div id="ebfUk">' + listHtml("uk", l.code, res[3]) + '</div>';
+      // 3. Market details: the US deep dive.
       if (hus) html += '<h2 class="ebf-h2" id="ebfUs">The US market in detail</h2>' + marketHtml(hus);
-      else if (YEARS.length) html += '<p class="ebf-note">No US import records for this code in ' + YEARS[0] + "–" + YEARS[YEARS.length - 1] + '. The US may classify it under a nearby code.</p>';
-      els.market.innerHTML = html || '<p class="ebf-note">Trade data is being updated. Join the waitlist below and check back soon.</p>';
+      // 4. Buyer companies, masked, behind "Show more". Countries with no list for this code are left out.
+      var total = groups.reduce(function (a, g) { return a + g.total; }, 0);
+      if (groups.length) {
+        html += '<div class="ebf-more-wrap" id="ebfMoreWrap"><button type="button" class="btn btn-cyan btn-lg" id="ebfShowMore">Show more: ' + total.toLocaleString("en-IN") + " buyer " + plural(total, "company", "companies") +
+          ' <span class="btn__arrow" aria-hidden="true">&darr;</span></button><p class="sf-hint">Importers in ' + groups.map(function (g) { return LISTS[g.key].country; }).join(" and ") + ' from official government data.</p></div>' +
+          '<section class="ebf-buyer-sec" id="ebfBuyers" hidden><h2 class="ebf-h2">Companies buying this product</h2>' +
+          '<p class="section-sub">Names and contacts are hidden for now. Unlocking them is coming soon: join below and we\'ll tell you first.</p>' +
+          groups.map(groupHtml).join("") + '</section>';
+      }
+      els.sample.hidden = groups.length > 0;  // the sample lead only when there are no real (masked) rows to show
+      els.market.innerHTML = html || '<p class="ebf-note">Trade data is being updated. Join the list below and check back soon.</p>';
     });
   }
 
-  // ── Named importer lists (Canada: from India; UK: from anywhere) ─────────
+  // ── Buyer companies (Canada: from India; UK: from anywhere), masked ─────────
   var RANK = { specialist: 3, other: 2, chain: 1, luxury: 0 };
+  var TYPE = { specialist: "Specialist importer", other: "Importer", chain: "Big retail chain", luxury: "Luxury brand, sources in-house" };
   var LISTS = {
     ca: {
-      box: "ebfCa", title: "Canadian companies importing this from India",
+      country: "Canada",
       sort: function (a, b) { return (RANK[b[3]] - RANK[a[3]]) || (a[4] - b[4]) || (Math.min(b[5], 10) - Math.min(a[5], 10)) || (a[0] < b[0] ? -1 : 1); },
-      intro: function (n, code, m) { return "<strong>" + n + "</strong> " + plural(n, "company", "companies") + " imported HS " + esc(code) + " from India in " + m.year + ", named in Canadian government data."; },
-      empty: function (m) { return "No Canadian importer of this code from India is listed for " + m.year + "."; },
+      head: function (g, m) { return "<strong>" + g.total.toLocaleString("en-IN") + "</strong> " + plural(g.total, "company", "companies") + " imported HS " + esc(g.code) + " <strong>from India</strong> in " + m.year + "."; },
       row: function (r) {
-        var tags = '<span class="ebf-tag is-proof">Imports this from India</span>' + segTags(r[3]) + (r[4] ? '<span class="ebf-tag">Based outside Canada</span>' : "");
-        var meta = esc(r[1]) + ", " + esc(r[2]) + (r[5] ? " · also imports " + r[5] + " related " + plural(r[5], "product", "products") + " from India" : "");
-        return [r[0], meta, tags];
+        return {
+          where: esc(r[1]) + ", " + esc(r[2]) + (r[4] ? " (based outside Canada)" : ""), seg: r[3],
+          proof: '<span class="ebf-tag is-proof">Imported this from India</span>',
+          activity: r[5] ? "Also imports " + r[5] + " related " + plural(r[5], "product", "products") + " from India" : "Buys this product from India"
+        };
       },
-      foot: function (m) { return esc(m.licence) + " Source: " + esc(m.source) + ", " + m.year + ". The list shows who imported, not how much. Contacts are not included."; }
+      foot: function (m) { return esc(m.licence) + " Source: " + esc(m.source) + ", " + m.year + "."; }
     },
     uk: {
-      box: "ebfUk", title: "UK companies importing this product",
+      country: "the UK",
       sort: function (a, b) { return (RANK[b[3]] - RANK[a[3]]) || (b[4] - a[4]) || (Math.min(b[6], 15) - Math.min(a[6], 15)) || (b[5] - a[5]) || (a[0] < b[0] ? -1 : 1); },
-      intro: function (n, code, m) {
-        return "<strong>" + n + "</strong> " + plural(n, "company", "companies") + " imported HS " + esc(code) + " into the UK between " + ym(m.months[0]) + " and " + ym(m.months[1]) +
-          ", named in HMRC data. <strong>HMRC doesn't say which country they buy from</strong>, so these are importers of the product, not proven buyers from India.";
+      head: function (g, m) {
+        return "<strong>" + g.total.toLocaleString("en-IN") + "</strong> " + plural(g.total, "company", "companies") + " imported HS " + esc(g.code) + " into the UK, " + ym(m.months[0]) + " to " + ym(m.months[1]) +
+          ". HMRC doesn't record where they buy from, so these import the product, not necessarily from India.";
       },
-      empty: function (m) { return "No UK importer of this code is listed between " + ym(m.months[0]) + " and " + ym(m.months[1]) + "."; },
-      row: function (r) {
-        var tags = '<span class="ebf-tag">Imports this product</span>' + segTags(r[3]);
-        var meta = esc(r[1]) + (r[2] ? ", " + esc(r[2]) : "") + " · imported in " + r[4] + " " + plural(r[4], "month", "months") + ", last " + ym(r[5]) +
-          (r[6] ? " · also imports " + r[6] + " related " + plural(r[6], "product", "products") : "");
-        return [r[0], meta, tags];
+      row: function (r, m) {
+        var span = monthsBetween(m.months[0], m.months[1]);
+        return {
+          where: esc(r[1]), seg: r[3],
+          proof: '<span class="ebf-tag">Imported this product</span>',
+          activity: r[4] + " of " + span + " months, last " + ym(r[5]) + (r[6] ? " · " + r[6] + " related " + plural(r[6], "product", "products") : "")
+        };
       },
-      foot: function (m) { return esc(m.licence) + " Source: " + esc(m.source) + ". Couriers, customs agents and overseas sellers using agent addresses are removed. Contacts are not included."; }
+      foot: function (m) { return esc(m.licence) + " Source: " + esc(m.source) + ". Couriers, customs agents and agent addresses removed."; }
     }
   };
-  var listState = { ca: { all: false }, uk: { all: false } };
 
   function plural(n, one, many) { return n === 1 ? one : many; }
   function ym(m) { var s = String(m); return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+s.slice(4) - 1] + " " + s.slice(0, 4); }
-  function segTags(seg) {
-    return seg === "chain" ? '<span class="ebf-tag">Big retail chain</span>' : seg === "luxury" ? '<span class="ebf-tag">Luxury brand, sources in-house</span>' : "";
-  }
+  function monthsBetween(a, b) { return (Math.floor(b / 100) - Math.floor(a / 100)) * 12 + (b % 100) - (a % 100) + 1; }
 
-  // Exact HS6 list, else every HS6 in the heading merged (one row per company), re-sorted. A ["+", n] row means
-  // n more importers were cut from that code's file.
+  // Exact HS6 list, else every HS6 in the heading merged (one row per company). A ["+", n] row = n more cut from the file.
   function listFor(key, code, data) {
+    var m = META[key];
+    if (!m || (m.covered && m.covered.indexOf(code.slice(0, 2)) < 0)) return null;
     var h6 = code.slice(0, 6), more = 0;
     function clean(rows) { return rows.filter(function (r) { if (r[0] === "+") { more += r[1]; return false; } return true; }); }
-    if (data[h6]) { var rs = clean(data[h6]); return { level: "hs6", code: h6, rows: rs, more: more }; }
-    var h4 = code.slice(0, 4), seen = {}, rows = [];
-    Object.keys(data).sort().forEach(function (k) {
-      if (k.indexOf(h4) !== 0) return;
-      clean(data[k]).forEach(function (r) { if (!seen[r[0]]) { seen[r[0]] = 1; rows.push(r); } });
-    });
-    rows.sort(LISTS[key].sort);
-    return rows.length ? { level: "hs4", code: h4, rows: rows, more: 0 } : null;
-  }
-  function nice(name) {
-    return name.toLowerCase().replace(/(^|[\s\/(&.-])([a-zà-ÿ])/g, function (m, a, b) { return a + b.toUpperCase(); })
-      .replace(/(\s)(And|Of|The|For|Du|De|Des|Et)(?=\s)/g, function (m, sp, w) { return sp + w.toLowerCase(); })
-      .replace(/\b(Llc|Ulc|Lp|Llp|Plc|Uk|Usa|Bc)\b/g, function (m) { return m.toUpperCase(); });
-  }
-  function listHtml(key, code, data) {
-    var L = LISTS[key], m = META[key];
-    if (!m) return "";
-    var head = '<h2 class="ebf-h2">' + L.title + '</h2>';
-    if (m.covered && m.covered.indexOf(code.slice(0, 2)) < 0) {
-      return key === "uk" ? head + '<p class="ebf-note">UK importer lists cover HS chapters ' + m.covered.slice().sort().join(", ") + ' for now. More chapters are coming.</p>' : "";
+    var rows, level = "hs6", at = h6;
+    if (data[h6]) rows = clean(data[h6]);
+    else {
+      var h4 = code.slice(0, 4), seen = {};
+      rows = []; level = "hs4"; at = h4;
+      Object.keys(data).sort().forEach(function (k) {
+        if (k.indexOf(h4) !== 0) return;
+        clean(data[k]).forEach(function (r) { if (!seen[r[0]]) { seen[r[0]] = 1; rows.push(r); } });
+      });
+      rows.sort(LISTS[key].sort);
     }
-    var hit = listFor(key, code, data);
-    if (!hit) return head + '<p class="ebf-note">' + L.empty(m) + '</p>';
-    var n = hit.rows.length, unlocked = !!store(LS_LEAD), show = unlocked && listState[key].all ? n : Math.min(10, n);
-    var html = head + '<p class="section-sub" style="margin-bottom:var(--space-md)">' + L.intro(n + hit.more, hit.code, m) +
-      (hit.level === "hs4" ? " No exact list for HS " + esc(code.slice(0, 6)) + ", so this covers the whole heading." : "") + '</p>';
-    html += '<ol class="ebf-buyers">' + hit.rows.slice(0, show).map(function (r) {
-      var x = L.row(r);
-      return '<li><div class="ebf-buyers__n">' + esc(nice(x[0])) + '</div><div class="ebf-buyers__m">' + x[1] + '</div><div class="ebf-tags">' + x[2] + '</div></li>';
-    }).join("") + '</ol>';
-    if (n > show) {
-      html += unlocked ? '<button type="button" class="btn btn-ghost btn-sm" data-all="' + key + '">Show all ' + n + ' companies</button>'
-        : '<p class="ebf-more"><strong>+' + (n - show) + ' more companies.</strong> <a href="#ebfWait">Join the free waitlist</a> to see the full list.</p>';
-    } else if (hit.more && unlocked) {
-      html += '<p class="ebf-more">Showing the top ' + n + '. ' + hit.more + ' smaller importers are not listed.</p>';
-    }
-    html += '<p class="ebf-source">' + L.foot(m) + '</p>';
-    return html;
+    return rows.length ? { key: key, level: level, code: at, rows: rows, total: rows.length + more } : null;
   }
-  function refreshLists() {
-    if (!selected) return;
-    ["ca", "uk"].forEach(function (key) {
-      var box = $(LISTS[key].box); if (!box) return;
-      loadChapter(key, selected.code.slice(0, 2)).then(function (d) { box.innerHTML = listHtml(key, selected.code, d); });
-    });
+
+  // Same card as the sample lead: name and contacts are placeholders, never the real values.
+  function groupHtml(g) {
+    var L = LISTS[g.key], m = META[g.key], show = Math.min(10, g.rows.length);
+    return '<div class="ebf-group"><h3 class="ebf-group__h">' + (g.key === "ca" ? "Canada" : "United Kingdom") + '</h3>' +
+      '<p class="ebf-group__sub">' + L.head(g, m) + (g.level === "hs4" ? " Covers the whole heading " + esc(g.code) + "." : "") + '</p>' +
+      g.rows.slice(0, show).map(function (r) {
+        var x = L.row(r, m);
+        return '<div class="ebf-row ebf-lead">' +
+          '<div><span class="ebf-blur" aria-label="Company name hidden">Company name hidden</span><small>' + esc(TYPE[x.seg]) + ' · ' + x.where + '</small></div>' +
+          '<div><b>Proof</b>' + x.proof + '</div>' +
+          '<div><b>Activity</b><span>' + x.activity + '</span></div>' +
+          '<div><b>Contacts</b><span class="ebf-blur" aria-label="Contacts hidden">website · email · phone</span></div>' +
+          '</div>';
+      }).join("") +
+      (g.total > show ? '<p class="ebf-more"><strong>+' + (g.total - show).toLocaleString("en-IN") + ' more</strong> in the full list.</p>' : "") +
+      '<p class="ebf-source">' + L.foot(m) + '</p></div>';
   }
 
   // India → every destination (single series for the trend; destinations ranked, US marked).
@@ -312,7 +311,7 @@
       var slice = W > 1e9 ? 0.001 : 0.01;
       out.push("Winning just <strong>" + (slice * 100) + "%</strong> of this US market would be about <strong>" + usd(W * slice) + " a year</strong> in sales.");
     }
-    out.push("These numbers show the market. The buyer list (coming soon) shows the actual US companies importing this from India.");
+    if (hasBuyers) out.push("These numbers show the market. Tap <strong>Show more</strong> below to see the companies buying it.");
     return out;
   }
 
@@ -352,13 +351,15 @@
     store(LS_LEAD, lead);
     sendLead("export_waitlist");
     showDone(lead);
-    refreshLists();
     track("ebf_waitlist", { hsn: selected && selected.code, segment: seg }); track("generate_lead", { method: "export_buyer_finder" });
   });
 
   els.market.addEventListener("click", function (e) {
-    var k = e.target.getAttribute && e.target.getAttribute("data-all");
-    if (k) { listState[k].all = true; refreshLists(); track("ebf_list_all", { list: k, hsn: selected && selected.code }); }
+    var b = e.target.closest && e.target.closest("#ebfShowMore");
+    if (!b) return;
+    $("ebfBuyers").hidden = false; $("ebfMoreWrap").hidden = true;
+    $("ebfBuyers").scrollIntoView({ behavior: "smooth", block: "start" });
+    track("ebf_show_buyers", { hsn: selected && selected.code });
   });
 
   combo = H.combo({ input: els.hsn, list: els.list, status: els.status, idPrefix: "ebfOpt", onPick: pick, onClear: unpick });
