@@ -5,6 +5,8 @@ from datetime import datetime
 from scheme_facts import correct_mapping
 import supplier_finder
 import export_buyer_finder
+import scheme_finder
+import urllib.parse
 
 SITE_URL   = "https://kidharmilega.in"
 IG_HANDLE  = "@startupwalebhaia"
@@ -1041,7 +1043,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
   </section>
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Logistics &amp; Connectivity</div><h2 class='section-title'>Manufacturer ke liye zaroori info</h2>"+log_html+"</section>" if log_html else ""}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Where to Set Up</div><h2 class='section-title'>Infrastructure ready hai &#8212; plot lo aur shuru karo</h2>"+parks_html+"</section>" if parks_html else ""}
-  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Government Schemes</div><h2 class='section-title'>Woh paisa jo tujhe pata nahi tha</h2><div class='scheme-list' style='margin-bottom:20px'>"+schemes_html+"</div><div class='info-box info-neutral'><strong>Pehla step:</strong> udyamregistration.gov.in &#8212; free, 10 minute. Udyam registration most schemes ke liye zaroori hai.</div></section>" if schemes_html else ""}
+  {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Government Schemes</div><h2 class='section-title'>Woh paisa jo tujhe pata nahi tha</h2><div class='scheme-list' style='margin-bottom:20px'>"+schemes_html+"</div><div class='info-box info-neutral'><strong>Pehla step:</strong> udyamregistration.gov.in &#8212; free, 10 minute. Udyam registration most schemes ke liye zaroori hai.</div><p style='margin-top:14px'><a class='btn btn-ghost btn-sm' href='"+p(scheme_finder.TOOL_PATH)+"?state="+urllib.parse.quote(d.get("state",""))+"'>Check every scheme you qualify for (free report) &rarr;</a></p></section>" if schemes_html else ""}
   <hr class="sec-divider">
   <section class="page-section">
     <div class="section-label">Events &amp; Expos</div>
@@ -1840,6 +1842,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}/tools/",              "monthly", "0.7"),
         u(f"{SITE_URL}{supplier_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{export_buyer_finder.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{scheme_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2158,6 +2161,8 @@ def build():
     print(f"✓ Supplier Finder: {n_hsn} HSN lines, {n_mapped}/{n_dist} ODOP districts mapped to HSN")
     n_ebf = export_buyer_finder.write_export_buyer_finder(DIST_DIR, head, nav, footer, esc, p)
     print(f"✓ Export Buyer Finder: HS6 codes with India export data {n_ebf['in']}, with US import data {n_ebf['us']}, with Canadian importers from India {n_ebf.get('ca', 0)}, with UK importers {n_ebf.get('uk', 0)}")
+    n_c, n_s = scheme_finder.write_scheme_finder(DIST_DIR, head, nav, footer, esc, p)
+    print(f"✓ Scheme Finder: {n_c} central + {n_s} state schemes")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()

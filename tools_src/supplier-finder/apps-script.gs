@@ -4,9 +4,10 @@
  * (see tools_src/supplier-finder/SETUP.md). Every email capture and every later search is one row.
  */
 var SHEET_NAME = 'Leads';
-// Events: lead / search (Supplier Finder), export_waitlist / export_search (Export Buyer Finder).
+// Events: lead / search (Supplier Finder), export_waitlist / export_search (Export Buyer Finder),
+// scheme_report / scheme_search (Scheme Finder; the profile and matched scheme ids go in 'details').
 var HEADERS = ['timestamp', 'event', 'email', 'phone', 'hsn', 'hsn_name', 'product', 'state', 'district',
-               'utm_source', 'utm_medium', 'utm_campaign', 'referrer', 'page', 'segment'];
+               'utm_source', 'utm_medium', 'utm_campaign', 'referrer', 'page', 'segment', 'details'];
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -20,7 +21,7 @@ function doPost(e) {
     var row = HEADERS.map(function (h) {
       if (h === 'timestamp') return new Date();
       if (h === 'email') return email;
-      return clean(data[h], h === 'page' || h === 'referrer' ? 500 : 200);
+      return clean(data[h], h === 'page' || h === 'referrer' || h === 'details' ? 1000 : 200);
     });
     sheet.appendRow(row);
     return out({ ok: true });
