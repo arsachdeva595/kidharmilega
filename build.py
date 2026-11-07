@@ -83,6 +83,78 @@ SITE_REDIRECTS = {
     "blog/post": ("/blog/loan-waiver-2026-pmegp-mudra-msme-loans/", "Loan Waiver 2026: Does It Cover PMEGP, Mudra or MSME Business Loans?"),
 }
 
+# Product page → tools: each link opens the tool already filled in for that district's product.
+CRAFT_RE = re.compile(r"craft|toy|painting|terracotta|pottery|carv|dokra|dhokra|bidri|lac\b|lacquer|bamboo|cane|wooden|brass|bell metal|metal ware|art\b", re.I)
+
+def _hsn_chapter(codes):
+    return int(codes[0][:2]) if codes and codes[0][:2].isdigit() else None
+
+def expo_sector(product, codes):
+    """Map a product to an Expo Finder sector key (expo_finder.SECTORS), or '' when none fits."""
+    if CRAFT_RE.search(product): return "craft"
+    ch = _hsn_chapter(codes)
+    if ch is None: return ""
+    if ch in (1, 4, 5, 6): return "agri"
+    if 2 <= ch <= 24: return "food"
+    if ch == 30 or 28 <= ch <= 38 and ch not in (33, 34): return "pharma"
+    if ch in (33, 34): return "consumer"
+    if ch in (39, 48): return "packaging"
+    if 41 <= ch <= 43 or ch == 64: return "leather"
+    if ch in (44, 45, 94) or 68 <= ch <= 70: return "furniture"
+    if ch in (46, 92, 97): return "craft"
+    if ch in (49, 95): return "books"
+    if 50 <= ch <= 63: return "textile"
+    if ch == 71: return "jewel"
+    if ch == 85: return "electronics"
+    if 72 <= ch <= 90: return "engg"
+    return ""
+
+def scheme_sector(product, codes):
+    """Map a product to a Scheme Finder sector key (scheme_finder.SECTORS)."""
+    if CRAFT_RE.search(product): return "craft"
+    ch = _hsn_chapter(codes)
+    if ch is None: return "service"
+    if ch == 3: return "fish"
+    if ch in (1, 4): return "dairy"
+    if ch == 6: return "agri"
+    if 2 <= ch <= 24: return "food"
+    if ch in (46, 92, 97): return "craft"
+    if 50 <= ch <= 63: return "textile"
+    return "mfg"
+
+EXPO_CITIES = {c[0].lower().split(" (")[0]: c[0] for c in expo_finder.CITIES}
+
+def tools_section(d):
+    product = (d.get("odop_product_name") or "").strip()
+    district, state = d.get("district_name", ""), d.get("state", "")
+    codes = supplier_finder.odop_hsn_codes(product)
+    hsn = codes[0] if codes else ""
+    q = lambda **kw: "?" + urllib.parse.urlencode({k: v for k, v in kw.items() if v})
+    city = EXPO_CITIES.get(district.lower()) or EXPO_CITIES.get(AE_FALLBACK.get(state, "").lower(), "")
+    cards = [
+        ("Supplier Finder", f"{product} ke raw material, machine aur packaging suppliers {district} ke paas kaise dhoondho.",
+         supplier_finder.TOOL_PATH + q(state=state, district=district, hsn=hsn)),
+        ("Export Buyer Finder", f"Kaun se desh India se {product} kharidte hain aur kitna" + (f" (HSN {hsn})." if hsn else "."),
+         export_buyer_finder.TOOL_PATH + q(hsn=hsn)),
+        ("HSN Code Finder", f"{product} ka sahi HSN code, GST invoice aur export documents ke liye.",
+         hsn_finder.TOOL_PATH + (q(hsn=hsn) if hsn else q(q=product))),
+        ("Scheme & Subsidy Finder", f"{state} mein tumpe lagu hone wale loan aur subsidy schemes ki free report.",
+         scheme_finder.TOOL_PATH + q(state=state, sector=scheme_sector(product, codes))),
+        ("Expo Finder", f"{city or 'Tumhare sheher'} ke paas ke trade fair jahan {product} ke buyers aate hain, stall subsidy ke saath.",
+         expo_finder.TOOL_PATH + q(city=city, sector=expo_sector(product, codes))),
+    ]
+    items = "".join(f'''<a href="{esc(p(href))}" class="district-card">
+  <div class="district-card-head"><div class="district-name">{esc(name)}</div><span class="district-arrow">&#8594;</span></div>
+  <div class="district-desc">{esc(desc)}</div>
+</a>''' for name, desc, href in cards)
+    return f'''<hr class="sec-divider">
+  <section class="page-section">
+    <div class="section-label">Free Tools</div>
+    <h2 class="section-title">{esc(product)} ke liye agla kaam &#8212; free tools</h2>
+    <p class="section-sub">Har tool {esc(district)} aur {esc(product)} ke saath pehle se bhara khulta hai. <a href="{p('/tools/')}" style="color:var(--color-link);font-weight:600">Saare tools dekho &#8594;</a></p>
+    <div class="grid-3">{items}</div>
+  </section>'''
+
 def build_redirect_page(new_slug, title, dest_path=None):
     dest_path = dest_path or f"/products/{new_slug}/"
     canonical = f"{SITE_URL}{dest_path}"
@@ -1193,6 +1265,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     <p class="section-sub">Har step realistic hai &#8212; {esc(d["district_name"])} ke liye, as is.</p>
     <div class="steps-list">{steps_html}</div>
   </section>
+  {tools_section(d)}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Logistics &amp; Connectivity</div><h2 class='section-title'>Manufacturer ke liye zaroori info</h2>"+log_html+"</section>" if log_html else ""}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Where to Set Up</div><h2 class='section-title'>Infrastructure ready hai &#8212; plot lo aur shuru karo</h2>"+parks_html+"</section>" if parks_html else ""}
   {"<hr class='sec-divider'><section class='page-section'><div class='section-label'>Government Schemes</div><h2 class='section-title'>Woh paisa jo tujhe pata nahi tha</h2><div class='scheme-list' style='margin-bottom:20px'>"+schemes_html+"</div><div class='info-box info-neutral'><strong>Pehla step:</strong> udyamregistration.gov.in &#8212; free, 10 minute. Udyam registration most schemes ke liye zaroori hai.</div><p style='margin-top:14px'><a class='btn btn-ghost btn-sm' href='"+p(scheme_finder.TOOL_PATH)+"?state="+urllib.parse.quote(d.get("state",""))+"'>Check every scheme you qualify for (free report) &rarr;</a></p></section>" if schemes_html else ""}
