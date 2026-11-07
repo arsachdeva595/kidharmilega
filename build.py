@@ -694,7 +694,7 @@ def build_odop_page(districts):
     <div class="district-name">{esc(d.get('odop_product_name',''))}</div>
     <div class="district-name-hin">{esc(d['district_name'])} &middot; {esc(d['state'])}</div>
   </div><span class="district-arrow">&#8594;</span></div>
-  <div class="district-product">{esc(d.get('production_scale',''))}</div>
+  {f'<div class="district-product">{esc(d["production_scale"])}</div>' if d.get('production_scale','').strip() else ''}
   <div class="district-desc" style="margin-top:8px">{esc((d.get('why_this_district','') or '')[:110])}</div>
   <div class="district-meta"><span class="tag tag-orange">{esc(d.get('odop_category',''))}</span>{gi}<span class="tag tag-gray">{esc(d.get('export_potential',''))} export</span></div>
 </a>'''
@@ -936,7 +936,8 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
     if d.get('gross_margin_d2c',''): kstats.append((d.get('gross_margin_d2c',''),'D2C Margin'))
     if d.get('breakeven_timeline',''): kstats.append((d.get('breakeven_timeline',''),'Breakeven'))
     if d.get('export_potential',''): kstats.append((d.get('export_potential',''),'Export'))
-    if d.get('city_tier',''): kstats.append(('Tier '+d.get('city_tier',''),'City'))
+    tier = d.get('city_tier','').strip()
+    if tier: kstats.append((tier if tier.lower().startswith('tier') else 'Tier '+tier,'City'))
     stat_bar_html = ('<div class="stat-bar-dark">'+"".join(f'<div class="stat-bar-item"><span class="sv">{esc(v)}</span><span class="sk">{esc(k)}</span></div>' for v,k in kstats[:5])+'</div>') if kstats else ''
 
     # ── Opportunity score ring ──
@@ -1147,7 +1148,7 @@ def build_district_page(d, vendors, all_districts=[], odop_urls=None):
         if cc: rd_html += f'<div class="rd-label" style="margin-top:20px">Same category &#8212; {esc(d.get("odop_category",""))}</div><div class="rd-grid">{cc}</div>'
         rd_html += '</section><hr class="sec-divider">'
 
-    market_eyebrow = d.get('production_scale','') or f'{d.get("odop_category","")} &middot; {d.get("state","")}'
+    market_eyebrow = d.get('production_scale','') or f'{d.get("odop_category","")} · {d.get("state","")}'
 
     body = f'''
 <main><div class="container">
