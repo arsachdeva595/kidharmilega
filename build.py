@@ -424,11 +424,22 @@ def build_homepage(districts):
         guides = f'''
   <section class="section" aria-labelledby="guides-title">
     <div class="home-head">
-      <div><h2 id="guides-title" class="reveal">Is hafte ki guides</h2>
+      <div><h2 id="guides-title" class="reveal">Taaza guides</h2>
       <p>Loan, scheme, idea ya product: jo sawaal DMs mein sabse zyada aate hain, unke poore jawab.</p></div>
       <a href="{p('/blog/')}" class="btn btn-ghost btn-sm">Saari guides <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
     </div>
-    <div class="grid-3">{cards}</div>
+    <div class="grid-3" id="hpGuides">{cards}</div>
+  </section>'''
+
+    # Filled in the browser from /reels.json, which build() carries over between builds; stays hidden while the list is empty.
+    reels = f'''
+  <section class="section" id="hpReels" aria-labelledby="reels-title" hidden>
+    <div class="home-head">
+      <div><h2 id="reels-title" class="reveal">Taaza reels</h2>
+      <p>Jo baatein 60 second mein samjhayi ja sakti hain, woh yahan. Baaki ke liye upar wale options.</p></div>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" data-cta="instagram">@startupwalebhaia follow karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+    </div>
+    <div class="reels-row" id="hpReelsRow"></div>
   </section>'''
 
     return (
@@ -465,7 +476,7 @@ def build_homepage(districts):
   </div>
 </section>
 
-<div class="container">{guides}
+<div class="container">{reels}{guides}
   <div class="cta-block">
     <div>
       <div class="cta-title">Kahin atke ho? Akele mat jhoojho.</div>
@@ -543,6 +554,49 @@ HOME_JS = """<script>
     sr.style.display = 'block';
   });
   document.addEventListener('click', function(e){ if (!si.contains(e.target) && !sr.contains(e.target)) sr.style.display = 'none'; });
+
+  // Newest guides straight from the blog feed, so new WriteOut posts show up without a site rebuild.
+  // The build-time cards stay if the feed can't be read.
+  var gg = document.getElementById('hpGuides');
+  if (gg && window.fetch && window.DOMParser) fetch('/blog/feed.xml', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.text() : ''; }).then(function(xml){
+    var items = new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('item');
+    if (items.length < 3) return;
+    function cut(t, n){ return t.length <= n ? t : t.slice(0, n).replace(/\s+\S*$/, '').replace(/[,.;:]$/, '') + '…'; }
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 3; i++) {
+      var it = items[i], get = function(tag){ var el = it.querySelector(tag); return el ? el.textContent.trim() : ''; };
+      var link = get('link').replace(/^https?:\/\/[^\/]+/, '');
+      if (!/^\/blog\/[\w-]+\/$/.test(link)) return;
+      var a = document.createElement('a'); a.className = 'district-card'; a.href = link;
+      a.innerHTML = '<div class="district-card-head"><div class="district-name"></div><span class="district-arrow">→</span></div><div class="district-desc"></div>';
+      a.querySelector('.district-name').textContent = cut(get('title'), 90);
+      a.querySelector('.district-desc').textContent = cut(get('description'), 140);
+      frag.appendChild(a);
+    }
+    gg.innerHTML = ''; gg.appendChild(frag);
+  }).catch(function(){});
+
+  // Reels: the list lives in /reels.json (newest first). Instagram's embed script loads only when the section nears the screen.
+  var rs = document.getElementById('hpReels'), rr = document.getElementById('hpReelsRow');
+  if (rs && window.fetch) fetch('/reels.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).then(function(list){
+    var urls = (Array.isArray(list) ? list : []).map(function(x){ return typeof x === 'string' ? x : (x && x.url) || ''; })
+      .filter(function(u){ return /^https:\/\/(www\.)?instagram\.com\/(reel|reels|p)\/[\w-]+\/?(\?.*)?$/.test(u); }).slice(0, 3);
+    if (!urls.length) return;
+    urls.forEach(function(u){
+      var clean = u.split('?')[0].replace('/reels/', '/reel/').replace(/\/?$/, '/');
+      var q = document.createElement('blockquote');
+      q.className = 'instagram-media'; q.setAttribute('data-instgrm-permalink', clean + '?utm_source=ig_embed'); q.setAttribute('data-instgrm-version', '14');
+      var a = document.createElement('a'); a.href = clean; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Instagram par dekho';
+      q.appendChild(a); var cell = document.createElement('div'); cell.className = 'reel-cell'; cell.appendChild(q); rr.appendChild(cell);
+    });
+    rs.hidden = false;
+    var loaded = false;
+    function load(){ if (loaded) return; loaded = true;
+      var sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.instagram.com/embed.js'; document.body.appendChild(sc); }
+    if ('IntersectionObserver' in window) { var ro = new IntersectionObserver(function(en){ if (en[0].isIntersecting) { ro.disconnect(); load(); } }, {rootMargin: '600px'}); ro.observe(rs); }
+    else load();
+    var hd = rs.querySelector('.reveal'); if (hd) hd.classList.add('is-in');
+  }).catch(function(){});
 
   // Heading reveal
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
@@ -2120,8 +2174,12 @@ Sitemap: {SITE_URL}/sitemap.xml
 def build():
     print(f"\n KidharMilega Builder  [BASE_PATH='{BASE_PATH}']")
     print("="*50)
+    # docs/reels.json is edited by hand (or on GitHub) and read by the homepage at runtime, so it survives the rebuild.
+    reels_file = DIST_DIR / "reels.json"
+    reels_json = reels_file.read_text(encoding="utf-8") if reels_file.exists() else "[]\n"
     if DIST_DIR.exists(): shutil.rmtree(DIST_DIR)
     DIST_DIR.mkdir(parents=True)
+    reels_file.write_text(reels_json, encoding="utf-8")
     dist_subdirs = ["assets","products","events","vendors"]
     if PUBLISH_BUSINESS_IDEAS: dist_subdirs.append("business-ideas")
     for d in dist_subdirs: (DIST_DIR/d).mkdir()

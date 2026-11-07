@@ -506,6 +506,15 @@ p{color:var(--color-neutral)}
   .hall-step{padding:18px 16px 12px;border-radius:22px}
 }
 @media(prefers-reduced-motion:reduce){.door:hover{transform:none}.hall-step{animation:none}}
+/* Homepage reels (Instagram embeds) and feed-driven guide cards */
+.reels-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.reel-cell{position:relative;min-width:0;overflow:hidden;border-radius:var(--radius-card)}
+.reels-row .instagram-media{min-width:0!important;width:100%!important;max-width:100%!important;margin:0!important;border-radius:var(--radius-card)!important}
+.reels-row blockquote.instagram-media{padding:24px;background:var(--color-paper-2);border-radius:var(--radius-card)}
+.reels-row blockquote a{color:var(--color-link);font-weight:600}
+#hpGuides .district-name{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:860px){.reels-row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin:0 calc(-1 * var(--page-gutter));padding-left:var(--page-gutter);padding-right:var(--page-gutter);scroll-padding:0 var(--page-gutter)}
+  .reels-row>*{flex:0 0 min(320px,82%)!important;scroll-snap-align:start}}
 
 /* Reveal on view (headings only), counters tick in JS */
 .reveal{opacity:0;transform:translateY(12px);transition:opacity 600ms var(--ease-snap),transform 600ms var(--ease-snap)}

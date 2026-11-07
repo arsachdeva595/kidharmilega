@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/style.css?v=f2629b41dc">
+<link rel="stylesheet" href="/assets/style.css?v=b03b0354b9">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebSite", "name": "KidharMilega", "url": "https://kidharmilega.in/", "description": "Find a business idea, research your district's ODOP product, and find suppliers, buyers and government schemes. Free, for every district in India.", "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": "https://kidharmilega.in/products/?q={search_term_string}"}, "query-input": "required name=search_term_string"}}, {"@context": "https://schema.org", "@type": "Organization", "name": "KidharMilega", "url": "https://kidharmilega.in/", "logo": "https://kidharmilega.in/assets/logo.png", "sameAs": ["https://instagram.com/startupwalebhaia", "https://www.facebook.com/groups/startupwalebhaia/"]}]</script>
 </head><body><div class="alert-strip">@startupwalebhaia se aaye ho? <strong>Sahi jagah aaye ho.</strong> Sab free, koi login nahi.</div><nav class="site-nav" id="siteNav"><div class="nav-inner">
   <a href="/" class="nav-logo"><img src="/assets/logo.png" alt="KidharMilega" class="nav-logo-img"></a>
@@ -197,13 +197,21 @@
 </section>
 
 <div class="container">
+  <section class="section" id="hpReels" aria-labelledby="reels-title" hidden>
+    <div class="home-head">
+      <div><h2 id="reels-title" class="reveal">Taaza reels</h2>
+      <p>Jo baatein 60 second mein samjhayi ja sakti hain, woh yahan. Baaki ke liye upar wale options.</p></div>
+      <a href="https://instagram.com/startupwalebhaia" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" data-cta="instagram">@startupwalebhaia follow karo <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
+    </div>
+    <div class="reels-row" id="hpReelsRow"></div>
+  </section>
   <section class="section" aria-labelledby="guides-title">
     <div class="home-head">
-      <div><h2 id="guides-title" class="reveal">Is hafte ki guides</h2>
+      <div><h2 id="guides-title" class="reveal">Taaza guides</h2>
       <p>Loan, scheme, idea ya product: jo sawaal DMs mein sabse zyada aate hain, unke poore jawab.</p></div>
       <a href="/blog/" class="btn btn-ghost btn-sm">Saari guides <span class="btn__arrow" aria-hidden="true">&#8594;</span></a>
     </div>
-    <div class="grid-3"><a href="/blog/container-manufacturing-companies-india-stocks/" class="district-card">
+    <div class="grid-3" id="hpGuides"><a href="/blog/container-manufacturing-companies-india-stocks/" class="district-card">
   <div class="district-card-head"><div class="district-name">Container Manufacturing Company in India: 2026 List &amp; Stocks</div><span class="district-arrow">&#8594;</span></div>
   <div class="district-desc">Container manufacturing company in India list 2026: ISO cargo box makers, listed stocks, ₹10,000 cr CMPS subsidy and where small&#8230;</div>
 </a><a href="/blog/warli-art-on-pot-business/" class="district-card">
@@ -286,6 +294,49 @@
     sr.style.display = 'block';
   });
   document.addEventListener('click', function(e){ if (!si.contains(e.target) && !sr.contains(e.target)) sr.style.display = 'none'; });
+
+  // Newest guides straight from the blog feed, so new WriteOut posts show up without a site rebuild.
+  // The build-time cards stay if the feed can't be read.
+  var gg = document.getElementById('hpGuides');
+  if (gg && window.fetch && window.DOMParser) fetch('/blog/feed.xml', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.text() : ''; }).then(function(xml){
+    var items = new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('item');
+    if (items.length < 3) return;
+    function cut(t, n){ return t.length <= n ? t : t.slice(0, n).replace(/\s+\S*$/, '').replace(/[,.;:]$/, '') + '…'; }
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 3; i++) {
+      var it = items[i], get = function(tag){ var el = it.querySelector(tag); return el ? el.textContent.trim() : ''; };
+      var link = get('link').replace(/^https?:\/\/[^\/]+/, '');
+      if (!/^\/blog\/[\w-]+\/$/.test(link)) return;
+      var a = document.createElement('a'); a.className = 'district-card'; a.href = link;
+      a.innerHTML = '<div class="district-card-head"><div class="district-name"></div><span class="district-arrow">→</span></div><div class="district-desc"></div>';
+      a.querySelector('.district-name').textContent = cut(get('title'), 90);
+      a.querySelector('.district-desc').textContent = cut(get('description'), 140);
+      frag.appendChild(a);
+    }
+    gg.innerHTML = ''; gg.appendChild(frag);
+  }).catch(function(){});
+
+  // Reels: the list lives in /reels.json (newest first). Instagram's embed script loads only when the section nears the screen.
+  var rs = document.getElementById('hpReels'), rr = document.getElementById('hpReelsRow');
+  if (rs && window.fetch) fetch('/reels.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).then(function(list){
+    var urls = (Array.isArray(list) ? list : []).map(function(x){ return typeof x === 'string' ? x : (x && x.url) || ''; })
+      .filter(function(u){ return /^https:\/\/(www\.)?instagram\.com\/(reel|reels|p)\/[\w-]+\/?(\?.*)?$/.test(u); }).slice(0, 3);
+    if (!urls.length) return;
+    urls.forEach(function(u){
+      var clean = u.split('?')[0].replace('/reels/', '/reel/').replace(/\/?$/, '/');
+      var q = document.createElement('blockquote');
+      q.className = 'instagram-media'; q.setAttribute('data-instgrm-permalink', clean + '?utm_source=ig_embed'); q.setAttribute('data-instgrm-version', '14');
+      var a = document.createElement('a'); a.href = clean; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Instagram par dekho';
+      q.appendChild(a); var cell = document.createElement('div'); cell.className = 'reel-cell'; cell.appendChild(q); rr.appendChild(cell);
+    });
+    rs.hidden = false;
+    var loaded = false;
+    function load(){ if (loaded) return; loaded = true;
+      var sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.instagram.com/embed.js'; document.body.appendChild(sc); }
+    if ('IntersectionObserver' in window) { var ro = new IntersectionObserver(function(en){ if (en[0].isIntersecting) { ro.disconnect(); load(); } }, {rootMargin: '600px'}); ro.observe(rs); }
+    else load();
+    var hd = rs.querySelector('.reveal'); if (hd) hd.classList.add('is-in');
+  }).catch(function(){});
 
   // Heading reveal
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
