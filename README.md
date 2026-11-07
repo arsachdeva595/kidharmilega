@@ -85,6 +85,10 @@ Free tool: the user describes their business and themselves, leaves an email, an
 
 Free tool: "₹50,000 mein kaunsa business?" The user enters their own money, state, loan preference and the kind of work they like, leaves an email, and gets ranked district businesses split into "start with your own money" and "with a PMEGP loan" (own money covers the 10% / 5% own contribution, project capped at ₹50 lakh), with setup cost, margins, break-even, rough EMI and links to the product page, Supplier Finder and Scheme Finder. Data comes from `data/districts.csv`; `build.py` calls `budget_matcher.py`, which writes `data.json` next to the page. Link to it with `?budget=50000&state=Uttar%20Pradesh` to prefill the form (handy for reel captions).
 
+## HSN Code Finder tool (`/tools/hsn-code-finder/`)
+
+Free, no signup: type a product in plain words (achar, haldi, bedsheet) or part of a code and get the 8-digit HSN code, its 6-digit international code, heading and chapter, the GST invoice digit rule, India's exports of that code (UN Comtrade), ODOP districts that make it, and links to the Supplier Finder, Export Buyer Finder, uktradeinfo and Budget Matcher. Also a crawlable table of ODOP products and their HSN headings. GST rates are not included (no checked rate table after the September 2025 changes); the page links to CBIC's rate page instead. `build.py` calls `hsn_finder.py` after the Supplier Finder and Export Buyer Finder, whose published data files it reuses. Deep links: `?hsn=09103010` or `?q=achar`.
+
 ---
 
 ## Folder structure

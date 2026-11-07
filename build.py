@@ -7,6 +7,7 @@ import supplier_finder
 import export_buyer_finder
 import scheme_finder
 import budget_matcher
+import hsn_finder
 import urllib.parse
 
 SITE_URL   = "https://kidharmilega.in"
@@ -133,6 +134,7 @@ def footer():
     <a href="{p('/tools/supplier-finder/')}">Supplier Finder</a>
     <a href="{p('/tools/export-buyer-finder/')}">Export Buyer Finder</a>
     <a href="{p('/tools/budget-matcher/')}">Budget Matcher</a>
+    <a href="{p('/tools/hsn-code-finder/')}">HSN Code Finder</a>
     <a href="{p('/events/')}">Events</a>
     <a href="{p('/what-is-odop/')}">Why ODOP?</a>
     <a href="{p('/about-us/')}">About Us</a>
@@ -1846,6 +1848,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}{export_buyer_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{scheme_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{budget_matcher.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{hsn_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2168,6 +2171,8 @@ def build():
     print(f"✓ Scheme Finder: {n_c} central + {n_s} state schemes")
     n_bm = budget_matcher.write_budget_matcher(DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
     print(f"✓ Budget Matcher: {n_bm} district businesses with a setup cost")
+    n_hl, n_ht = hsn_finder.write_hsn_finder(DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
+    print(f"✓ HSN Code Finder: {n_hl} HSN lines, {n_ht} ODOP products in the table")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()
