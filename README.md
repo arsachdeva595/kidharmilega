@@ -89,6 +89,10 @@ Free tool: "₹50,000 mein kaunsa business?" The user enters their own money, st
 
 Free, no signup: type a product in plain words (achar, haldi, bedsheet) or part of a code and get the 8-digit HSN code, its 6-digit international code, heading and chapter, the GST invoice digit rule, India's exports of that code (UN Comtrade), ODOP districts that make it, and links to the Supplier Finder, Export Buyer Finder, uktradeinfo and Budget Matcher. Also a crawlable table of ODOP products and their HSN headings. GST rates are not included (no checked rate table after the September 2025 changes); the page links to CBIC's rate page instead. `build.py` calls `hsn_finder.py` after the Supplier Finder and Export Buyer Finder, whose published data files it reuses. Deep links: `?hsn=09103010` or `?q=achar`.
 
+## Expo Finder tool (`/tools/expo-finder/`)
+
+Free tool: the user picks their city, product and goal (sell to visitors, find dealers, meet export buyers, find suppliers), leaves an email, and gets a report of the trade fairs and expos worth a stall: live events in their city, the big recurring fairs that fit with venue, usual month and who visits, nearby venues, stall subsidies, a budget and break-even calculator, AI prompts and a checklist. `build.py` calls `expo_finder.py`. Details in `tools_src/expo-finder/README.md`.
+
 ---
 
 ## Folder structure

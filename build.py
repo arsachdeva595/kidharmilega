@@ -8,6 +8,7 @@ import export_buyer_finder
 import scheme_finder
 import budget_matcher
 import hsn_finder
+import expo_finder
 import urllib.parse
 
 SITE_URL   = "https://kidharmilega.in"
@@ -668,6 +669,7 @@ def build_events_page(exhibition_posts=None):
     <div class="section-label">Events &amp; Expos</div>
     <h1 class="page-header-title">Trade shows across<br><em>100 Indian cities</em></h1>
     <p class="page-header-sub">Real-time event listings &#8212; trade fairs, B2B summits, craft expos and local haats.</p>
+    <p style="margin-top:16px"><a class="btn btn-primary" href="{p(expo_finder.TOOL_PATH)}">Find the fairs worth a stall for your product (free) &#8594;</a></p>
   </div>
   {city_section}
 </div></main>''' + footer() + AE_SCRIPT + "</body></html>"
@@ -706,6 +708,7 @@ def build_exhibition_page(post):
     <div class="section-label">Upcoming Events</div>
     <h2 class="section-title">Events in {esc(ae_city)}</h2>
     <div style="margin-top:16px">{ae_widget(ae_city, ae_cat)}</div>
+    <div class="info-box info-neutral" style="margin-top:20px"><strong>Planning to take a stall?</strong> Get a free report of the big trade fairs near {esc(ae_city)} that fit your product, stall subsidies and a budget calculator. <a href="{p(expo_finder.TOOL_PATH)}?city={urllib.parse.quote(ae_city)}" style="color:var(--color-link);font-weight:600">Open the Expo Finder &#8594;</a></div>
   </section>
   {content_section}
   <div class="cta-block" style="margin-top:60px">
@@ -1849,6 +1852,7 @@ def build_sitemap(districts, cities=None, ideas=None):
         u(f"{SITE_URL}{scheme_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{budget_matcher.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}{hsn_finder.TOOL_PATH}", "monthly", "0.9"),
+        u(f"{SITE_URL}{expo_finder.TOOL_PATH}", "monthly", "0.9"),
         u(f"{SITE_URL}/what-is-odop/",       "monthly", "0.7"),
         u(f"{SITE_URL}/about-us/",           "monthly", "0.6"),
         u(f"{SITE_URL}/team/",               "monthly", "0.5"),
@@ -2173,6 +2177,9 @@ def build():
     print(f"✓ Budget Matcher: {n_bm} district businesses with a setup cost")
     n_hl, n_ht = hsn_finder.write_hsn_finder(DIST_DIR, districts, product_page_slug, head, nav, footer, esc, p)
     print(f"✓ HSN Code Finder: {n_hl} HSN lines, {n_ht} ODOP products in the table")
+    n_fairs, n_cities = expo_finder.write_expo_finder(DIST_DIR, head, nav, footer, esc, p,
+        expo_finder.city_pages_from_posts(exhibition_posts, parse_wp_shortcode))
+    print(f"✓ Expo Finder: {n_fairs} fairs, {n_cities} cities")
 
     if PUBLISH_IDEA_GUIDES:
         publish_guides()

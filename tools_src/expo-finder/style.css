@@ -1,0 +1,54 @@
+/* Expo Finder: builds on /tools/supplier-finder/style.css (.sf-*) and /tools/scheme-finder/style.css (.scf-*). */
+.exf .scf-radios + .scf-radios{margin-top:var(--space-md)}
+.exf-when{margin-top:8px;font-size:14px;color:var(--color-ink);display:flex;flex-direction:column;gap:2px}
+.exf-when span{font-size:13px;color:var(--color-accent-2-deep);font-weight:600}
+.exf-place{font-size:14px;color:var(--color-neutral);margin:2px 0 8px}
+.exf-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--space-md)}
+.exf-ae{background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:8px;min-height:120px}
+.exf-report .scf-sub a{color:var(--color-link);text-decoration:underline}
+
+.exf-venues{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:var(--space-md)}
+.exf-venues li{background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:var(--space-md);display:flex;flex-direction:column;gap:2px}
+.exf-venues strong{color:var(--color-ink);font-size:15px}
+.exf-venues span{font-size:13px;color:var(--color-muted)}
+.exf-venues a{font-size:14px;font-weight:600;color:var(--color-link);margin-top:4px}
+
+.exf-calc{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--space-lg);background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:var(--space-lg);box-shadow:var(--shadow-card)}
+.exf-calc__in{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.exf-field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--color-ink-2)}
+.exf-field .sf-input{margin:0}
+.exf-field small{font-size:12px;color:var(--color-muted);line-height:1.4}
+.exf-calc__out{background:var(--color-paper-2);border-radius:var(--radius-input);padding:var(--space-md);align-self:start}
+.exf-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--color-rule);font-size:14px;color:var(--color-ink-2)}
+.exf-row:first-child{border-top:0}
+.exf-row.is-total{border-top:2px solid var(--color-ink);font-size:16px;color:var(--color-ink)}
+.exf-be{margin-top:var(--space-md);padding:12px 14px;border-radius:var(--radius-input);background:var(--tint-blue);border:1px solid var(--tint-blue-2);font-size:15px}
+.exf-be strong{font-size:1.4rem;color:var(--color-ink)}
+.exf-be small{display:block;font-size:13px;color:var(--color-neutral);margin-top:4px;line-height:1.5}
+
+.exf-prompts{display:grid;gap:10px}
+.exf-prompt{background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:var(--space-md) var(--space-lg)}
+.exf-prompt summary{cursor:pointer;font-weight:600;color:var(--color-ink)}
+.exf-prompt pre{white-space:pre-wrap;word-break:break-word;font-family:var(--font-label);font-size:13px;line-height:1.55;background:var(--color-paper-2);border-radius:var(--radius-input);padding:12px 14px;margin:12px 0;color:var(--color-ink-2);max-height:360px;overflow:auto}
+
+.exf-check{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:var(--space-md)}
+.exf-check > div{background:var(--color-paper);border:1px solid var(--color-rule);border-radius:var(--radius-card);padding:var(--space-md) var(--space-lg)}
+.exf-check h3{font-size:var(--text-lg);margin-bottom:6px}
+.exf-check ul{list-style:none}
+.exf-check label{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;color:var(--color-ink-2);padding:5px 0;cursor:pointer}
+.exf-check input{width:16px;height:16px;flex:0 0 16px;margin-top:3px;accent-color:var(--color-accent-2-deep)}
+.exf-check input:checked + span{text-decoration:line-through;color:var(--color-muted)}
+.exf-flags{background:var(--tint-sun);border:1px solid var(--tint-sun-2);border-radius:var(--radius-card);padding:var(--space-md) var(--space-lg)}
+.exf-flags ul{padding-left:1.2rem}
+.exf-flags li{font-size:14px;margin-top:6px;color:var(--color-ink-2)}
+
+@media (max-width:720px){
+  .exf-calc{grid-template-columns:1fr;padding:var(--space-md)}
+  .exf-calc__in{grid-template-columns:1fr}
+}
+@media print{
+  .exf-ae,.exf-links,.exf-copy{display:none!important}
+  .exf-prompt pre{max-height:none}
+  .exf-calc,.exf-prompt{box-shadow:none;break-inside:avoid}
+}
+.exf-report .scf-fine a{color:var(--color-link);text-decoration:underline}
